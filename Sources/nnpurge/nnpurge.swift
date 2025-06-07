@@ -14,7 +14,8 @@ struct nnpurge: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A command-line tool to clean up Xcode's derived data folders with interactive prompts for safety and precision.",
         subcommands: [
-            DeleteDerivedData.self
+            DeleteDerivedData.self,
+            SetDerivedDataPath.self
         ]
     )
 }
@@ -49,12 +50,30 @@ extension nnpurge {
             try moveFoldersToTrash(foldersToDelete)
         }
     }
+
+    struct SetDerivedDataPath: ParsableCommand {
+        static let configuration = CommandConfiguration(
+            commandName: "sdp",
+            abstract: "Sets the path where derived data is located"
+        )
+
+        @Argument(help: "Path to Xcode's DerivedData folder")
+        var path: String
+
+        func run() throws {
+            let expandedPath = NSString(string: path).expandingTildeInPath
+            UserDefaults.standard.set(expandedPath, forKey: "derivedDataPath")
+            print("Derived data path set to \(expandedPath)")
+        }
+    }
 }
 
 extension nnpurge.DeleteDerivedData {
     func loadDerivedDataFolders() throws -> [Folder] {
-        let derivedDataPath = "~/Library/Developer/Xcode/DerivedData"
-        return try Folder(path: derivedDataPath).subfolders.map { $0 }
+        let defaultPath = "~/Library/Developer/Xcode/DerivedData"
+        let savedPath = UserDefaults.standard.string(forKey: "derivedDataPath") ?? defaultPath
+        let expandedPath = NSString(string: savedPath).expandingTildeInPath
+        return try Folder(path: expandedPath).subfolders.map { $0 }
     }
     
     func moveFoldersToTrash(_ folders: [Folder]) throws {
