@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "nnpurge",
+    platforms: [
+        .macOS(.v14),
+    ],
     products: [
         .library(
             name: "nnpurge",
