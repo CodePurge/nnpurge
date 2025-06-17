@@ -1,5 +1,11 @@
 // swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
+//
+//  Package.swift
+//  nnpurge
+//
+//  Created by Nikolai Nobadi on 6/17/25.
+//
 
 import PackageDescription
 
