@@ -35,5 +35,12 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
+        .testTarget(
+            name: "nnpurgeTests",
+            dependencies: [
+                "nnpurge",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
+        ),
     ]
 )
