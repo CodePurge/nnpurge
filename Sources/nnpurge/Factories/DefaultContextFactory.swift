@@ -18,6 +18,10 @@ struct DefaultContextFactory: ContextFactory {
     }
 
     func makeDerivedDataManager(defaults: UserDefaultsProtocol) -> DerivedDataManaging {
-        return DerivedDataManager(userDefaults: defaults)
+        return DerivedDataManager(
+            userDefaults: defaults,
+            folderLoader: FolderLoader(),
+            fileManager: FileManager.default
+        )
     }
 }
