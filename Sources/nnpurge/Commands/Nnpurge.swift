@@ -1,3 +1,4 @@
+import SwiftPicker
 import ArgumentParser
 
 struct nnpurge: ParsableCommand {
@@ -8,4 +9,20 @@ struct nnpurge: ParsableCommand {
             SetDerivedDataPath.self
         ]
     )
+
+    nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
+}
+
+extension nnpurge {
+    static func makePicker() -> Picker {
+        return contextFactory.makePicker()
+    }
+    
+    static func makeUserDefaults() -> UserDefaultsProtocol {
+        return contextFactory.makeUserDefaults()
+    }
+
+    static func makeDerivedDataManager() -> DerivedDataManaging {
+        return contextFactory.makeDerivedDataManager(defaults: makeUserDefaults())
+    }
 }

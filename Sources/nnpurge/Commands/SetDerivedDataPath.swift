@@ -13,7 +13,8 @@ extension nnpurge {
 
         func run() throws {
             let expandedPath = NSString(string: path).expandingTildeInPath
-            UserDefaults.standard.set(expandedPath, forKey: "derivedDataPath")
+            let userDefaults = nnpurge.makeUserDefaults()
+            userDefaults.set(expandedPath, forKey: "derivedDataPath")
             print("Derived data path set to \(expandedPath)")
         }
     }

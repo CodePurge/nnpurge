@@ -13,8 +13,9 @@ extension nnpurge {
         var all: Bool = false
 
         func run() throws {
-            let picker = SwiftPicker()
-            var foldersToDelete = try DerivedDataManager.loadDerivedDataFolders()
+            let picker = nnpurge.makePicker()
+            let manager = nnpurge.makeDerivedDataManager()
+            var foldersToDelete = try manager.loadDerivedDataFolders()
 
             if all {
                 try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
@@ -29,7 +30,7 @@ extension nnpurge {
                 }
             }
 
-            try DerivedDataManager.moveFoldersToTrash(foldersToDelete)
+            try manager.moveFoldersToTrash(foldersToDelete)
         }
     }
 }
