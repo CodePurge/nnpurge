@@ -8,12 +8,12 @@
 import Files
 import Foundation
 
-struct DerivedDataManager: DerivedDataManaging {
-    let userDefaults: UserDefaultsProtocol
-    let folderLoader: FolderLoading
-    let fileManager: FileManagerProtocol
+struct DerivedDataManager: DerivedDataDelegate {
+    let userDefaults: DerivedDataStore
+    let folderLoader: FolderLoader
+    let fileManager: FileTrasher
 
-    init(userDefaults: UserDefaultsProtocol, folderLoader: FolderLoading = FolderLoader(), fileManager: FileManagerProtocol = FileManager.default) {
+    init(userDefaults: DerivedDataStore, folderLoader: FolderLoader = DefaultFolderLoader(), fileManager: FileTrasher = FileManager.default) {
         self.userDefaults = userDefaults
         self.folderLoader = folderLoader
         self.fileManager = fileManager

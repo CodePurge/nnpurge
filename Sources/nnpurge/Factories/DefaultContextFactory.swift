@@ -13,14 +13,14 @@ struct DefaultContextFactory: ContextFactory {
         return SwiftPicker()
     }
     
-    func makeUserDefaults() -> UserDefaultsProtocol {
+    func makeUserDefaults() -> DerivedDataStore {
         return UserDefaults.standard
     }
 
-    func makeDerivedDataManager(defaults: UserDefaultsProtocol) -> DerivedDataManaging {
+    func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
         return DerivedDataManager(
             userDefaults: defaults,
-            folderLoader: FolderLoader(),
+            folderLoader: DefaultFolderLoader(),
             fileManager: FileManager.default
         )
     }

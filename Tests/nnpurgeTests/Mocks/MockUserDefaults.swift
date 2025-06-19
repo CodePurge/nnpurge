@@ -7,7 +7,7 @@
 
 @testable import nnpurge
 
-final class MockUserDefaults: UserDefaultsProtocol {
+final class MockUserDefaults: DerivedDataStore {
     private(set) var values: [String: Any] = [:]
 
     func string(forKey defaultName: String) -> String? {

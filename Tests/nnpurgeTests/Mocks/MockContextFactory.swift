@@ -15,11 +15,11 @@ struct MockContextFactory: ContextFactory {
         fatalError("makePicker() not implemented")
     }
 
-    func makeUserDefaults() -> UserDefaultsProtocol {
+    func makeUserDefaults() -> DerivedDataStore {
         return userDefaults
     }
 
-    func makeDerivedDataManager(defaults: UserDefaultsProtocol) -> DerivedDataManaging {
+    func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
         fatalError("makeDerivedDataManager(defaults:) not implemented")
     }
 }
