@@ -1,8 +1,8 @@
 # nnpurge
 
-![Swift](https://img.shields.io/badge/Swift-6.0-orange)
+![Swift Version](https://badgen.net/badge/swift/6.0%2B/purple)
 ![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-blue)
-![License](LICENSE)
+![License](https://img.shields.io/badge/license-MIT-lightgray)
 
 ## Overview
 
