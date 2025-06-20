@@ -1,5 +1,11 @@
 // swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
+//
+//  Package.swift
+//  nnpurge
+//
+//  Created by Nikolai Nobadi on 6/17/25.
+//
 
 import PackageDescription
 
@@ -26,6 +32,13 @@ let package = Package(
                 "Files",
                 "SwiftShell",
                 "SwiftPicker",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
+        ),
+        .testTarget(
+            name: "nnpurgeTests",
+            dependencies: [
+                "nnpurge",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
