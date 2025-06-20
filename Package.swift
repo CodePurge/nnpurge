@@ -15,7 +15,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
-        .library(
+        .executable(
             name: "nnpurge",
             targets: ["nnpurge"]),
     ],
@@ -26,7 +26,7 @@ let package = Package(
         .package(url: "https://github.com/nikolainobadi/SwiftPicker.git", branch: "picker-protocol"),
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "nnpurge",
             dependencies: [
                 "Files",
