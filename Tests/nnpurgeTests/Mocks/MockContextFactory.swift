@@ -8,7 +8,9 @@
 import SwiftPicker
 @testable import nnpurge
 
+/// Test double used to supply mock dependencies in unit tests.
 struct MockContextFactory: ContextFactory {
+    /// In-memory replacement for ``UserDefaults``.
     let userDefaults = MockUserDefaults()
 
     func makePicker() -> Picker {

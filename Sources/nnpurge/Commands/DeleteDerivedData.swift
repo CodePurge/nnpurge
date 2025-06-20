@@ -10,6 +10,10 @@ import Files
 import SwiftPicker
 
 extension nnpurge {
+    /// Command that removes Xcode derived data folders.
+    ///
+    /// When run interactively the command will prompt the user for
+    /// confirmation before deleting any folders.
     struct DeleteDerivedData: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "ddd",
@@ -19,6 +23,7 @@ extension nnpurge {
         @Flag(name: .shortAndLong, help: "Deletes all derived data folders.")
         var all: Bool = false
 
+        /// Executes the deletion command based on the provided options.
         func run() throws {
             let picker = nnpurge.makePicker()
             let manager = nnpurge.makeDerivedDataManager()

@@ -7,8 +7,12 @@
 
 import Foundation
 
+/// Lightweight abstraction over ``UserDefaults`` used for storing configuration.
 protocol DerivedDataStore {
+    /// Retrieves a stored string value for the given key.
     func string(forKey defaultName: String) -> String?
+
+    /// Persists a value for the given key.
     func set(_ value: Any?, forKey defaultName: String)
 }
 

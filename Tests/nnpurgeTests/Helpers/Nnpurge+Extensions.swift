@@ -10,6 +10,7 @@ import ArgumentParser
 @testable import nnpurge
 
 extension nnpurge {
+    /// Runs the command with the provided arguments and returns any printed output.
     @discardableResult
     static func testRun(contextFactory: MockContextFactory? = nil, args: [String]? = []) throws -> String {
         self.contextFactory = contextFactory ?? MockContextFactory()
@@ -18,6 +19,7 @@ extension nnpurge {
 }
 
 fileprivate extension nnpurge {
+    /// Captures stdout from invoking the command so it can be asserted in tests.
     static func captureOutput(factory: MockContextFactory? = nil, args: [String]?) throws -> String {
         let pipe = Pipe()
         let readHandle = pipe.fileHandleForReading
