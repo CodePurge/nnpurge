@@ -2,7 +2,7 @@
 
 ![Swift](https://img.shields.io/badge/Swift-6.0-orange)
 ![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-blue)
-![License](https://img.shields.io/github/license/CodePurge/nnpurge)
+![License](LICENSE)
 
 ## Overview
 
