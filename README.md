@@ -34,6 +34,12 @@ Then add `.build/release/nnpurge` to your PATH.
 
 ## Usage
 
+### Check the version
+
+```bash
+nnpurge --version
+```
+
 ### Set a custom DerivedData path
 
 ```bash
