@@ -74,6 +74,12 @@ nnpurge dspc
 nnpurge dspc --all
 ```
 
+**Open packages folder:**
+
+```bash
+nnpurge dspc --open
+```
+
 ## Documentation
 
 - The project includes extensive inline documentation in the source files.

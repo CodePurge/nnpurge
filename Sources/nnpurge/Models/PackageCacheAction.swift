@@ -13,6 +13,8 @@ enum PackageCacheAction: CaseIterable {
     case deleteAll
     /// Select specific repositories to delete.
     case deleteSelectFolder
+    /// Open the Swift Package repositories folder in Finder.
+    case openFolder
 }
 
 extension PackageCacheAction: DisplayablePickerItem {
@@ -23,6 +25,8 @@ extension PackageCacheAction: DisplayablePickerItem {
             return "Delete all package repositories."
         case .deleteSelectFolder:
             return "Delete selected package repositories"
+        case .openFolder:
+            return "Open the package repositories folder"
         }
     }
 }

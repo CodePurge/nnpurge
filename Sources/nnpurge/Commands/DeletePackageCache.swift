@@ -8,6 +8,7 @@
 import ArgumentParser
 import Files
 import SwiftPicker
+import Foundation
 
 extension nnpurge {
     /// Command that removes cached Swift Package repositories.
@@ -23,8 +24,16 @@ extension nnpurge {
         @Flag(name: .shortAndLong, help: "Deletes all cached package repositories.")
         var all: Bool = false
 
+        @Flag(name: .shortAndLong, help: "Opens the cached package repositories folder.")
+        var open: Bool = false
+
         /// Executes the deletion command based on the provided options.
         func run() throws {
+            if open {
+                try openPackageCacheFolder()
+                return
+            }
+
             let picker = nnpurge.makePicker()
             let manager = nnpurge.makePackageCacheManager()
             var foldersToDelete = try manager.loadPackageFolders()
@@ -39,10 +48,25 @@ extension nnpurge {
                     try picker.requiredPermission(prompt: "Are you sure you want to delete all cached package repositories?")
                 case .deleteSelectFolder:
                     foldersToDelete = picker.multiSelection("Select the repositories to delete.", items: foldersToDelete)
+                case .openFolder:
+                    try openPackageCacheFolder()
+                    return
                 }
             }
 
             try manager.moveFoldersToTrash(foldersToDelete)
+        }
+
+        /// Opens the cached Swift Package repositories folder in Finder.
+        private func openPackageCacheFolder() throws {
+            let path = "~/Library/Caches/org.swift.swiftpm/repositories"
+            let expandedPath = NSString(string: path).expandingTildeInPath
+
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+            process.arguments = [expandedPath]
+            try process.run()
+            process.waitUntilExit()
         }
     }
 }
