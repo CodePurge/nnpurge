@@ -13,6 +13,7 @@ Built with modular testable components and leveraging Swift Argument Parser, Swi
 ## Features
 
 - Delete all or selected DerivedData folders
+- Open the DerivedData folder in Finder
 - Delete all or selected Swift Package cache repositories
 - Store custom DerivedData path preferences
 - Interactive prompts using `SwiftPicker`
@@ -51,6 +52,12 @@ nnpurge ddd
 
 ```bash
 nnpurge ddd --all
+```
+
+**Open DerivedData folder:**
+
+```bash
+nnpurge ddd --open
 ```
 
 ### Delete Swift Package cache

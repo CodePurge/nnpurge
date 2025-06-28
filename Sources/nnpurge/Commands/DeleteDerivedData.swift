@@ -8,6 +8,7 @@
 import ArgumentParser
 import Files
 import SwiftPicker
+import Foundation
 
 extension nnpurge {
     /// Command that removes Xcode derived data folders.
@@ -23,8 +24,16 @@ extension nnpurge {
         @Flag(name: .shortAndLong, help: "Deletes all derived data folders.")
         var all: Bool = false
 
+        @Flag(name: .shortAndLong, help: "Opens the DerivedData folder.")
+        var open: Bool = false
+
         /// Executes the deletion command based on the provided options.
         func run() throws {
+            if open {
+                try openDerivedDataFolder()
+                return
+            }
+
             let picker = nnpurge.makePicker()
             let manager = nnpurge.makeDerivedDataManager()
             var foldersToDelete = try manager.loadDerivedDataFolders()
@@ -39,10 +48,27 @@ extension nnpurge {
                     try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
                 case .deleteSelectFolder:
                     foldersToDelete = picker.multiSelection("Select the folders to delete.", items: foldersToDelete)
+                case .openFolder:
+                    try openDerivedDataFolder()
+                    return
                 }
             }
 
             try manager.moveFoldersToTrash(foldersToDelete)
+        }
+
+        /// Opens the DerivedData folder in Finder.
+        private func openDerivedDataFolder() throws {
+            let userDefaults = nnpurge.makeUserDefaults()
+            let defaultPath = "~/Library/Developer/Xcode/DerivedData"
+            let savedPath = userDefaults.string(forKey: "derivedDataPath") ?? defaultPath
+            let expandedPath = NSString(string: savedPath).expandingTildeInPath
+
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+            process.arguments = [expandedPath]
+            try process.run()
+            process.waitUntilExit()
         }
     }
 }

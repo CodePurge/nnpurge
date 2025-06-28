@@ -13,6 +13,8 @@ enum DerivedDataAction: CaseIterable {
     case deleteAll
     /// Select specific folders to delete.
     case deleteSelectFolder
+    /// Open the DerivedData folder in Finder.
+    case openFolder
 }
 
 extension DerivedDataAction: DisplayablePickerItem {
@@ -23,6 +25,8 @@ extension DerivedDataAction: DisplayablePickerItem {
             return "Delete all derived data folders."
         case .deleteSelectFolder:
             return "Delete selected derived data folders"
+        case .openFolder:
+            return "Open the DerivedData folder"
         }
     }
 }
