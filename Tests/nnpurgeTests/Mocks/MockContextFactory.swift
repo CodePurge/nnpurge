@@ -24,4 +24,8 @@ struct MockContextFactory: ContextFactory {
     func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
         fatalError("makeDerivedDataManager(defaults:) not implemented")
     }
+
+    func makePackageCacheManager() -> PackageCacheDelegate {
+        fatalError("makePackageCacheManager() not implemented")
+    }
 }

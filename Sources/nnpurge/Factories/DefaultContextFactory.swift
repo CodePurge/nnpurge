@@ -28,4 +28,12 @@ struct DefaultContextFactory: ContextFactory {
             fileManager: FileManager.default
         )
     }
+
+    /// Creates a ``PackageCacheManager`` with default dependencies.
+    func makePackageCacheManager() -> PackageCacheDelegate {
+        return PackageCacheManager(
+            folderLoader: DefaultFolderLoader(),
+            fileManager: FileManager.default
+        )
+    }
 }

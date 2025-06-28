@@ -13,6 +13,7 @@ Built with modular testable components and leveraging Swift Argument Parser, Swi
 ## Features
 
 - Delete all or selected DerivedData folders
+- Delete all or selected Swift Package cache repositories
 - Store custom DerivedData path preferences
 - Interactive prompts using `SwiftPicker`
 - Fully testable with mock dependencies
@@ -50,6 +51,20 @@ nnpurge ddd
 
 ```bash
 nnpurge ddd --all
+```
+
+### Delete Swift Package cache
+
+**Interactively:**
+
+```bash
+nnpurge dspc
+```
+
+**Force delete all:**
+
+```bash
+nnpurge dspc --all
 ```
 
 ## Documentation

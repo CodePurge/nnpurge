@@ -12,12 +12,14 @@ import ArgumentParser
 ///
 /// Provides access to subcommands and exposes factory helpers used
 /// throughout the application.
+@main
 struct nnpurge: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A command-line tool to clean up Xcode's derived data folders with interactive prompts for safety and precision.",
         subcommands: [
             DeleteDerivedData.self,
-            SetDerivedDataPath.self
+            SetDerivedDataPath.self,
+            DeletePackageCache.self
         ]
     )
 
@@ -40,5 +42,10 @@ extension nnpurge {
     /// derived data folders.
     static func makeDerivedDataManager() -> DerivedDataDelegate {
         return contextFactory.makeDerivedDataManager(defaults: makeUserDefaults())
+    }
+
+    /// Creates a ``PackageCacheDelegate`` responsible for loading and deleting cached package repositories.
+    static func makePackageCacheManager() -> PackageCacheDelegate {
+        return contextFactory.makePackageCacheManager()
     }
 }

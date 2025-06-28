@@ -17,4 +17,7 @@ protocol ContextFactory {
 
     /// Returns a manager responsible for handling DerivedData operations.
     func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate
+
+    /// Returns a manager responsible for handling Swift Package cache operations.
+    func makePackageCacheManager() -> PackageCacheDelegate
 }
