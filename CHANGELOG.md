@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-10-20
+
+### Added
+- Version display with `--version` flag
+- Open DerivedData folder in Finder with `ddd --open` command
+- Open Swift Package cache folder in Finder with `dspc --open` command
+
+### Changed
+- Minimum macOS version lowered from macOS 14 to macOS 13
+- Removed SwiftShell dependency to reduce external dependencies
+
 ## [0.1.0] - 2025-06-19
 
 ### Added
