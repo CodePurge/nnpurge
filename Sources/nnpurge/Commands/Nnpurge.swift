@@ -8,10 +8,6 @@
 import SwiftPicker
 import ArgumentParser
 
-/// Root command for the `nnpurge` CLI tool.
-///
-/// Provides access to subcommands and exposes factory helpers used
-/// throughout the application.
 @main
 struct nnpurge: ParsableCommand {
     static let configuration = CommandConfiguration(
@@ -28,25 +24,18 @@ struct nnpurge: ParsableCommand {
 }
 
 extension nnpurge {
-    /// Creates a `Picker` using the current ``ContextFactory``.
-    static func makePicker() -> Picker {
+    static func makePicker() -> any CommandLinePicker {
         return contextFactory.makePicker()
     }
-    
-    /// Creates a ``DerivedDataStore`` (``UserDefaults`` by default) using the
-    /// current ``ContextFactory``.
-    static func makeUserDefaults() -> DerivedDataStore {
+    static func makeUserDefaults() -> any DerivedDataStore {
         return contextFactory.makeUserDefaults()
     }
-
-    /// Creates a ``DerivedDataDelegate`` responsible for loading and deleting
-    /// derived data folders.
-    static func makeDerivedDataManager() -> DerivedDataDelegate {
+    
+    static func makeDerivedDataManager() -> any DerivedDataDelegate {
         return contextFactory.makeDerivedDataManager(defaults: makeUserDefaults())
     }
 
-    /// Creates a ``PackageCacheDelegate`` responsible for loading and deleting cached package repositories.
-    static func makePackageCacheManager() -> PackageCacheDelegate {
+    static func makePackageCacheManager() -> any PackageCacheDelegate {
         return contextFactory.makePackageCacheManager()
     }
 }

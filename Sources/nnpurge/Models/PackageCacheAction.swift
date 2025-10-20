@@ -7,18 +7,15 @@
 
 import SwiftPicker
 
-/// Actions available when choosing how to delete cached package repositories.
 enum PackageCacheAction: CaseIterable {
-    /// Delete every folder inside the Swift Package cache.
     case deleteAll
-    /// Select specific repositories to delete.
     case deleteSelectFolder
-    /// Open the Swift Package repositories folder in Finder.
     case openFolder
 }
 
+
+// MARK: - DisplayablePickerItem
 extension PackageCacheAction: DisplayablePickerItem {
-    /// Title shown when presenting options to the user.
     var displayName: String {
         switch self {
         case .deleteAll:

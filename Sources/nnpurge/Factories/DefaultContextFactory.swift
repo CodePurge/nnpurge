@@ -8,20 +8,16 @@
 import Foundation
 import SwiftPicker
 
-/// Default production implementation of ``ContextFactory``.
 struct DefaultContextFactory: ContextFactory {
-    /// Returns an interactive picker implementation.
-    func makePicker() -> Picker {
-        return SwiftPicker()
+    func makePicker() -> any CommandLinePicker {
+        return InteractivePicker()
     }
 
-    /// Returns ``UserDefaults.standard`` as the data store.
-    func makeUserDefaults() -> DerivedDataStore {
+    func makeUserDefaults() -> any DerivedDataStore {
         return UserDefaults.standard
     }
 
-    /// Creates a ``DerivedDataManager`` with default dependencies.
-    func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
+    func makeDerivedDataManager(defaults: DerivedDataStore) -> any DerivedDataDelegate {
         return DerivedDataManager(
             userDefaults: defaults,
             folderLoader: DefaultFolderLoader(),
@@ -29,8 +25,7 @@ struct DefaultContextFactory: ContextFactory {
         )
     }
 
-    /// Creates a ``PackageCacheManager`` with default dependencies.
-    func makePackageCacheManager() -> PackageCacheDelegate {
+    func makePackageCacheManager() -> any PackageCacheDelegate {
         return PackageCacheManager(
             folderLoader: DefaultFolderLoader(),
             fileManager: FileManager.default

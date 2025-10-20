@@ -8,28 +8,25 @@
 import Files
 import Foundation
 
-/// Concrete implementation responsible for locating and deleting cached Swift Package repositories.
-struct PackageCacheManager: PackageCacheDelegate {
-    /// Object used for enumerating folders at the cache path.
+struct PackageCacheManager {
     let folderLoader: FolderLoader
-
-    /// File manager capable of moving items to the trash.
     let fileManager: FileTrasher
-
-    /// Creates a manager with injectable dependencies for testing or customisation.
+    
     init(folderLoader: FolderLoader = DefaultFolderLoader(), fileManager: FileTrasher = FileManager.default) {
         self.folderLoader = folderLoader
         self.fileManager = fileManager
     }
+}
 
-    /// Loads all package repository folders located in the global Swift Package cache.
+
+// MARK: - PackageCacheDelegate
+extension PackageCacheManager: PackageCacheDelegate {
     func loadPackageFolders() throws -> [Folder] {
         let path = "~/Library/Caches/org.swift.swiftpm/repositories"
         let expandedPath = NSString(string: path).expandingTildeInPath
         return try folderLoader.subfolders(at: expandedPath)
     }
 
-    /// Moves the provided folders to the user's Trash.
     func moveFoldersToTrash(_ folders: [Folder]) throws {
         for folder in folders {
             print("Moving \(folder.name) to Trash")
