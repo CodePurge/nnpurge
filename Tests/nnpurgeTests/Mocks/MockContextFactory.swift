@@ -8,12 +8,10 @@
 import SwiftPicker
 @testable import nnpurge
 
-/// Test double used to supply mock dependencies in unit tests.
 struct MockContextFactory: ContextFactory {
-    /// In-memory replacement for ``UserDefaults``.
     let userDefaults = MockUserDefaults()
 
-    func makePicker() -> Picker {
+    func makePicker() -> CommandLinePicker {
         fatalError("makePicker() not implemented")
     }
 
@@ -23,5 +21,9 @@ struct MockContextFactory: ContextFactory {
 
     func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
         fatalError("makeDerivedDataManager(defaults:) not implemented")
+    }
+
+    func makePackageCacheManager() -> PackageCacheDelegate {
+        fatalError("makePackageCacheManager() not implemented")
     }
 }

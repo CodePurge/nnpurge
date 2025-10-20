@@ -9,10 +9,8 @@ import Testing
 import Foundation
 @testable import nnpurge
 
-/// Tests for the ``SetDerivedDataPath`` command.
 struct SetDerivedDataPathTests {
     @Test("Run stores expanded path and prints message")
-    /// Verifies that the command saves the expanded path and outputs confirmation.
     func testRun_storesExpandedPath_andPrintsMessage() throws {
         let factory = MockContextFactory()
         let inputPath = "~/DerivedDataFolder"

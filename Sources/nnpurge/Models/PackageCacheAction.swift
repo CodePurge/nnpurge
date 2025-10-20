@@ -1,5 +1,5 @@
 //
-//  DerivedDataAction.swift
+//  PackageCacheAction.swift
 //  nnpurge
 //
 //  Created by Nikolai Nobadi on 6/17/25.
@@ -7,7 +7,7 @@
 
 import SwiftPicker
 
-enum DerivedDataAction: CaseIterable {
+enum PackageCacheAction: CaseIterable {
     case deleteAll
     case deleteSelectFolder
     case openFolder
@@ -15,15 +15,15 @@ enum DerivedDataAction: CaseIterable {
 
 
 // MARK: - DisplayablePickerItem
-extension DerivedDataAction: DisplayablePickerItem {
+extension PackageCacheAction: DisplayablePickerItem {
     var displayName: String {
         switch self {
         case .deleteAll:
-            return "Delete all derived data folders."
+            return "Delete all package repositories."
         case .deleteSelectFolder:
-            return "Delete selected derived data folders"
+            return "Delete selected package repositories"
         case .openFolder:
-            return "Open the DerivedData folder"
+            return "Open the package repositories folder"
         }
     }
 }
