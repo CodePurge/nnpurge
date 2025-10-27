@@ -5,8 +5,6 @@
 //  Created by Nikolai Nobadi on 10/26/25.
 //
 
-import Files
-
 public struct DerivedDataManager {
     private let store: PurgeRecordStore
     private let delegate: DerivedDataDelegate
@@ -28,16 +26,23 @@ public extension DerivedDataManager {
 
 // MARK: - Actions
 public extension DerivedDataManager {
-    func loadFolders() -> [Folder] {
-        return [] // TODO: -
+    func loadFolders() -> [PurgeFolder] {
+        return delegate.loadFolders()
     }
-    
+
     func deleteAllDerivedData() throws {
-        // TODO: - 
+        let allFolders = loadFolders()
+        
+        try deleteFolders(allFolders)
     }
-    
-    func deleteFolders(_ folders: [Folder]) throws {
-        // TODO: -
+
+    func deleteFolders(_ folders: [PurgeFolder]) throws {
+        for folder in folders {
+            try delegate.deleteFolder(folder)
+            // TODO: - update progress?
+        }
+        
+        // TODO: - save purge record?
     }
 }
 
@@ -48,8 +53,17 @@ protocol PurgeRecordStore {
 }
 
 protocol DerivedDataDelegate {
-    
+    func loadFolders() -> [PurgeFolder]
+    func deleteFolder(_ folder: PurgeFolder) throws
 }
 
 struct DefaultPurgeRecordStore: PurgeRecordStore { }
-struct DefaultDerivedDataDelegate: DerivedDataDelegate { }
+struct DefaultDerivedDataDelegate: DerivedDataDelegate {
+    func loadFolders() -> [PurgeFolder] {
+        return [] // TODO: -
+    }
+    
+    func deleteFolder(_ folder: PurgeFolder) throws {
+        // TODO: -
+    }
+}
