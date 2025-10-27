@@ -28,9 +28,7 @@ extension DerivedDataControllerTests {
     @Test("Deletes all derived data when flag true and permission granted")
     func deletesAllDerivedDataWhenFlagTrueAndPermissionGranted() throws {
         let (sut, service) = makeSUT(
-            picker: MockSwiftPicker(
-                permissionResult: .init(type: .ordered([true]))
-            )
+            permissionResult: .init(type: .ordered([true]))
         )
 
         try sut.deleteDerivedData(deleteAll: true)
@@ -41,9 +39,7 @@ extension DerivedDataControllerTests {
     @Test("Throws error when delete all flag true but permission denied")
     func throwsErrorWhenDeleteAllFlagTrueButPermissionDenied() throws {
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                permissionResult: .init(type: .ordered([false]))
-            )
+            permissionResult: .init(type: .ordered([false]))
         )
 
         #expect(throws: SwiftPickerError.selectionCancelled) {
@@ -55,10 +51,8 @@ extension DerivedDataControllerTests {
     func requestsPermissionWithCorrectPromptWhenDeletingAll() throws {
         let expectedPrompt = "Are you sure you want to delete all derived data?"
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                permissionResult: .init(
-                    type: .dictionary([expectedPrompt: true])
-                )
+            permissionResult: .init(
+                type: .dictionary([expectedPrompt: true])
             )
         )
 
@@ -72,11 +66,9 @@ extension DerivedDataControllerTests {
     @Test("Shows option selection when delete all flag false")
     func showsOptionSelectionWhenDeleteAllFlagFalse() throws {
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                permissionResult: .init(type: .ordered([true])),
-                selectionResult: .init(
-                    singleSelectionType: .ordered([0])
-                )
+            permissionResult: .init(type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([0])
             )
         )
 
@@ -86,10 +78,8 @@ extension DerivedDataControllerTests {
     @Test("Throws error when user cancels option selection")
     func throwsErrorWhenUserCancelsOptionSelection() throws {
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([nil])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([nil])
             )
         )
 
@@ -102,11 +92,9 @@ extension DerivedDataControllerTests {
     func deletesAllWhenUserSelectsDeleteAllOption() throws {
         let deleteAllIndex = 0
         let (sut, service) = makeSUT(
-            picker: .init(
-                permissionResult: .init(type: .ordered([true])),
-                selectionResult: .init(
-                    singleSelectionType: .ordered([deleteAllIndex])
-                )
+            permissionResult: .init(type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([deleteAllIndex])
             )
         )
 
@@ -123,11 +111,9 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder2")
         ]
         let (sut, service) = makeSUT(
-            picker: .init(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([selectFoldersIndex]),
-                    multiSelectionType: .ordered([[0]])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([selectFoldersIndex]),
+                multiSelectionType: .ordered([[0]])
             ),
             foldersToLoad: folders
         )
@@ -150,11 +136,9 @@ extension DerivedDataControllerTests {
         let folders = [folder1, folder2, folder3]
         let selectedIndices = [0, 2]
         let (sut, service) = makeSUT(
-            picker: .init(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([1]),
-                    multiSelectionType: .ordered([selectedIndices])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([selectedIndices])
             ),
             foldersToLoad: folders
         )
@@ -173,11 +157,9 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder2")
         ]
         let (sut, service) = makeSUT(
-            picker: MockSwiftPicker(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([1]),
-                    multiSelectionType: .ordered([[]])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([[]])
             ),
             foldersToLoad: folders
         )
@@ -195,11 +177,9 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder2")
         ]
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([1]),
-                    multiSelectionType: .dictionary([expectedPrompt: [0]])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .dictionary([expectedPrompt: [0]])
             ),
             foldersToLoad: folders
         )
@@ -214,9 +194,7 @@ extension DerivedDataControllerTests {
     @Test("Propagates delete all error from service")
     func propagatesDeleteAllErrorFromService() throws {
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                permissionResult: .init(type: .ordered([true]))
-            ),
+            permissionResult: .init(type: .ordered([true])),
             throwError: true
         )
 
@@ -229,11 +207,9 @@ extension DerivedDataControllerTests {
     func propagatesDeleteFoldersErrorFromService() throws {
         let folders = [makePurgeFolder(name: "Folder1")]
         let (sut, _) = makeSUT(
-            picker: MockSwiftPicker(
-                selectionResult: .init(
-                    singleSelectionType: .ordered([1]),
-                    multiSelectionType: .ordered([[0]])
-                )
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([[0]])
             ),
             throwError: true,
             foldersToLoad: folders
@@ -249,10 +225,17 @@ extension DerivedDataControllerTests {
 // MARK: - SUT
 private extension DerivedDataControllerTests {
     func makeSUT(
-        picker: MockSwiftPicker = MockSwiftPicker(),
+        inputResult: MockInputResult = .init(),
+        permissionResult: MockPermissionResult = .init(),
+        selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
     ) -> (sut: DerivedDataController, service: MockDerivedDataService) {
+        let picker = MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: selectionResult
+        )
         let service = MockDerivedDataService(throwError: throwError, foldersToLoad: foldersToLoad)
         let sut = DerivedDataController(picker: picker, service: service)
 
