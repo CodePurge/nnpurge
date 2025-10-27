@@ -27,6 +27,7 @@ let package = Package(
             dependencies: [
                 "Files",
                 "SwiftPicker",
+                "CodePurgeKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
