@@ -1,5 +1,5 @@
 //
-//  DerivedDataManager.swift
+//  OldDerivedDataManager.swift
 //  nnpurge
 //
 //  Created by Nikolai Nobadi on 6/17/25.
@@ -8,7 +8,7 @@
 import Files
 import Foundation
 
-struct DerivedDataManager {
+struct OldDerivedDataManager {
     let userDefaults: DerivedDataStore
     let folderLoader: FolderLoader
     let fileManager: FileTrasher
@@ -22,7 +22,7 @@ struct DerivedDataManager {
 
 
 // MARK: - DerivedDataDelegate
-extension DerivedDataManager: DerivedDataDelegate {
+extension OldDerivedDataManager: DerivedDataDelegate {
     func loadDerivedDataFolders() throws -> [Folder] {
         let defaultPath = "~/Library/Developer/Xcode/DerivedData"
         let savedPath = userDefaults.string(forKey: "derivedDataPath") ?? defaultPath

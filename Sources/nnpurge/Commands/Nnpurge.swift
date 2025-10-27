@@ -30,7 +30,11 @@ extension nnpurge {
     static func makeUserDefaults() -> any DerivedDataStore {
         return contextFactory.makeUserDefaults()
     }
-    
+
+    static func makeDerivedDataController() -> DerivedDataController {
+        return DerivedDataController(picker: makePicker(), manager: .init())
+    }
+
     static func makeDerivedDataManager() -> any DerivedDataDelegate {
         return contextFactory.makeDerivedDataManager(defaults: makeUserDefaults())
     }

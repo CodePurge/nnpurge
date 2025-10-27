@@ -33,7 +33,9 @@ let package = Package(
         ),
         .target(
             name: "CodePurgeKit",
-            dependencies: []
+            dependencies: [
+                "SwiftPicker"
+            ]
         ),
         .testTarget(
             name: "nnpurgeTests",

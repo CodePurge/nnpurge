@@ -28,28 +28,9 @@ extension nnpurge {
                 try openDerivedDataFolder()
                 return
             }
-            
-            let picker = nnpurge.makePicker()
-            let manager = nnpurge.makeDerivedDataManager()
-            var foldersToDelete = try manager.loadDerivedDataFolders()
-            
-            if all {
-                try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
-            } else {
-                let selection = try picker.requiredSingleSelection("What would you like to do?", items: DerivedDataAction.allCases)
-                
-                switch selection {
-                case .deleteAll:
-                    try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
-                case .deleteSelectFolder:
-                    foldersToDelete = picker.multiSelection("Select the folders to delete.", items: foldersToDelete)
-                case .openFolder:
-                    try openDerivedDataFolder()
-                    return
-                }
-            }
-            
-            try manager.moveFoldersToTrash(foldersToDelete)
+
+            let controller = nnpurge.makeDerivedDataController()
+            try controller.deleteDerivedData(deleteAll: all)
         }
     }
 }

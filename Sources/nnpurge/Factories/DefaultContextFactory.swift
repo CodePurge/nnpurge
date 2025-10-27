@@ -18,7 +18,7 @@ struct DefaultContextFactory: ContextFactory {
     }
 
     func makeDerivedDataManager(defaults: DerivedDataStore) -> any DerivedDataDelegate {
-        return DerivedDataManager(
+        return OldDerivedDataManager(
             userDefaults: defaults,
             folderLoader: DefaultFolderLoader(),
             fileManager: FileManager.default
