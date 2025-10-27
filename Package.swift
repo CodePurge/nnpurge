@@ -12,6 +12,9 @@ let package = Package(
         .executable(
             name: "nnpurge",
             targets: ["nnpurge"]),
+        .library(
+            name: "CodePurgeKit",
+            targets: ["CodePurgeKit"]),
     ],
     dependencies: [
         .package(url: "https://github.com/JohnSundell/Files", from: "4.0.0"),
@@ -26,6 +29,10 @@ let package = Package(
                 "SwiftPicker",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
+        ),
+        .target(
+            name: "CodePurgeKit",
+            dependencies: []
         ),
         .testTarget(
             name: "nnpurgeTests",
