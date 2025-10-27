@@ -10,11 +10,11 @@ import CodePurgeKit
 
 struct DerivedDataController {
     private let picker: CommandLinePicker
-    private let manager: DerivedDataManager
-    
-    init(picker: CommandLinePicker, manager: DerivedDataManager) {
+    private let service: DerivedDataService
+
+    init(picker: CommandLinePicker, service: DerivedDataService) {
         self.picker = picker
-        self.manager = manager
+        self.service = service
     }
 }
 
@@ -23,17 +23,17 @@ struct DerivedDataController {
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let option = try selectOption(deleteAll: deleteAll)
-        let allFolders = manager.loadFolders()
-        
+        let allFolders = service.loadFolders()
+
         switch option {
         case .deleteAll:
             try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
-            
-            try manager.deleteAllDerivedData()
+
+            try service.deleteAllDerivedData()
         case .selectFolders:
             let foldersToDelete = picker.multiSelection("Select the folders to delete.", items: allFolders)
-            
-            try manager.deleteFolders(foldersToDelete)
+
+            try service.deleteFolders(foldersToDelete)
         }
     }
 }

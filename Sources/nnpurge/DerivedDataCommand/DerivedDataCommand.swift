@@ -33,9 +33,9 @@ extension Nnpurge.DerivedDataCommand {
         
         func run() throws {
             let picker = Nnpurge.makePicker()
-            let manager = DerivedDataManager()
-            let controller = DerivedDataController(picker: picker, manager: manager)
-            
+            let service = DerivedDataManager()
+            let controller = DerivedDataController(picker: picker, service: service)
+
             try controller.deleteDerivedData(deleteAll: all)
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import SwiftPicker
+import CodePurgeKit
 import ArgumentParser
 
 @main
@@ -32,7 +33,7 @@ extension Nnpurge {
     }
 
     static func makeDerivedDataController() -> DerivedDataController {
-        return DerivedDataController(picker: makePicker(), manager: .init())
+        return DerivedDataController(picker: makePicker(), service: DerivedDataManager())
     }
 
     static func makeDerivedDataManager() -> any DerivedDataDelegate {

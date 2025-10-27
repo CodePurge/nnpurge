@@ -5,10 +5,10 @@
 //  Created by Nikolai Nobadi on 10/26/25.
 //
 
-public struct DerivedDataManager {
+public struct DerivedDataManager: DerivedDataService {
     private let store: PurgeRecordStore
     private let delegate: DerivedDataDelegate
-    
+
     init(store: PurgeRecordStore, delegate: DerivedDataDelegate) {
         self.store = store
         self.delegate = delegate
