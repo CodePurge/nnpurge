@@ -15,7 +15,7 @@ struct SetDerivedDataPathTests {
         let factory = MockContextFactory()
         let inputPath = "~/DerivedDataFolder"
         let expectedPath = NSString(string: inputPath).expandingTildeInPath
-        let output = try nnpurge.testRun(contextFactory: factory, args: ["sdp", inputPath])
+        let output = try Nnpurge.testRun(contextFactory: factory, args: ["sdp", inputPath])
 
         #expect(factory.userDefaults.values["derivedDataPath"] as? String == expectedPath)
         #expect(output == "Derived data path set to \(expectedPath)")

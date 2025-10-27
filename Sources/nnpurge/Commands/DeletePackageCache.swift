@@ -10,7 +10,7 @@ import Foundation
 import SwiftPicker
 import ArgumentParser
 
-extension nnpurge {
+extension Nnpurge {
     struct DeletePackageCache: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "spm",
@@ -29,8 +29,8 @@ extension nnpurge {
                 return
             }
             
-            let picker = nnpurge.makePicker()
-            let manager = nnpurge.makePackageCacheManager()
+            let picker = Nnpurge.makePicker()
+            let manager = Nnpurge.makePackageCacheManager()
             var foldersToDelete = try manager.loadPackageFolders()
             
             if all {
@@ -55,7 +55,7 @@ extension nnpurge {
 }
 
 // MARK: - Private Methods
-private extension nnpurge.DeletePackageCache {
+private extension Nnpurge.DeletePackageCache {
     func openPackageCacheFolder() throws {
         let path = "~/Library/Caches/org.swift.swiftpm/repositories"
         let expandedPath = NSString(string: path).expandingTildeInPath

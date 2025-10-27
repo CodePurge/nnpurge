@@ -10,7 +10,7 @@ import Foundation
 import SwiftPicker
 import ArgumentParser
 
-extension nnpurge {
+extension Nnpurge {
     struct DeleteDerivedData: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "ddd",
@@ -29,7 +29,7 @@ extension nnpurge {
                 return
             }
 
-            let controller = nnpurge.makeDerivedDataController()
+            let controller = Nnpurge.makeDerivedDataController()
             try controller.deleteDerivedData(deleteAll: all)
         }
     }
@@ -37,9 +37,9 @@ extension nnpurge {
 
 
 // MARK: - Private Methods
-private extension nnpurge.DeleteDerivedData {
+private extension Nnpurge.DeleteDerivedData {
     func openDerivedDataFolder() throws {
-        let userDefaults = nnpurge.makeUserDefaults()
+        let userDefaults = Nnpurge.makeUserDefaults()
         let defaultPath = "~/Library/Developer/Xcode/DerivedData"
         let savedPath = userDefaults.string(forKey: "derivedDataPath") ?? defaultPath
         let expandedPath = NSString(string: savedPath).expandingTildeInPath

@@ -8,7 +8,7 @@
 import Foundation
 import ArgumentParser
 
-extension nnpurge {
+extension Nnpurge {
     struct SetDerivedDataPath: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "sdp",
@@ -20,7 +20,7 @@ extension nnpurge {
 
         func run() throws {
             let expandedPath = NSString(string: path).expandingTildeInPath
-            let userDefaults = nnpurge.makeUserDefaults()
+            let userDefaults = Nnpurge.makeUserDefaults()
             
             userDefaults.set(expandedPath, forKey: "derivedDataPath")
             print("Derived data path set to \(expandedPath)")

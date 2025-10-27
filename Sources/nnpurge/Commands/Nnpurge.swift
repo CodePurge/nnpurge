@@ -9,7 +9,7 @@ import SwiftPicker
 import ArgumentParser
 
 @main
-struct nnpurge: ParsableCommand {
+struct Nnpurge: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A command-line tool to clean up Xcode's derived data folders with interactive prompts for safety and precision.",
         version: "0.2.0",
@@ -23,7 +23,7 @@ struct nnpurge: ParsableCommand {
     nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
 }
 
-extension nnpurge {
+extension Nnpurge {
     static func makePicker() -> any CommandLinePicker {
         return contextFactory.makePicker()
     }

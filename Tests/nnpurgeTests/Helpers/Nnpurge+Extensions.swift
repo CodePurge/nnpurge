@@ -9,7 +9,7 @@ import Foundation
 import ArgumentParser
 @testable import nnpurge
 
-extension nnpurge {
+extension Nnpurge {
     @discardableResult
     static func testRun(contextFactory: MockContextFactory? = nil, args: [String]? = []) throws -> String {
         self.contextFactory = contextFactory ?? MockContextFactory()
@@ -17,7 +17,7 @@ extension nnpurge {
     }
 }
 
-private extension nnpurge {
+private extension Nnpurge {
     static func captureOutput(factory: MockContextFactory? = nil, args: [String]?) throws -> String {
         let pipe = Pipe()
         let readHandle = pipe.fileHandleForReading
