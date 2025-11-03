@@ -36,14 +36,19 @@ let package = Package(
                 "Files"
             ]
         ),
+        .target(
+            name: "CodePurgeTesting",
+            dependencies: ["CodePurgeKit"]
+        ),
         .testTarget(
             name: "CodePurgeKitTests",
-            dependencies: ["CodePurgeKit"]
+            dependencies: ["CodePurgeKit", "CodePurgeTesting"]
         ),
         .testTarget(
             name: "nnpurgeTests",
             dependencies: [
                 "nnpurge",
+                "CodePurgeTesting",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "SwiftPickerTesting", package: "SwiftPicker")
             ]

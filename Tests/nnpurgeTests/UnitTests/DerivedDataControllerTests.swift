@@ -9,6 +9,7 @@ import Testing
 import Foundation
 import SwiftPicker
 import CodePurgeKit
+import CodePurgeTesting
 import SwiftPickerTesting
 @testable import nnpurge
 
@@ -236,11 +237,5 @@ private extension DerivedDataControllerTests {
         let sut = DerivedDataController(picker: picker, service: service)
 
         return (sut, service)
-    }
-
-    func makePurgeFolder(name: String = "TestFolder", path: String = "/path/to/folder", size: Int = 1000) -> PurgeFolder {
-        let url = URL(fileURLWithPath: path).appendingPathComponent(name)
-        
-        return .init(url: url, name: name, path: path, size: size)
     }
 }

@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import CodePurgeTesting
 @testable import CodePurgeKit
 
 struct DerivedDataManagerTests {
@@ -27,8 +28,8 @@ extension DerivedDataManagerTests {
     func loadsFoldersFromSpecifiedPathUsingDelegate() throws {
         let expectedPath = "/custom/derived/data/path"
         let folders = [
-            TestFactory.makePurgeFolder(name: "Folder1"),
-            TestFactory.makePurgeFolder(name: "Folder2")
+            makePurgeFolder(name: "Folder1"),
+            makePurgeFolder(name: "Folder2")
         ]
         let (sut, delegate) = makeSUT(path: expectedPath, foldersToLoad: folders)
 
@@ -65,9 +66,9 @@ extension DerivedDataManagerTests {
 extension DerivedDataManagerTests {
     @Test("Loads all folders and deletes them when deleting all")
     func loadsAllFoldersAndDeletesThemWhenDeletingAll() throws {
-        let folder1 = TestFactory.makePurgeFolder(name: "Folder1")
-        let folder2 = TestFactory.makePurgeFolder(name: "Folder2")
-        let folder3 = TestFactory.makePurgeFolder(name: "Folder3")
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
+        let folder3 = makePurgeFolder(name: "Folder3")
         let folders = [folder1, folder2, folder3]
         let (sut, delegate) = makeSUT(foldersToLoad: folders)
 
@@ -105,8 +106,8 @@ extension DerivedDataManagerTests {
 extension DerivedDataManagerTests {
     @Test("Deletes specified folders in correct order")
     func deletesSpecifiedFoldersInCorrectOrder() throws {
-        let folder1 = TestFactory.makePurgeFolder(name: "Folder1")
-        let folder2 = TestFactory.makePurgeFolder(name: "Folder2")
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
         let foldersToDelete = [folder1, folder2]
         let (sut, delegate) = makeSUT()
 
@@ -119,7 +120,7 @@ extension DerivedDataManagerTests {
 
     @Test("Deletes single folder successfully")
     func deletesSingleFolderSuccessfully() throws {
-        let folder = TestFactory.makePurgeFolder(name: "SingleFolder")
+        let folder = makePurgeFolder(name: "SingleFolder")
         let (sut, delegate) = makeSUT()
 
         try sut.deleteFolders([folder])
@@ -139,7 +140,7 @@ extension DerivedDataManagerTests {
 
     @Test("Propagates deletion error from delegate")
     func propagatesDeletionErrorFromDelegate() throws {
-        let folder = TestFactory.makePurgeFolder(name: "ErrorFolder")
+        let folder = makePurgeFolder(name: "ErrorFolder")
         let (sut, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
@@ -149,8 +150,8 @@ extension DerivedDataManagerTests {
 
     @Test("Stops deletion on first error and does not continue")
     func stopsDeletionOnFirstErrorAndDoesNotContinue() throws {
-        let folder1 = TestFactory.makePurgeFolder(name: "Folder1")
-        let folder2 = TestFactory.makePurgeFolder(name: "Folder2")
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
         let (sut, delegate) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
@@ -177,7 +178,7 @@ extension DerivedDataManagerTests {
     @Test("Deletes all folders from custom path location")
     func deletesAllFoldersFromCustomPathLocation() throws {
         let customPath = "/custom/path/DerivedData"
-        let folder = TestFactory.makePurgeFolder(name: "CustomPathFolder")
+        let folder = makePurgeFolder(name: "CustomPathFolder")
         let (sut, delegate) = makeSUT(path: customPath, foldersToLoad: [folder])
 
         try sut.deleteAllDerivedData()
