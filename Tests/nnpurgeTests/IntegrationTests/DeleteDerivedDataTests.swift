@@ -55,6 +55,27 @@ final class DeleteDerivedDataTests {
         #expect(service.deletedFolders.contains(where: { $0.name == folder1.name }))
         #expect(service.deletedFolders.contains(where: { $0.name == folder3.name }))
     }
+
+    @Test("Deletes no folders when user selects none during folder selection")
+    func deletesNoFoldersWhenUserSelectsNoneDuringFolderSelection() throws {
+        let folders = [
+            makePurgeFolder(name: "Project1-abcd1234"),
+            makePurgeFolder(name: "Project2-efgh5678"),
+            makePurgeFolder(name: "Project3-ijkl9012")
+        ]
+        let (factory, service) = makeSUT(
+            foldersToLoad: folders,
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([[]])
+            )
+        )
+
+        try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "delete"])
+
+        #expect(!service.didDeleteAllDerivedData)
+        #expect(service.deletedFolders.isEmpty)
+    }
 }
 
 
