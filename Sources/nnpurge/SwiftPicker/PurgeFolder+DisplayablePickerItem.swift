@@ -1,0 +1,15 @@
+//
+//  PurgeFolder+DisplayablePickerItem.swift
+//  nnpurge
+//
+//  Created by Nikolai Nobadi on 11/3/25.
+//
+
+import SwiftPicker
+import CodePurgeKit
+
+extension PurgeFolder: DisplayablePickerItem {
+    public var displayName: String {
+        return name
+    }
+}
