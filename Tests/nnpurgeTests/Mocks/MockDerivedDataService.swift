@@ -16,6 +16,7 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
     private(set) var didDeleteAllDerivedData = false
     private(set) var deletedFolders: [PurgeFolder] = []
     private(set) var openedFolderURL: URL?
+    private(set) var receivedProgressHandler: DerivedDataProgressHandler?
 
     init(throwError: Bool = false, foldersToLoad: [PurgeFolder] = []) {
         self.throwError = throwError
@@ -26,19 +27,21 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
         return foldersToLoad
     }
 
-    func deleteAllDerivedData() throws {
+    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
 
+        receivedProgressHandler = progressHandler
         didDeleteAllDerivedData = true
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
+    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
 
+        receivedProgressHandler = progressHandler
         deletedFolders.append(contentsOf: folders)
     }
 

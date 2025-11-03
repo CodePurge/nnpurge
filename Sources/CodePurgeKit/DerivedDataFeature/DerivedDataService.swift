@@ -8,8 +8,18 @@
 import Foundation
 
 public protocol DerivedDataService {
-    func deleteAllDerivedData() throws
     func loadFolders() throws -> [PurgeFolder]
-    func deleteFolders(_ folders: [PurgeFolder]) throws
+    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws
+    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws
     func openFolder(at url: URL) throws
+}
+
+public extension DerivedDataService {
+    func deleteAllDerivedData() throws {
+        try deleteAllDerivedData(progressHandler: nil)
+    }
+
+    func deleteFolders(_ folders: [PurgeFolder]) throws {
+        try deleteFolders(folders, progressHandler: nil)
+    }
 }

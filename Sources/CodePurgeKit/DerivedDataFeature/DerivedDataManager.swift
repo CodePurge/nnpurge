@@ -32,16 +32,16 @@ public extension DerivedDataManager {
         return try delegate.loadFolders(path: path)
     }
 
-    func deleteAllDerivedData() throws {
+    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws {
         let allFolders = try loadFolders()
 
-        try deleteFolders(allFolders)
+        try deleteFolders(allFolders, progressHandler: progressHandler)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
+    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws {
         for folder in folders {
             try delegate.deleteFolder(folder)
-            // TODO: - update progress?
+            progressHandler?.didDeleteFolder(folder)
         }
 
         // TODO: - save purge record?
@@ -54,6 +54,10 @@ public extension DerivedDataManager {
 
 
 // MARK: - Dependencies
+public protocol DerivedDataProgressHandler {
+    func didDeleteFolder(_ folder: PurgeFolder)
+}
+
 protocol DerivedDataDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws
     func loadFolders(path: String) throws -> [PurgeFolder]
