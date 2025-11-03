@@ -308,6 +308,41 @@ extension DerivedDataControllerTests {
 }
 
 
+// MARK: - Open Folder Tests
+extension DerivedDataControllerTests {
+    @Test("Opens default derived data folder when no custom path set")
+    func opensDefaultDerivedDataFolderWhenNoCustomPathSet() throws {
+        let (sut, service, _) = makeSUT()
+
+        try sut.openDerivedDataFolder()
+
+        let openedURL = try #require(service.openedFolderURL)
+        #expect(openedURL.path.contains("Library/Developer/Xcode/DerivedData"))
+    }
+
+    @Test("Opens custom derived data folder when custom path set")
+    func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
+        let customPath = "/custom/derived/data/path"
+        let (sut, service, store) = makeSUT()
+        store.set(customPath, forKey: "derivedDataPathKey")
+
+        try sut.openDerivedDataFolder()
+
+        let openedURL = try #require(service.openedFolderURL)
+        #expect(openedURL.path == customPath)
+    }
+
+    @Test("Propagates open folder error from service")
+    func propagatesOpenFolderErrorFromService() throws {
+        let (sut, _, _) = makeSUT(throwError: true)
+
+        #expect(throws: NSError.self) {
+            try sut.openDerivedDataFolder()
+        }
+    }
+}
+
+
 // MARK: - SUT
 private extension DerivedDataControllerTests {
     func makeSUT(

@@ -15,6 +15,7 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
 
     private(set) var didDeleteAllDerivedData = false
     private(set) var deletedFolders: [PurgeFolder] = []
+    private(set) var openedFolderURL: URL?
 
     init(throwError: Bool = false, foldersToLoad: [PurgeFolder] = []) {
         self.throwError = throwError
@@ -39,5 +40,13 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
         }
 
         deletedFolders.append(contentsOf: folders)
+    }
+
+    func openFolder(at url: URL) throws {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        openedFolderURL = url
     }
 }

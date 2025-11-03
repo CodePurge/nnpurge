@@ -5,6 +5,8 @@
 //  Created by Nikolai Nobadi on 10/26/25.
 //
 
+import Foundation
+
 public struct DerivedDataManager: DerivedDataService {
     private let path: String
     private let delegate: DerivedDataDelegate
@@ -32,7 +34,7 @@ public extension DerivedDataManager {
 
     func deleteAllDerivedData() throws {
         let allFolders = try loadFolders()
-        
+
         try deleteFolders(allFolders)
     }
 
@@ -41,8 +43,12 @@ public extension DerivedDataManager {
             try delegate.deleteFolder(folder)
             // TODO: - update progress?
         }
-        
+
         // TODO: - save purge record?
+    }
+
+    func openFolder(at url: URL) throws {
+        try delegate.openFolder(at: url)
     }
 }
 
@@ -51,4 +57,5 @@ public extension DerivedDataManager {
 protocol DerivedDataDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws
     func loadFolders(path: String) throws -> [PurgeFolder]
+    func openFolder(at url: URL) throws
 }

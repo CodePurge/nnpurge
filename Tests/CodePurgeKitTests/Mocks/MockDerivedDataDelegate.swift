@@ -15,6 +15,7 @@ final class MockDerivedDataDelegate: @unchecked Sendable, DerivedDataDelegate {
     private(set) var deletedFolders: [PurgeFolder] = []
     private(set) var loadFoldersCallCount = 0
     private(set) var lastPathLoaded: String?
+    private(set) var openedFolderURL: URL?
 
     init(throwError: Bool = false, foldersToLoad: [PurgeFolder] = []) {
         self.throwError = throwError
@@ -38,5 +39,13 @@ final class MockDerivedDataDelegate: @unchecked Sendable, DerivedDataDelegate {
         }
 
         return foldersToLoad
+    }
+
+    func openFolder(at url: URL) throws {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        openedFolderURL = url
     }
 }

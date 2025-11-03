@@ -7,14 +7,25 @@
 
 import Files
 import Foundation
+#if canImport(AppKit)
+import AppKit
+#endif
 
 struct DefaultDerivedDataDelegate: DerivedDataDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws {
         try FileManager.default.trashItem(at: folder.url, resultingItemURL: nil)
     }
-    
+
     func loadFolders(path: String) throws -> [PurgeFolder] {
         return try Folder(path: path).subfolders.map({ .init(folder: $0) })
+    }
+
+    func openFolder(at url: URL) throws {
+        #if canImport(AppKit)
+        NSWorkspace.shared.open(url)
+        #else
+        throw NSError(domain: "DefaultDerivedDataDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Opening folders is only supported on macOS"])
+        #endif
     }
 }
 

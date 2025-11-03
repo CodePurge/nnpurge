@@ -60,6 +60,13 @@ extension DerivedDataController {
         }
         return message
     }
+
+    func openDerivedDataFolder() throws {
+        let path = store.loadDerivedDataPath()
+        let url = URL(fileURLWithPath: path)
+
+        try service.openFolder(at: url)
+    }
 }
 
 
