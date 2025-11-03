@@ -10,11 +10,11 @@ import SwiftPicker
 import CodePurgeKit
 
 struct DerivedDataController {
-    private let store: DerivedDataStore
-    private let picker: CommandLinePicker
+    private let store: any DerivedDataStore
+    private let picker: any CommandLinePicker
     private let service: any DerivedDataService
 
-    init(store: DerivedDataStore, picker: CommandLinePicker, service: any DerivedDataService) {
+    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService) {
         self.store = store
         self.picker = picker
         self.service = service
@@ -22,7 +22,18 @@ struct DerivedDataController {
 }
 
 
-// MARK: - Actions
+// MARK: - Open
+extension DerivedDataController {
+    func openDerivedDataFolder() throws {
+        let path = store.loadDerivedDataPath()
+        let url = URL(fileURLWithPath: path)
+
+        try service.openFolder(at: url)
+    }
+}
+
+
+// MARK: - Delete
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let option = try selectOption(deleteAll: deleteAll)
@@ -39,7 +50,11 @@ extension DerivedDataController {
             try service.deleteFolders(foldersToDelete)
         }
     }
+}
 
+
+// MARK: - Path
+extension DerivedDataController {
     func managePath(set newPath: String?, reset: Bool) -> String {
         if reset {
             store.set(nil, forKey: .derivedDataPathKey)
@@ -59,13 +74,6 @@ extension DerivedDataController {
             message += "\n(using default)"
         }
         return message
-    }
-
-    func openDerivedDataFolder() throws {
-        let path = store.loadDerivedDataPath()
-        let url = URL(fileURLWithPath: path)
-
-        try service.openFolder(at: url)
     }
 }
 
