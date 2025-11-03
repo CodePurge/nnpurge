@@ -38,6 +38,7 @@ extension DerivedDataManagerTests {
         #expect(delegate.loadFoldersCallCount == 1)
         #expect(delegate.lastPathLoaded == expectedPath)
         #expect(loadedFolders.count == folders.count)
+        guard loadedFolders.count >= 2 else { return }
         #expect(loadedFolders[0].name == folders[0].name)
         #expect(loadedFolders[1].name == folders[1].name)
     }
@@ -114,6 +115,7 @@ extension DerivedDataManagerTests {
         try sut.deleteFolders(foldersToDelete)
 
         #expect(delegate.deletedFolders.count == 2)
+        guard delegate.deletedFolders.count >= 2 else { return }
         #expect(delegate.deletedFolders[0].name == folder1.name)
         #expect(delegate.deletedFolders[1].name == folder2.name)
     }
@@ -126,6 +128,7 @@ extension DerivedDataManagerTests {
         try sut.deleteFolders([folder])
 
         #expect(delegate.deletedFolders.count == 1)
+        guard delegate.deletedFolders.count >= 1 else { return }
         #expect(delegate.deletedFolders[0].name == folder.name)
     }
 
@@ -185,7 +188,101 @@ extension DerivedDataManagerTests {
 
         #expect(delegate.lastPathLoaded == customPath)
         #expect(delegate.deletedFolders.count == 1)
+        guard delegate.deletedFolders.count >= 1 else { return }
         #expect(delegate.deletedFolders[0].name == folder.name)
+    }
+}
+
+
+// MARK: - Progress Handler Tests
+extension DerivedDataManagerTests {
+    @Test("Calls progress handler for each folder when deleting all")
+    func callsProgressHandlerForEachFolderWhenDeletingAll() throws {
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
+        let folder3 = makePurgeFolder(name: "Folder3")
+        let folders = [folder1, folder2, folder3]
+        let progressHandler = MockProgressHandler()
+        let (sut, _) = makeSUT(foldersToLoad: folders)
+
+        try sut.deleteAllDerivedData(progressHandler: progressHandler)
+
+        #expect(progressHandler.deletedFolders.count == folders.count)
+        guard progressHandler.deletedFolders.count >= 3 else { return }
+        #expect(progressHandler.deletedFolders[0].name == folder1.name)
+        #expect(progressHandler.deletedFolders[1].name == folder2.name)
+        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+    }
+
+    @Test("Calls progress handler for each specified folder")
+    func callsProgressHandlerForEachSpecifiedFolder() throws {
+        let folder1 = makePurgeFolder(name: "Alpha")
+        let folder2 = makePurgeFolder(name: "Beta")
+        let folder3 = makePurgeFolder(name: "Gamma")
+        let foldersToDelete = [folder1, folder2, folder3]
+        let progressHandler = MockProgressHandler()
+        let (sut, _) = makeSUT()
+
+        try sut.deleteFolders(foldersToDelete, progressHandler: progressHandler)
+
+        #expect(progressHandler.deletedFolders.count == 3)
+        guard progressHandler.deletedFolders.count >= 3 else { return }
+        #expect(progressHandler.deletedFolders[0].name == folder1.name)
+        #expect(progressHandler.deletedFolders[1].name == folder2.name)
+        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+    }
+
+    @Test("Does not call progress handler when no folders to delete")
+    func doesNotCallProgressHandlerWhenNoFoldersToDelete() throws {
+        let progressHandler = MockProgressHandler()
+        let (sut, _) = makeSUT(foldersToLoad: [])
+
+        try sut.deleteAllDerivedData(progressHandler: progressHandler)
+
+        #expect(progressHandler.deletedFolders.isEmpty)
+    }
+
+    @Test("Calls progress handler in correct deletion order")
+    func callsProgressHandlerInCorrectDeletionOrder() throws {
+        let folder1 = makePurgeFolder(name: "First")
+        let folder2 = makePurgeFolder(name: "Second")
+        let folder3 = makePurgeFolder(name: "Third")
+        let folder4 = makePurgeFolder(name: "Fourth")
+        let folders = [folder1, folder2, folder3, folder4]
+        let progressHandler = MockProgressHandler()
+        let (sut, _) = makeSUT()
+
+        try sut.deleteFolders(folders, progressHandler: progressHandler)
+
+        #expect(progressHandler.deletedFolders.count == 4)
+        guard progressHandler.deletedFolders.count == 4 else { return }
+        for (index, folder) in folders.enumerated() {
+            #expect(progressHandler.deletedFolders[index].name == folder.name)
+        }
+    }
+
+    @Test("Works correctly when progress handler is nil")
+    func worksCorrectlyWhenProgressHandlerIsNil() throws {
+        let folder = makePurgeFolder(name: "TestFolder")
+        let (sut, delegate) = makeSUT(foldersToLoad: [folder])
+
+        try sut.deleteAllDerivedData(progressHandler: nil)
+
+        #expect(delegate.deletedFolders.count == 1)
+        guard delegate.deletedFolders.count >= 1 else { return }
+        #expect(delegate.deletedFolders[0].name == folder.name)
+    }
+
+    @Test("Calls progress handler even when using convenience method")
+    func callsProgressHandlerEvenWhenUsingConvenienceMethod() throws {
+        let folder1 = makePurgeFolder(name: "ConvenienceFolder1")
+        let folder2 = makePurgeFolder(name: "ConvenienceFolder2")
+        let folders = [folder1, folder2]
+        let (sut, delegate) = makeSUT(foldersToLoad: folders)
+
+        try sut.deleteAllDerivedData()
+
+        #expect(delegate.deletedFolders.count == 2)
     }
 }
 

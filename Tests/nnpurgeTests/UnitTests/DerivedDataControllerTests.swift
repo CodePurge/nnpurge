@@ -360,6 +360,7 @@ extension DerivedDataControllerTests {
         try sut.deleteDerivedData(deleteAll: true)
 
         #expect(progressHandler.deletedFolders.count == folders.count)
+        guard progressHandler.deletedFolders.count >= 3 else { return }
         #expect(progressHandler.deletedFolders[0].name == folder1.name)
         #expect(progressHandler.deletedFolders[1].name == folder2.name)
         #expect(progressHandler.deletedFolders[2].name == folder3.name)
@@ -383,6 +384,7 @@ extension DerivedDataControllerTests {
         try sut.deleteDerivedData(deleteAll: false)
 
         #expect(progressHandler.deletedFolders.count == 2)
+        guard progressHandler.deletedFolders.count >= 2 else { return }
         #expect(progressHandler.deletedFolders[0].name == folder1.name)
         #expect(progressHandler.deletedFolders[1].name == folder3.name)
     }
