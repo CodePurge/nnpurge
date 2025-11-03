@@ -48,4 +48,8 @@ extension MockContextFactory: ContextFactory {
 
         fatalError("makeDerivedDataService() not implemented")
     }
+
+    func makePackageCacheService() -> any PackageCacheService {
+        return PackageCacheManager()
+    }
 }
