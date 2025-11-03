@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftPicker
 
 public struct PurgeFolder {
     public let url: URL
@@ -19,13 +18,5 @@ public struct PurgeFolder {
         self.name = name
         self.path = path
         self.size = size
-    }
-}
-
-
-// MARK: - DisplayablePickerItem
-extension PurgeFolder: DisplayablePickerItem {
-    public var displayName: String {
-        return name
     }
 }

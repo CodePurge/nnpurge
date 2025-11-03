@@ -34,7 +34,7 @@ let package = Package(
         .target(
             name: "CodePurgeKit",
             dependencies: [
-                "SwiftPicker"
+                "Files"
             ]
         ),
         .testTarget(
