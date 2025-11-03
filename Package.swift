@@ -38,6 +38,10 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "CodePurgeKitTests",
+            dependencies: ["CodePurgeKit"]
+        ),
+        .testTarget(
             name: "nnpurgeTests",
             dependencies: [
                 "nnpurge",
