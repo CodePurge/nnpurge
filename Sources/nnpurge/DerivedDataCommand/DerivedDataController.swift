@@ -13,11 +13,13 @@ struct DerivedDataController {
     private let store: any DerivedDataStore
     private let picker: any CommandLinePicker
     private let service: any DerivedDataService
+    private let progressHandler: any DerivedDataProgressHandler
 
-    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService) {
+    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any DerivedDataProgressHandler) {
         self.store = store
         self.picker = picker
         self.service = service
+        self.progressHandler = progressHandler
     }
 }
 
@@ -38,16 +40,17 @@ extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let option = try selectOption(deleteAll: deleteAll)
         let allFolders = try service.loadFolders()
+        let progressHandler = DefaultDerivedDataProgressHandler()
 
         switch option {
         case .deleteAll:
             try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
 
-            try service.deleteAllDerivedData()
+            try service.deleteAllDerivedData(progressHandler: progressHandler)
         case .selectFolders:
             let foldersToDelete = picker.multiSelection("Select the folders to delete.", items: allFolders)
 
-            try service.deleteFolders(foldersToDelete)
+            try service.deleteFolders(foldersToDelete, progressHandler: progressHandler)
         }
     }
 }

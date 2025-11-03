@@ -35,12 +35,7 @@ extension Nnpurge.DerivedDataCommand {
         var all: Bool = false
         
         func run() throws {
-            let store = Nnpurge.makeUserDefaults()
-            let picker = Nnpurge.makePicker()
-            let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
-            let controller = DerivedDataController(store: store, picker: picker, service: service)
-
-            try controller.deleteDerivedData(deleteAll: all)
+            try Nnpurge.makeDerivedDataController().deleteDerivedData(deleteAll: all)
         }
     }
 }
@@ -60,12 +55,9 @@ extension Nnpurge.DerivedDataCommand {
         var reset: Bool = false
 
         func run() throws {
-            let store = Nnpurge.makeUserDefaults()
-            let picker = Nnpurge.makePicker()
-            let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
-            let controller = DerivedDataController(store: store, picker: picker, service: service)
-
+            let controller = Nnpurge.makeDerivedDataController()
             let message = controller.managePath(set: set, reset: reset)
+            
             print(message)
         }
     }
@@ -80,13 +72,21 @@ extension Nnpurge.DerivedDataCommand {
         )
 
         func run() throws {
-            let store = Nnpurge.makeUserDefaults()
-            let picker = Nnpurge.makePicker()
-            let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
-            let controller = DerivedDataController(store: store, picker: picker, service: service)
-
-            try controller.openDerivedDataFolder()
+            try Nnpurge.makeDerivedDataController().openDerivedDataFolder()
             print("Opening derived data folder...")
         }
+    }
+}
+
+
+// MARK: - Extension Dependencies
+private extension Nnpurge {
+    static func makeDerivedDataController() -> DerivedDataController {
+        let picker = Nnpurge.makePicker()
+        let store = Nnpurge.makeUserDefaults()
+        let progressHandler = DefaultDerivedDataProgressHandler()
+        let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
+        
+        return .init(store: store, picker: picker, service: service, progressHandler: progressHandler)
     }
 }
