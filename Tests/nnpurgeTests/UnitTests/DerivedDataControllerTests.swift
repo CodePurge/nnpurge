@@ -232,9 +232,10 @@ private extension DerivedDataControllerTests {
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
     ) -> (sut: DerivedDataController, service: MockDerivedDataService) {
+        let store = MockUserDefaults()
         let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
         let service = MockDerivedDataService(throwError: throwError, foldersToLoad: foldersToLoad)
-        let sut = DerivedDataController(picker: picker, service: service)
+        let sut = DerivedDataController(store: store, picker: picker, service: service)
 
         return (sut, service)
     }

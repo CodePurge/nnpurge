@@ -34,10 +34,10 @@ extension Nnpurge.DerivedDataCommand {
         var all: Bool = false
         
         func run() throws {
-            let picker = Nnpurge.makePicker()
             let store = Nnpurge.makeUserDefaults()
+            let picker = Nnpurge.makePicker()
             let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
-            let controller = DerivedDataController(picker: picker, service: service)
+            let controller = DerivedDataController(store: store, picker: picker, service: service)
 
             try controller.deleteDerivedData(deleteAll: all)
         }
@@ -60,51 +60,12 @@ extension Nnpurge.DerivedDataCommand {
 
         func run() throws {
             let store = Nnpurge.makeUserDefaults()
+            let picker = Nnpurge.makePicker()
+            let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
+            let controller = DerivedDataController(store: store, picker: picker, service: service)
 
-            if reset {
-                store.set(nil, forKey: .derivedDataPathKey)
-                print("Derived data path reset to default: ~/Library/Developer/Xcode/DerivedData")
-                return
-            }
-
-            if let newPath = set {
-                let expandedPath = NSString(string: newPath).expandingTildeInPath
-                store.set(expandedPath, forKey: .derivedDataPathKey)
-                print("Derived data path set to: \(expandedPath)")
-                return
-            }
-
-            let currentPath = store.loadDerivedDataPath()
-            let isDefault = store.string(forKey: .derivedDataPathKey) == nil
-            print("Current derived data path: \(currentPath)")
-            if isDefault {
-                print("(using default)")
-            }
+            let message = controller.managePath(set: set, reset: reset)
+            print(message)
         }
-    }
-}
-
-
-// MARK: - Dependencies
-protocol DerivedDataStore {
-    func string(forKey defaultName: String) -> String?
-    func set(_ value: Any?, forKey defaultName: String)
-}
-
-extension UserDefaults: DerivedDataStore {}
-
-
-// MARK: - Extension Dependencies
-private extension DerivedDataStore {
-    func loadDerivedDataPath() -> String {
-        let path = string(forKey: .derivedDataPathKey) ?? "~/Library/Developer/Xcode/DerivedData"
-        
-        return NSString(string: path).expandingTildeInPath
-    }
-}
-
-private extension String {
-    static var derivedDataPathKey: String {
-        return "derivedDataPathKey"
     }
 }
