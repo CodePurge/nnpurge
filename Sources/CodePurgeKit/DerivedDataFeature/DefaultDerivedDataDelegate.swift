@@ -6,10 +6,11 @@
 //
 
 import Files
+import Foundation
 
 struct DefaultDerivedDataDelegate: DerivedDataDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws {
-         
+        try FileManager.default.trashItem(at: folder.url, resultingItemURL: nil)
     }
     
     func loadFolders(path: String) throws -> [PurgeFolder] {
