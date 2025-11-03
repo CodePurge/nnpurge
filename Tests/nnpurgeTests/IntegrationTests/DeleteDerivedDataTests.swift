@@ -6,6 +6,7 @@
 //
 
 import Testing
+import CodePurgeKit
 import CodePurgeTesting
 import SwiftPickerTesting
 @testable import nnpurge
@@ -14,22 +15,18 @@ import SwiftPickerTesting
 final class DeleteDerivedDataTests {
     @Test("Deletes all derived data when all flag passed", arguments: ["-a", "--all"])
     func deletesAllDerivedDataWhenAllFlagPassed(deleteAllArg: String) throws {
-        let picker = makePicker()
-        let store = MockUserDefaults()
-        let service = MockDerivedDataService()
-        let factory = MockContextFactory(picker: picker, derivedDataStore: store, derivedDataService: service)
+        let (factory, service) = makeSUT()
 
         try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "delete", deleteAllArg])
 
         #expect(service.didDeleteAllDerivedData)
     }
-    
+
     @Test("Deletes all derived data when option is selected from picker input")
     func deletesAllDerivedDataFromPickerInput() throws {
-        let store = MockUserDefaults()
-        let service = MockDerivedDataService()
-        let picker = makePicker(selectionResult: .init(defaultIndex: 0))
-        let factory = MockContextFactory(picker: picker, derivedDataStore: store, derivedDataService: service)
+        let (factory, service) = makeSUT(
+            selectionResult: .init(defaultIndex: 0)
+        )
 
         try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "delete"])
 
@@ -43,15 +40,13 @@ final class DeleteDerivedDataTests {
         let folder3 = makePurgeFolder(name: "Project3-ijkl9012")
         let folders = [folder1, folder2, folder3]
         let selectedIndices = [0, 2]
-        let store = MockUserDefaults()
-        let service = MockDerivedDataService(foldersToLoad: folders)
-        let picker = makePicker(
+        let (factory, service) = makeSUT(
+            foldersToLoad: folders,
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([selectedIndices])
             )
         )
-        let factory = MockContextFactory(picker: picker, derivedDataStore: store, derivedDataService: service)
 
         try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "delete"])
 
@@ -63,10 +58,26 @@ final class DeleteDerivedDataTests {
 }
 
 
-// MARK: -
+// MARK: - SUT
 private extension DeleteDerivedDataTests {
-    func makePicker(selectionResult: MockSelectionResult = .init()) -> MockSwiftPicker {
-        return .init(
+    func makeSUT(
+        foldersToLoad: [PurgeFolder] = [],
+        selectionResult: MockSelectionResult = .init()
+    ) -> (factory: MockContextFactory, service: MockDerivedDataService) {
+        let store = MockUserDefaults()
+        let service = MockDerivedDataService(foldersToLoad: foldersToLoad)
+        let picker = makePicker(selectionResult: selectionResult)
+        let factory = MockContextFactory(
+            picker: picker,
+            derivedDataStore: store,
+            derivedDataService: service
+        )
+
+        return (factory, service)
+    }
+
+    func makePicker(selectionResult: MockSelectionResult) -> MockSwiftPicker {
+        return MockSwiftPicker(
             permissionResult: .init(grantByDefault: true, type: .ordered([])),
             selectionResult: selectionResult
         )
