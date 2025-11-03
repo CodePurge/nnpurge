@@ -5,6 +5,7 @@
 //  Created by Nikolai Nobadi on 10/26/25.
 //
 
+import Foundation
 import CodePurgeKit
 import ArgumentParser
 
@@ -33,10 +34,27 @@ extension Nnpurge.DerivedDataCommand {
         
         func run() throws {
             let picker = Nnpurge.makePicker()
-            let service = DerivedDataManager(path: "") // TODO: - 
+            let store = Nnpurge.makeUserDefaults()
+            let service = Nnpurge.makeDerivedDataService()
             let controller = DerivedDataController(picker: picker, service: service)
 
             try controller.deleteDerivedData(deleteAll: all)
         }
+    }
+}
+
+
+// MARK: - Extension Dependencies
+private extension DerivedDataStore {
+    func loadDerivedDataPath() -> String {
+        let path = string(forKey: .derivedDataPathKey) ?? "~/Library/Developer/Xcode/DerivedData"
+        
+        return NSString(string: path).expandingTildeInPath
+    }
+}
+
+private extension String {
+    static var derivedDataPathKey: String {
+        return "derivedDataPathKey"
     }
 }

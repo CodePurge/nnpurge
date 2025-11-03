@@ -6,6 +6,7 @@
 //
 
 import SwiftPicker
+import CodePurgeKit
 @testable import nnpurge
 
 struct MockContextFactory: ContextFactory {
@@ -17,6 +18,10 @@ struct MockContextFactory: ContextFactory {
 
     func makeUserDefaults() -> DerivedDataStore {
         return userDefaults
+    }
+
+    func makeDerivedDataService() -> DerivedDataService {
+        fatalError("makeDerivedDataService() not implemented")
     }
 
     func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {

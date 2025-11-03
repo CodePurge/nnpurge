@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftPicker
+import CodePurgeKit
 
 struct DefaultContextFactory: ContextFactory {
     func makePicker() -> any CommandLinePicker {
@@ -15,6 +16,15 @@ struct DefaultContextFactory: ContextFactory {
 
     func makeUserDefaults() -> any DerivedDataStore {
         return UserDefaults.standard
+    }
+
+    func makeDerivedDataService() -> any DerivedDataService {
+        let defaults = makeUserDefaults()
+        let defaultPath = "~/Library/Developer/Xcode/DerivedData"
+        let savedPath = defaults.string(forKey: "derivedDataPath") ?? defaultPath
+        let expandedPath = NSString(string: savedPath).expandingTildeInPath
+
+        return DerivedDataManager(path: expandedPath)
     }
 
     func makeDerivedDataManager(defaults: DerivedDataStore) -> any DerivedDataDelegate {

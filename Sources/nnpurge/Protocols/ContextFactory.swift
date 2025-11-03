@@ -6,10 +6,12 @@
 //
 
 import SwiftPicker
+import CodePurgeKit
 
 protocol ContextFactory {
     func makePicker() -> any CommandLinePicker
     func makeUserDefaults() -> any DerivedDataStore
+    func makeDerivedDataService() -> any DerivedDataService
     func makeDerivedDataManager(defaults: DerivedDataStore) -> any DerivedDataDelegate
     func makePackageCacheManager() -> any PackageCacheDelegate
 }

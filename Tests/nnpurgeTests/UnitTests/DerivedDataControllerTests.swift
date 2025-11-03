@@ -247,6 +247,7 @@ private extension DerivedDataControllerTests {
         path: String = "/path/to/folder",
         size: Int = 1000
     ) -> PurgeFolder {
-        return PurgeFolder(name: name, path: path, size: size)
+        let url = URL(fileURLWithPath: path).appendingPathComponent(name)
+        return .init(url: url, name: name, path: path, size: size)
     }
 }
