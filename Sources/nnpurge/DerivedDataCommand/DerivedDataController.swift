@@ -10,9 +10,9 @@ import CodePurgeKit
 
 struct DerivedDataController {
     private let picker: CommandLinePicker
-    private let service: DerivedDataService
+    private let service: any DerivedDataService
 
-    init(picker: CommandLinePicker, service: DerivedDataService) {
+    init(picker: CommandLinePicker, service: any DerivedDataService) {
         self.picker = picker
         self.service = service
     }

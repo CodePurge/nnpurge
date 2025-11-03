@@ -20,15 +20,7 @@ struct MockContextFactory: ContextFactory {
         return userDefaults
     }
 
-    func makeDerivedDataService() -> DerivedDataService {
+    func makeDerivedDataService(path: String) -> any DerivedDataService {
         fatalError("makeDerivedDataService() not implemented")
-    }
-
-    func makeDerivedDataManager(defaults: DerivedDataStore) -> DerivedDataDelegate {
-        fatalError("makeDerivedDataManager(defaults:) not implemented")
-    }
-
-    func makePackageCacheManager() -> PackageCacheDelegate {
-        fatalError("makePackageCacheManager() not implemented")
     }
 }

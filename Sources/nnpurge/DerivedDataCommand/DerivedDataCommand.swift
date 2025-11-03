@@ -35,7 +35,7 @@ extension Nnpurge.DerivedDataCommand {
         func run() throws {
             let picker = Nnpurge.makePicker()
             let store = Nnpurge.makeUserDefaults()
-            let service = Nnpurge.makeDerivedDataService()
+            let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
             let controller = DerivedDataController(picker: picker, service: service)
 
             try controller.deleteDerivedData(deleteAll: all)
@@ -44,7 +44,16 @@ extension Nnpurge.DerivedDataCommand {
 }
 
 
+// MARK: - Dependencies
+protocol DerivedDataStore {
+    func string(forKey defaultName: String) -> String?
+    func set(_ value: Any?, forKey defaultName: String)
+}
+
+
 // MARK: - Extension Dependencies
+extension UserDefaults: DerivedDataStore {}
+
 private extension DerivedDataStore {
     func loadDerivedDataPath() -> String {
         let path = string(forKey: .derivedDataPathKey) ?? "~/Library/Developer/Xcode/DerivedData"

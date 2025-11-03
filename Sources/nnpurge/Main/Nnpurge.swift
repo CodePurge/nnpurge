@@ -15,15 +15,15 @@ struct Nnpurge: ParsableCommand {
         abstract: "A command-line tool to clean up Xcode's derived data folders with interactive prompts for safety and precision.",
         version: "0.2.0",
         subcommands: [
-            DeleteDerivedData.self,
-            SetDerivedDataPath.self,
-            DeletePackageCache.self
+            DerivedDataCommand.self
         ]
     )
 
     nonisolated(unsafe) static var contextFactory: ContextFactory = DefaultContextFactory()
 }
 
+
+// MARK: - Factory Methods
 extension Nnpurge {
     static func makePicker() -> any CommandLinePicker {
         return contextFactory.makePicker()
@@ -33,15 +33,15 @@ extension Nnpurge {
         return contextFactory.makeUserDefaults()
     }
 
-    static func makeDerivedDataService() -> any DerivedDataService {
-        return contextFactory.makeDerivedDataService()
+    static func makeDerivedDataService(path: String) -> any DerivedDataService {
+        return contextFactory.makeDerivedDataService(path: path)
     }
+}
 
-    static func makeDerivedDataManager() -> any DerivedDataDelegate {
-        return contextFactory.makeDerivedDataManager(defaults: makeUserDefaults())
-    }
 
-    static func makePackageCacheManager() -> any PackageCacheDelegate {
-        return contextFactory.makePackageCacheManager()
-    }
+// MARK: - Dependencies
+protocol ContextFactory {
+    func makePicker() -> any CommandLinePicker
+    func makeUserDefaults() -> any DerivedDataStore
+    func makeDerivedDataService(path: String) -> any DerivedDataService
 }

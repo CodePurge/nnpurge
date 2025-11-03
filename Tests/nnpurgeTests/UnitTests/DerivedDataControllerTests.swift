@@ -231,23 +231,16 @@ private extension DerivedDataControllerTests {
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
     ) -> (sut: DerivedDataController, service: MockDerivedDataService) {
-        let picker = MockSwiftPicker(
-            inputResult: inputResult,
-            permissionResult: permissionResult,
-            selectionResult: selectionResult
-        )
+        let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
         let service = MockDerivedDataService(throwError: throwError, foldersToLoad: foldersToLoad)
         let sut = DerivedDataController(picker: picker, service: service)
 
         return (sut, service)
     }
 
-    func makePurgeFolder(
-        name: String = "TestFolder",
-        path: String = "/path/to/folder",
-        size: Int = 1000
-    ) -> PurgeFolder {
+    func makePurgeFolder(name: String = "TestFolder", path: String = "/path/to/folder", size: Int = 1000) -> PurgeFolder {
         let url = URL(fileURLWithPath: path).appendingPathComponent(name)
+        
         return .init(url: url, name: name, path: path, size: size)
     }
 }
