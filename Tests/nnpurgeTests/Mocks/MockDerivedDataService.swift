@@ -34,6 +34,10 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
 
         receivedProgressHandler = progressHandler
         didDeleteAllDerivedData = true
+
+        for folder in foldersToLoad {
+            progressHandler?.didDeleteFolder(folder)
+        }
     }
 
     func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws {
@@ -43,6 +47,10 @@ final class MockDerivedDataService: @unchecked Sendable, DerivedDataService {
 
         receivedProgressHandler = progressHandler
         deletedFolders.append(contentsOf: folders)
+
+        for folder in folders {
+            progressHandler?.didDeleteFolder(folder)
+        }
     }
 
     func openFolder(at url: URL) throws {

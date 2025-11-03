@@ -40,7 +40,6 @@ extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let option = try selectOption(deleteAll: deleteAll)
         let allFolders = try service.loadFolders()
-        let progressHandler = DefaultDerivedDataProgressHandler()
 
         switch option {
         case .deleteAll:

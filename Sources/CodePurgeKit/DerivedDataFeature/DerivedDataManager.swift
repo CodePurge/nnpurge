@@ -9,9 +9,9 @@ import Foundation
 
 public struct DerivedDataManager: DerivedDataService {
     private let path: String
-    private let delegate: DerivedDataDelegate
+    private let delegate: any DerivedDataDelegate
 
-    init(path: String, delegate: DerivedDataDelegate) {
+    init(path: String, delegate: any DerivedDataDelegate) {
         self.path = path
         self.delegate = delegate
     }

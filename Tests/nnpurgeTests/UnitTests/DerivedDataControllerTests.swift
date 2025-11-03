@@ -16,10 +16,11 @@ import SwiftPickerTesting
 struct DerivedDataControllerTests {
     @Test("Starting values empty")
     func emptyStartingValues() {
-        let (_, service, _) = makeSUT()
+        let (_, service, _, progressHandler) = makeSUT()
 
         #expect(!service.didDeleteAllDerivedData)
         #expect(service.deletedFolders.isEmpty)
+        #expect(progressHandler.deletedFolders.isEmpty)
     }
 }
 
@@ -28,7 +29,7 @@ struct DerivedDataControllerTests {
 extension DerivedDataControllerTests {
     @Test("Deletes all derived data when flag true and permission granted")
     func deletesAllDerivedDataWhenFlagTrueAndPermissionGranted() throws {
-        let (sut, service, _) = makeSUT(
+        let (sut, service, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true]))
         )
 
@@ -39,7 +40,7 @@ extension DerivedDataControllerTests {
 
     @Test("Throws error when delete all flag true but permission denied")
     func throwsErrorWhenDeleteAllFlagTrueButPermissionDenied() throws {
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([false]))
         )
 
@@ -51,7 +52,7 @@ extension DerivedDataControllerTests {
     @Test("Requests permission with correct prompt when deleting all")
     func requestsPermissionWithCorrectPromptWhenDeletingAll() throws {
         let expectedPrompt = "Are you sure you want to delete all derived data?"
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             permissionResult: .init(
                 type: .dictionary([expectedPrompt: true])
             )
@@ -66,7 +67,7 @@ extension DerivedDataControllerTests {
 extension DerivedDataControllerTests {
     @Test("Shows option selection when delete all flag false")
     func showsOptionSelectionWhenDeleteAllFlagFalse() throws {
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
                 singleSelectionType: .ordered([0])
@@ -78,7 +79,7 @@ extension DerivedDataControllerTests {
 
     @Test("Throws error when user cancels option selection")
     func throwsErrorWhenUserCancelsOptionSelection() throws {
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([nil])
             )
@@ -92,7 +93,7 @@ extension DerivedDataControllerTests {
     @Test("Deletes all when user selects delete all option")
     func deletesAllWhenUserSelectsDeleteAllOption() throws {
         let deleteAllIndex = 0
-        let (sut, service, _) = makeSUT(
+        let (sut, service, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
                 singleSelectionType: .ordered([deleteAllIndex])
@@ -111,7 +112,7 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder1"),
             makePurgeFolder(name: "Folder2")
         ]
-        let (sut, service, _) = makeSUT(
+        let (sut, service, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([selectFoldersIndex]),
                 multiSelectionType: .ordered([[0]])
@@ -136,7 +137,7 @@ extension DerivedDataControllerTests {
         let folder3 = makePurgeFolder(name: "Folder3")
         let folders = [folder1, folder2, folder3]
         let selectedIndices = [0, 2]
-        let (sut, service, _) = makeSUT(
+        let (sut, service, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([selectedIndices])
@@ -157,7 +158,7 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder1"),
             makePurgeFolder(name: "Folder2")
         ]
-        let (sut, service, _) = makeSUT(
+        let (sut, service, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[]])
@@ -177,7 +178,7 @@ extension DerivedDataControllerTests {
             makePurgeFolder(name: "Folder1"),
             makePurgeFolder(name: "Folder2")
         ]
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .dictionary([expectedPrompt: [0]])
@@ -194,7 +195,7 @@ extension DerivedDataControllerTests {
 extension DerivedDataControllerTests {
     @Test("Propagates delete all error from service")
     func propagatesDeleteAllErrorFromService() throws {
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             throwError: true
         )
@@ -207,7 +208,7 @@ extension DerivedDataControllerTests {
     @Test("Propagates delete folders error from service")
     func propagatesDeleteFoldersErrorFromService() throws {
         let folders = [makePurgeFolder(name: "Folder1")]
-        let (sut, _, _) = makeSUT(
+        let (sut, _, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[0]])
@@ -227,7 +228,7 @@ extension DerivedDataControllerTests {
 extension DerivedDataControllerTests {
     @Test("Returns default path message when no custom path is set")
     func returnsDefaultPathMessageWhenNoCustomPathIsSet() {
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
 
         let message = sut.managePath(set: nil as String?, reset: false)
 
@@ -239,7 +240,7 @@ extension DerivedDataControllerTests {
     @Test("Returns custom path message when custom path is set")
     func returnsCustomPathMessageWhenCustomPathIsSet() {
         let customPath = "/custom/path/to/derived/data"
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
         store.set(customPath, forKey: "derivedDataPathKey")
 
         let message = sut.managePath(set: nil as String?, reset: false)
@@ -255,7 +256,7 @@ extension DerivedDataControllerTests {
     @Test("Sets new path and returns confirmation message")
     func setsNewPathAndReturnsConfirmationMessage() {
         let newPath = "/new/custom/path"
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
 
         let message = sut.managePath(set: newPath, reset: false)
 
@@ -267,7 +268,7 @@ extension DerivedDataControllerTests {
     @Test("Expands tilde in path when setting new path")
     func expandsTildeInPathWhenSettingNewPath() {
         let pathWithTilde = "~/custom/derived/data"
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
 
         let message = sut.managePath(set: pathWithTilde, reset: false)
 
@@ -284,7 +285,7 @@ extension DerivedDataControllerTests {
     @Test("Resets to default path and returns confirmation message")
     func resetsToDefaultPathAndReturnsConfirmationMessage() {
         let customPath = "/custom/path"
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
         store.set(customPath, forKey: "derivedDataPathKey")
 
         let message = sut.managePath(set: nil as String?, reset: true)
@@ -297,7 +298,7 @@ extension DerivedDataControllerTests {
     @Test("Clears custom path from store when reset")
     func clearsCustomPathFromStoreWhenReset() {
         let customPath = "/custom/path"
-        let (sut, _, store) = makeSUT()
+        let (sut, _, store, _) = makeSUT()
         store.set(customPath, forKey: "derivedDataPathKey")
         #expect(store.string(forKey: "derivedDataPathKey") != nil)
 
@@ -312,7 +313,7 @@ extension DerivedDataControllerTests {
 extension DerivedDataControllerTests {
     @Test("Opens default derived data folder when no custom path set")
     func opensDefaultDerivedDataFolderWhenNoCustomPathSet() throws {
-        let (sut, service, _) = makeSUT()
+        let (sut, service, _, _) = makeSUT()
 
         try sut.openDerivedDataFolder()
 
@@ -323,7 +324,7 @@ extension DerivedDataControllerTests {
     @Test("Opens custom derived data folder when custom path set")
     func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
         let customPath = "/custom/derived/data/path"
-        let (sut, service, store) = makeSUT()
+        let (sut, service, store, _) = makeSUT()
         store.set(customPath, forKey: "derivedDataPathKey")
 
         try sut.openDerivedDataFolder()
@@ -334,10 +335,94 @@ extension DerivedDataControllerTests {
 
     @Test("Propagates open folder error from service")
     func propagatesOpenFolderErrorFromService() throws {
-        let (sut, _, _) = makeSUT(throwError: true)
+        let (sut, _, _, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
             try sut.openDerivedDataFolder()
+        }
+    }
+}
+
+
+// MARK: - Progress Handler Tests
+extension DerivedDataControllerTests {
+    @Test("Reports progress for each folder when deleting all")
+    func reportsProgressForEachFolderWhenDeletingAll() throws {
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
+        let folder3 = makePurgeFolder(name: "Folder3")
+        let folders = [folder1, folder2, folder3]
+        let (sut, _, _, progressHandler) = makeSUT(
+            permissionResult: .init(type: .ordered([true])),
+            foldersToLoad: folders
+        )
+
+        try sut.deleteDerivedData(deleteAll: true)
+
+        #expect(progressHandler.deletedFolders.count == folders.count)
+        #expect(progressHandler.deletedFolders[0].name == folder1.name)
+        #expect(progressHandler.deletedFolders[1].name == folder2.name)
+        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+    }
+
+    @Test("Reports progress for each selected folder when deleting specific folders")
+    func reportsProgressForEachSelectedFolderWhenDeletingSpecificFolders() throws {
+        let folder1 = makePurgeFolder(name: "Folder1")
+        let folder2 = makePurgeFolder(name: "Folder2")
+        let folder3 = makePurgeFolder(name: "Folder3")
+        let folders = [folder1, folder2, folder3]
+        let selectedIndices = [0, 2]
+        let (sut, _, _, progressHandler) = makeSUT(
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([selectedIndices])
+            ),
+            foldersToLoad: folders
+        )
+
+        try sut.deleteDerivedData(deleteAll: false)
+
+        #expect(progressHandler.deletedFolders.count == 2)
+        #expect(progressHandler.deletedFolders[0].name == folder1.name)
+        #expect(progressHandler.deletedFolders[1].name == folder3.name)
+    }
+
+    @Test("Reports no progress when no folders selected")
+    func reportsNoProgressWhenNoFoldersSelected() throws {
+        let folders = [
+            makePurgeFolder(name: "Folder1"),
+            makePurgeFolder(name: "Folder2")
+        ]
+        let (sut, _, _, progressHandler) = makeSUT(
+            selectionResult: .init(
+                singleSelectionType: .ordered([1]),
+                multiSelectionType: .ordered([[]])
+            ),
+            foldersToLoad: folders
+        )
+
+        try sut.deleteDerivedData(deleteAll: false)
+
+        #expect(progressHandler.deletedFolders.isEmpty)
+    }
+
+    @Test("Reports progress in correct order for multiple folders")
+    func reportsProgressInCorrectOrderForMultipleFolders() throws {
+        let folder1 = makePurgeFolder(name: "Alpha")
+        let folder2 = makePurgeFolder(name: "Beta")
+        let folder3 = makePurgeFolder(name: "Gamma")
+        let folder4 = makePurgeFolder(name: "Delta")
+        let folders = [folder1, folder2, folder3, folder4]
+        let (sut, _, _, progressHandler) = makeSUT(
+            permissionResult: .init(type: .ordered([true])),
+            foldersToLoad: folders
+        )
+
+        try sut.deleteDerivedData(deleteAll: true)
+
+        #expect(progressHandler.deletedFolders.count == 4)
+        for (index, folder) in folders.enumerated() {
+            #expect(progressHandler.deletedFolders[index].name == folder.name)
         }
     }
 }
@@ -351,12 +436,13 @@ private extension DerivedDataControllerTests {
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: DerivedDataController, service: MockDerivedDataService, store: MockUserDefaults) {
+    ) -> (sut: DerivedDataController, service: MockDerivedDataService, store: MockUserDefaults, progressHandler: MockProgressHandler) {
         let store = MockUserDefaults()
         let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
         let service = MockDerivedDataService(throwError: throwError, foldersToLoad: foldersToLoad)
-        let sut = DerivedDataController(store: store, picker: picker, service: service)
+        let progressHandler = MockProgressHandler()
+        let sut = DerivedDataController(store: store, picker: picker, service: service, progressHandler: progressHandler)
 
-        return (sut, service, store)
+        return (sut, service, store, progressHandler)
     }
 }
