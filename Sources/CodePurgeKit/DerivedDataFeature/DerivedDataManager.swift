@@ -6,11 +6,11 @@
 //
 
 public struct DerivedDataManager: DerivedDataService {
-    private let store: PurgeRecordStore
+    private let path: String
     private let delegate: DerivedDataDelegate
 
-    init(store: PurgeRecordStore, delegate: DerivedDataDelegate) {
-        self.store = store
+    init(path: String, delegate: DerivedDataDelegate) {
+        self.path = path
         self.delegate = delegate
     }
 }
@@ -18,20 +18,20 @@ public struct DerivedDataManager: DerivedDataService {
 
 // MARK: - Init
 public extension DerivedDataManager {
-    init() {
-        self.init(store: DefaultPurgeRecordStore(), delegate: DefaultDerivedDataDelegate())
+    init(path: String) {
+        self.init(path: path, delegate: DefaultDerivedDataDelegate())
     }
 }
 
 
 // MARK: - Actions
 public extension DerivedDataManager {
-    func loadFolders() -> [PurgeFolder] {
-        return delegate.loadFolders()
+    func loadFolders() throws -> [PurgeFolder] {
+        return try delegate.loadFolders(path: path)
     }
 
     func deleteAllDerivedData() throws {
-        let allFolders = loadFolders()
+        let allFolders = try loadFolders()
         
         try deleteFolders(allFolders)
     }
@@ -48,22 +48,7 @@ public extension DerivedDataManager {
 
 
 // MARK: - Dependencies
-protocol PurgeRecordStore {
-    
-}
-
 protocol DerivedDataDelegate {
-    func loadFolders() -> [PurgeFolder]
     func deleteFolder(_ folder: PurgeFolder) throws
-}
-
-struct DefaultPurgeRecordStore: PurgeRecordStore { }
-struct DefaultDerivedDataDelegate: DerivedDataDelegate {
-    func loadFolders() -> [PurgeFolder] {
-        return [] // TODO: -
-    }
-    
-    func deleteFolder(_ folder: PurgeFolder) throws {
-        // TODO: -
-    }
+    func loadFolders(path: String) throws -> [PurgeFolder]
 }

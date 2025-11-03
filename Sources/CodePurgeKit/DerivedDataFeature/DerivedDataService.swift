@@ -6,7 +6,7 @@
 //
 
 public protocol DerivedDataService {
-    func loadFolders() -> [PurgeFolder]
     func deleteAllDerivedData() throws
+    func loadFolders() throws -> [PurgeFolder]
     func deleteFolders(_ folders: [PurgeFolder]) throws
 }

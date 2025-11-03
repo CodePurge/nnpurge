@@ -29,8 +29,9 @@ extension Nnpurge {
                 return
             }
 
-            let controller = Nnpurge.makeDerivedDataController()
-            try controller.deleteDerivedData(deleteAll: all)
+            // TODO: - 
+//            let controller = Nnpurge.makeDerivedDataController()
+//            try controller.deleteDerivedData(deleteAll: all)
         }
     }
 }

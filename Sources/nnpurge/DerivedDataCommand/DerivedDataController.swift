@@ -23,7 +23,7 @@ struct DerivedDataController {
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let option = try selectOption(deleteAll: deleteAll)
-        let allFolders = service.loadFolders()
+        let allFolders = try service.loadFolders()
 
         switch option {
         case .deleteAll:

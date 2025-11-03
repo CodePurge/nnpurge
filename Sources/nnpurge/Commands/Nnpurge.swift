@@ -28,12 +28,9 @@ extension Nnpurge {
     static func makePicker() -> any CommandLinePicker {
         return contextFactory.makePicker()
     }
+    
     static func makeUserDefaults() -> any DerivedDataStore {
         return contextFactory.makeUserDefaults()
-    }
-
-    static func makeDerivedDataController() -> DerivedDataController {
-        return DerivedDataController(picker: makePicker(), service: DerivedDataManager())
     }
 
     static func makeDerivedDataManager() -> any DerivedDataDelegate {
