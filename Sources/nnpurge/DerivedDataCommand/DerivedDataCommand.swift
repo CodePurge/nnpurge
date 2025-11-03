@@ -52,8 +52,6 @@ protocol DerivedDataStore {
 
 
 // MARK: - Extension Dependencies
-extension UserDefaults: DerivedDataStore {}
-
 private extension DerivedDataStore {
     func loadDerivedDataPath() -> String {
         let path = string(forKey: .derivedDataPathKey) ?? "~/Library/Developer/Xcode/DerivedData"

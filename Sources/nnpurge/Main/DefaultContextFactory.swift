@@ -22,3 +22,7 @@ struct DefaultContextFactory: ContextFactory {
         return DerivedDataManager(path: path)
     }
 }
+
+
+// MARK: - Extension Depdencies
+extension UserDefaults: DerivedDataStore { }
