@@ -47,7 +47,14 @@ private extension PurgeControllerConfiguration {
         return .init(
             deleteAllPrompt: "Are you sure you want to delete all cached package repositories?",
             selectionPrompt: "Select the package repositories to delete.",
-            path: path
+            path: path,
+            deleteStalePrompt: "Are you sure you want to delete stale packages (not modified in 30+ days)?",
+            availableOptions: [
+                .init(.deleteAll, displayName: "Delete all package repositories"),
+                .init(.deleteStale, displayName: "Delete stale packages (30+ days old)"),
+                .init(.selectFolders, displayName: "Select specific packages to delete")
+            ],
+            staleDaysThreshold: 30
         )
     }
 }

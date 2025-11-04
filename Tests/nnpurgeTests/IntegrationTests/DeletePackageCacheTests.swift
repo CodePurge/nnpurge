@@ -43,7 +43,7 @@ final class DeletePackageCacheTests {
         let (factory, service) = makeSUT(
             foldersToLoad: packages,
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([selectedIndices])
             )
         )
@@ -66,7 +66,7 @@ final class DeletePackageCacheTests {
         let (factory, service) = makeSUT(
             foldersToLoad: packages,
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([[]])
             )
         )

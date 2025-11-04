@@ -37,6 +37,13 @@ struct DefaultPurgeDelegate: PurgeDelegate {
 /// Extension to create PurgeFolder from Files.Folder
 private extension PurgeFolder {
     init(folder: Folder) {
-        self.init(url: folder.url, name: folder.name, path: folder.path, size: 0)
+        self.init(
+            url: folder.url,
+            name: folder.name,
+            path: folder.path,
+            size: 0,
+            modificationDate: folder.modificationDate,
+            creationDate: folder.creationDate
+        )
     }
 }

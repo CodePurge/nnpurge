@@ -7,5 +7,6 @@
 
 enum DeleteOption: CaseIterable {
     case deleteAll
+    case deleteStale
     case selectFolders
 }

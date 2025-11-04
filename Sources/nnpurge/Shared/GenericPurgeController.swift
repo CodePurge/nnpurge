@@ -45,6 +45,11 @@ extension GenericPurgeController {
             try picker.requiredPermission(prompt: configuration.deleteAllPrompt)
 
             try service.deleteAllFolders(progressHandler: progressHandler)
+        case .deleteStale:
+            let staleFolders = PurgeFolder.filterStale(allFolders, olderThanDays: configuration.staleDaysThreshold)
+            try picker.requiredPermission(prompt: configuration.deleteStalePrompt)
+
+            try service.deleteFolders(staleFolders, progressHandler: progressHandler)
         case .selectFolders:
             let foldersToDelete = picker.multiSelection(configuration.selectionPrompt, items: allFolders)
 
@@ -61,7 +66,9 @@ private extension GenericPurgeController {
             return .deleteAll
         }
 
-        return try picker.requiredSingleSelection("What would you like to do?", items: DeleteOption.allCases)
+        let selectedDisplayable = try picker.requiredSingleSelection("What would you like to do?", items: configuration.availableOptions)
+
+        return selectedDisplayable.option
     }
 }
 
@@ -70,11 +77,17 @@ private extension GenericPurgeController {
 struct PurgeControllerConfiguration {
     let path: String
     let deleteAllPrompt: String
+    let deleteStalePrompt: String
     let selectionPrompt: String
+    let availableOptions: [DisplayableDeleteOption]
+    let staleDaysThreshold: Int
 
-    init(deleteAllPrompt: String, selectionPrompt: String, path: String) {
+    init(deleteAllPrompt: String, selectionPrompt: String, path: String, deleteStalePrompt: String = "", availableOptions: [DisplayableDeleteOption], staleDaysThreshold: Int = 30) {
         self.path = path
         self.deleteAllPrompt = deleteAllPrompt
+        self.deleteStalePrompt = deleteStalePrompt
         self.selectionPrompt = selectionPrompt
+        self.availableOptions = availableOptions
+        self.staleDaysThreshold = staleDaysThreshold
     }
 }

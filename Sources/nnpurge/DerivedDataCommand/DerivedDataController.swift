@@ -90,7 +90,11 @@ private extension PurgeControllerConfiguration {
         return .init(
             deleteAllPrompt: "Are you sure you want to delete all derived data?",
             selectionPrompt: "Select the folders to delete.",
-            path: store.loadDerivedDataPath()
+            path: store.loadDerivedDataPath(),
+            availableOptions: [
+                .init(.deleteAll, displayName: "Delete all derived data folders"),
+                .init(.selectFolders, displayName: "Select specific folders to delete")
+            ]
         )
     }
 }

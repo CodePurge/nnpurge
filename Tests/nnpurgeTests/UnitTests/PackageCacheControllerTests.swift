@@ -107,7 +107,7 @@ extension PackageCacheControllerTests {
 
     @Test("Shows package selection when user selects select folders option")
     func showsPackageSelectionWhenUserSelectsSelectFoldersOption() throws {
-        let selectFoldersIndex = 1
+        let selectFoldersIndex = 2
         let packages = [
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
@@ -139,7 +139,7 @@ extension PackageCacheControllerTests {
         let selectedIndices = [0, 2]
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([selectedIndices])
             ),
             foldersToLoad: packages
@@ -160,7 +160,7 @@ extension PackageCacheControllerTests {
         ]
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([[]])
             ),
             foldersToLoad: packages
@@ -278,7 +278,7 @@ extension PackageCacheControllerTests {
         let selectedIndices = [0, 2]
         let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([selectedIndices])
             ),
             foldersToLoad: packages
@@ -300,7 +300,7 @@ extension PackageCacheControllerTests {
         ]
         let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([1]),
+                singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([[]])
             ),
             foldersToLoad: packages

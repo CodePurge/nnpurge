@@ -7,13 +7,12 @@
 
 import SwiftPicker
 
-extension DeleteOption: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .deleteAll:
-            return "Delete all derived data folders"
-        case .selectFolders:
-            return "Select specific folders to delete"
-        }
+struct DisplayableDeleteOption: DisplayablePickerItem {
+    let option: DeleteOption
+    let displayName: String
+
+    init(_ option: DeleteOption, displayName: String) {
+        self.option = option
+        self.displayName = displayName
     }
 }
