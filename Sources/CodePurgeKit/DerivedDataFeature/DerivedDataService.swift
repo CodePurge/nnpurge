@@ -7,11 +7,8 @@
 
 import Foundation
 
-public protocol DerivedDataService {
-    func loadFolders() throws -> [PurgeFolder]
-    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws
-    func openFolder(at url: URL) throws
+public protocol DerivedDataService: PurgeService {
+    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws
 }
 
 public extension DerivedDataService {
@@ -19,7 +16,8 @@ public extension DerivedDataService {
         try deleteAllDerivedData(progressHandler: nil)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
-        try deleteFolders(folders, progressHandler: nil)
+    // Default implementation of PurgeService.deleteAllFolders using deleteAllDerivedData
+    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
+        try deleteAllDerivedData(progressHandler: progressHandler)
     }
 }

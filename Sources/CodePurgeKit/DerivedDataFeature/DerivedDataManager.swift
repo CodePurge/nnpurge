@@ -8,12 +8,11 @@
 import Foundation
 
 public struct DerivedDataManager: DerivedDataService {
-    private let path: String
-    private let delegate: any DerivedDataDelegate
+    private let manager: GenericPurgeManager
 
-    init(path: String, delegate: any DerivedDataDelegate) {
-        self.path = path
-        self.delegate = delegate
+    init(path: String, delegate: any PurgeDelegate) {
+        let config = PurgeConfiguration(path: path, expandPath: false)
+        self.manager = GenericPurgeManager(configuration: config, delegate: delegate)
     }
 }
 
@@ -21,7 +20,7 @@ public struct DerivedDataManager: DerivedDataService {
 // MARK: - Init
 public extension DerivedDataManager {
     init(path: String) {
-        self.init(path: path, delegate: DefaultDerivedDataDelegate())
+        self.init(path: path, delegate: DefaultPurgeDelegate())
     }
 }
 
@@ -29,37 +28,22 @@ public extension DerivedDataManager {
 // MARK: - Actions
 public extension DerivedDataManager {
     func loadFolders() throws -> [PurgeFolder] {
-        return try delegate.loadFolders(path: path)
+        try manager.loadFolders()
     }
 
-    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws {
-        let allFolders = try loadFolders()
-
-        try deleteFolders(allFolders, progressHandler: progressHandler)
+    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
+        try manager.deleteAllFolders(progressHandler: progressHandler)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws {
-        for folder in folders {
-            try delegate.deleteFolder(folder)
-            progressHandler?.didDeleteFolder(folder)
-        }
+    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+        try manager.deleteFolders(folders, progressHandler: progressHandler)
 
         // TODO: - save purge record?
     }
 
     func openFolder(at url: URL) throws {
-        try delegate.openFolder(at: url)
+        try manager.openFolder(at: url)
     }
 }
 
 
-// MARK: - Dependencies
-public protocol DerivedDataProgressHandler {
-    func didDeleteFolder(_ folder: PurgeFolder)
-}
-
-protocol DerivedDataDelegate {
-    func deleteFolder(_ folder: PurgeFolder) throws
-    func loadFolders(path: String) throws -> [PurgeFolder]
-    func openFolder(at url: URL) throws
-}

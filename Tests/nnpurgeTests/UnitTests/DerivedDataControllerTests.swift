@@ -324,8 +324,9 @@ extension DerivedDataControllerTests {
     @Test("Opens custom derived data folder when custom path set")
     func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
         let customPath = "/custom/derived/data/path"
-        let (sut, service, store, _) = makeSUT()
+        let store = MockUserDefaults()
         store.set(customPath, forKey: "derivedDataPathKey")
+        let (sut, service, _, _) = makeSUT(store: store)
 
         try sut.openDerivedDataFolder()
 
@@ -433,18 +434,19 @@ extension DerivedDataControllerTests {
 // MARK: - SUT
 private extension DerivedDataControllerTests {
     func makeSUT(
+        store: MockUserDefaults? = nil,
         inputResult: MockInputResult = .init(),
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: DerivedDataController, service: MockDerivedDataService, store: MockUserDefaults, progressHandler: MockProgressHandler) {
-        let store = MockUserDefaults()
+    ) -> (sut: DerivedDataController, service: MockPurgeService, store: MockUserDefaults, progressHandler: MockProgressHandler) {
+        let actualStore = store ?? MockUserDefaults()
         let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
-        let service = MockDerivedDataService(throwError: throwError, foldersToLoad: foldersToLoad)
+        let service = MockPurgeService(throwError: throwError, foldersToLoad: foldersToLoad)
         let progressHandler = MockProgressHandler()
-        let sut = DerivedDataController(store: store, picker: picker, service: service, progressHandler: progressHandler)
+        let sut = DerivedDataController(store: actualStore, picker: picker, service: service, progressHandler: progressHandler)
 
-        return (sut, service, store, progressHandler)
+        return (sut, service, actualStore, progressHandler)
     }
 }

@@ -101,8 +101,15 @@ final class DerivedDataPathTests {
     @Test("Opens custom derived data folder when custom path set")
     func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
         let customPath = "/custom/derived/data/path"
-        let (factory, store, service) = makeSUTWithService()
+        let store = MockUserDefaults()
         store.set(customPath, forKey: "derivedDataPathKey")
+        let service = MockPurgeService()
+        let picker = makePicker()
+        let factory = MockContextFactory(
+            picker: picker,
+            derivedDataStore: store,
+            purgeService: service
+        )
 
         let output = try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "open"])
 
@@ -117,25 +124,25 @@ final class DerivedDataPathTests {
 private extension DerivedDataPathTests {
     func makeSUT() -> (factory: MockContextFactory, store: MockUserDefaults) {
         let store = MockUserDefaults()
-        let service = MockDerivedDataService()
+        let service = MockPurgeService()
         let picker = makePicker()
         let factory = MockContextFactory(
             picker: picker,
             derivedDataStore: store,
-            derivedDataService: service
+            purgeService: service
         )
 
         return (factory, store)
     }
 
-    func makeSUTWithService() -> (factory: MockContextFactory, store: MockUserDefaults, service: MockDerivedDataService) {
+    func makeSUTWithService() -> (factory: MockContextFactory, store: MockUserDefaults, service: MockPurgeService) {
         let store = MockUserDefaults()
-        let service = MockDerivedDataService()
+        let service = MockPurgeService()
         let picker = makePicker()
         let factory = MockContextFactory(
             picker: picker,
             derivedDataStore: store,
-            derivedDataService: service
+            purgeService: service
         )
 
         return (factory, store, service)

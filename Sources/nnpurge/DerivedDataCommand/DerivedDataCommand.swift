@@ -84,9 +84,9 @@ private extension Nnpurge {
     static func makeDerivedDataController() -> DerivedDataController {
         let picker = Nnpurge.makePicker()
         let store = Nnpurge.makeUserDefaults()
-        let progressHandler = DefaultDerivedDataProgressHandler()
+        let progressHandler = DefaultPurgeProgressHandler()
         let service = Nnpurge.makeDerivedDataService(path: store.loadDerivedDataPath())
-        
+
         return .init(store: store, picker: picker, service: service, progressHandler: progressHandler)
     }
 }

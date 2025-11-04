@@ -21,6 +21,10 @@ struct DefaultContextFactory: ContextFactory {
     func makeDerivedDataService(path: String) -> any DerivedDataService {
         return DerivedDataManager(path: path)
     }
+
+    func makePackageCacheService() -> any PackageCacheService {
+        return PackageCacheManager()
+    }
 }
 
 
