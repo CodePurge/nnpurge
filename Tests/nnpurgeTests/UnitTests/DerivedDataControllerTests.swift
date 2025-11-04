@@ -362,14 +362,11 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: true)
 
-        #expect(!progressHandler.didComplete)
-        #expect(progressHandler.completedMessage == nil)
-        #expect(progressHandler.progressUpdates.isEmpty)
-//        #expect(progressHandler.deletedFolders.count == folders.count)
-//        guard progressHandler.deletedFolders.count >= 3 else { return }
-//        #expect(progressHandler.deletedFolders[0].name == folder1.name)
-//        #expect(progressHandler.deletedFolders[1].name == folder2.name)
-//        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+        #expect(progressHandler.progressUpdates.count == folders.count)
+        guard progressHandler.progressUpdates.count >= 3 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(folder1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(folder2.name))
+        #expect(progressHandler.progressUpdates[2].message.contains(folder3.name))
     }
 
     @Test("Reports progress for each selected folder when deleting specific folders")
@@ -389,11 +386,10 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: false)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == 2)
-//        guard progressHandler.deletedFolders.count >= 2 else { return }
-//        #expect(progressHandler.deletedFolders[0].name == folder1.name)
-//        #expect(progressHandler.deletedFolders[1].name == folder3.name)
+        #expect(progressHandler.progressUpdates.count == 2)
+        guard progressHandler.progressUpdates.count >= 2 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(folder1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(folder3.name))
     }
 
     @Test("Reports no progress when no folders selected")
@@ -412,8 +408,7 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: false)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.isEmpty)
+        #expect(progressHandler.progressUpdates.isEmpty)
     }
 
     @Test("Reports progress in correct order for multiple folders")
@@ -430,11 +425,10 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: true)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == 4)
-//        for (index, folder) in folders.enumerated() {
-//            #expect(progressHandler.deletedFolders[index].name == folder.name)
-//        }
+        #expect(progressHandler.progressUpdates.count == 4)
+        for (index, folder) in folders.enumerated() {
+            #expect(progressHandler.progressUpdates[index].message.contains(folder.name))
+        }
     }
 }
 

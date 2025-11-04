@@ -51,10 +51,9 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllPackages = true
 
-        // TODO: -
-//        for folder in foldersToLoad {
-//            progressHandler?.didDeleteFolder(folder)
-//        }
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
+        }
     }
 
     func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
@@ -66,10 +65,9 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllFolders = true
 
-        // TODO: -
-//        for folder in foldersToLoad {
-//            progressHandler?.didDeleteFolder(folder)
-//        }
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
+        }
     }
 
     func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws {
@@ -81,10 +79,9 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllPackages = true
         didDeleteAllFolders = true
 
-        // TODO: -
-//        for folder in foldersToLoad {
-//            progressHandler?.didDeleteFolder(folder)
-//        }
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
+        }
     }
 
     func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
@@ -95,10 +92,9 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         receivedProgressHandler = progressHandler
         deletedFolders.append(contentsOf: folders)
 
-        // TODO: - 
-//        for folder in folders {
-//            progressHandler?.didDeleteFolder(folder)
-//        }
+        for (index, folder) in folders.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: folders.count, message: "Deleting \(folder.name)...")
+        }
     }
 
     func openFolder(at url: URL) throws {
