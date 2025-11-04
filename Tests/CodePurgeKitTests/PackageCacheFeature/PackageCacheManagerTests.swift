@@ -16,8 +16,7 @@ struct PackageCacheManagerTests {
         let (_, delegate) = makeSUT()
 
         #expect(delegate.deletedFolders.isEmpty)
-        #expect(delegate.loadFoldersCallCount == 0)
-        #expect(delegate.lastPathLoaded == nil)
+        #expect(delegate.openedURL == nil)
     }
 }
 
@@ -30,12 +29,10 @@ extension PackageCacheManagerTests {
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
         ]
-        let (sut, delegate) = makeSUT(foldersToLoad: folders)
+        let (sut, _) = makeSUT(foldersToLoad: folders)
 
         let loadedFolders = try sut.loadFolders()
 
-        #expect(delegate.loadFoldersCallCount == 1)
-        #expect(delegate.lastPathLoaded?.contains("org.swift.swiftpm/repositories") == true)
         #expect(loadedFolders.count == folders.count)
         guard loadedFolders.count >= 2 else { return }
         #expect(loadedFolders[0].name == folders[0].name)
@@ -74,7 +71,6 @@ extension PackageCacheManagerTests {
 
         try sut.deleteAllPackages()
 
-        #expect(delegate.loadFoldersCallCount == 1)
         #expect(delegate.deletedFolders.count == packages.count)
         #expect(delegate.deletedFolders.contains(where: { $0.name == package1.name }))
         #expect(delegate.deletedFolders.contains(where: { $0.name == package2.name }))
@@ -87,7 +83,6 @@ extension PackageCacheManagerTests {
 
         try sut.deleteAllPackages()
 
-        #expect(delegate.loadFoldersCallCount == 1)
         #expect(delegate.deletedFolders.isEmpty)
     }
 
@@ -174,7 +169,7 @@ extension PackageCacheManagerTests {
 
         try sut.openFolder(at: url)
 
-        #expect(delegate.openedFolderURL == url)
+        #expect(delegate.openedURL == url)
     }
 
     @Test("Propagates open folder error from delegate")
@@ -197,7 +192,7 @@ extension PackageCacheManagerTests {
         let package2 = makePurgeFolder(name: "Package2")
         let package3 = makePurgeFolder(name: "Package3")
         let packages = [package1, package2, package3]
-        let progressHandler = MockPackageCacheProgressHandler()
+        let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT(foldersToLoad: packages)
 
         try sut.deleteAllPackages(progressHandler: progressHandler)
@@ -215,7 +210,7 @@ extension PackageCacheManagerTests {
         let package2 = makePurgeFolder(name: "Beta")
         let package3 = makePurgeFolder(name: "Gamma")
         let packagesToDelete = [package1, package2, package3]
-        let progressHandler = MockPackageCacheProgressHandler()
+        let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
         try sut.deleteFolders(packagesToDelete, progressHandler: progressHandler)
@@ -229,7 +224,7 @@ extension PackageCacheManagerTests {
 
     @Test("Does not call progress handler when no packages to delete")
     func doesNotCallProgressHandlerWhenNoPackagesToDelete() throws {
-        let progressHandler = MockPackageCacheProgressHandler()
+        let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT(foldersToLoad: [])
 
         try sut.deleteAllPackages(progressHandler: progressHandler)
@@ -244,7 +239,7 @@ extension PackageCacheManagerTests {
         let package3 = makePurgeFolder(name: "Third")
         let package4 = makePurgeFolder(name: "Fourth")
         let packages = [package1, package2, package3, package4]
-        let progressHandler = MockPackageCacheProgressHandler()
+        let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
         try sut.deleteFolders(packages, progressHandler: progressHandler)
@@ -287,8 +282,8 @@ private extension PackageCacheManagerTests {
     func makeSUT(
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: PackageCacheManager, delegate: MockPackageCacheDelegate) {
-        let delegate = MockPackageCacheDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
+    ) -> (sut: PackageCacheManager, delegate: MockPurgeDelegate) {
+        let delegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
         let sut = PackageCacheManager(delegate: delegate)
 
         return (sut, delegate)

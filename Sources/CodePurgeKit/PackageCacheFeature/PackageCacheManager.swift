@@ -8,10 +8,12 @@
 import Foundation
 
 public struct PackageCacheManager: PackageCacheService {
-    private let delegate: any PackageCacheDelegate
+    private let manager: GenericPurgeManager
 
-    init(delegate: any PackageCacheDelegate) {
-        self.delegate = delegate
+    init(delegate: any PurgeDelegate) {
+        let path = "~/Library/Caches/org.swift.swiftpm/repositories"
+        let config = PurgeConfiguration(path: path, expandPath: true)
+        self.manager = GenericPurgeManager(configuration: config, delegate: delegate)
     }
 }
 
@@ -19,7 +21,7 @@ public struct PackageCacheManager: PackageCacheService {
 // MARK: - Init
 public extension PackageCacheManager {
     init() {
-        self.init(delegate: DefaultPackageCacheDelegate())
+        self.init(delegate: DefaultPurgeDelegate())
     }
 }
 
@@ -27,34 +29,20 @@ public extension PackageCacheManager {
 // MARK: - Actions
 public extension PackageCacheManager {
     func loadFolders() throws -> [PurgeFolder] {
-        let path = "~/Library/Caches/org.swift.swiftpm/repositories"
-        let expandedPath = NSString(string: path).expandingTildeInPath
-
-        return try delegate.loadFolders(path: expandedPath)
+        try manager.loadFolders()
     }
 
     func deleteAllPackages(progressHandler: PackageCacheProgressHandler?) throws {
-        let allFolders = try loadFolders()
-
-        try deleteFolders(allFolders, progressHandler: progressHandler)
+        try manager.deleteAllFolders(progressHandler: progressHandler)
     }
 
     func deleteFolders(_ folders: [PurgeFolder], progressHandler: PackageCacheProgressHandler?) throws {
-        for folder in folders {
-            try delegate.deleteFolder(folder)
-            progressHandler?.didDeleteFolder(folder)
-        }
+        try manager.deleteFolders(folders, progressHandler: progressHandler)
     }
 
     func openFolder(at url: URL) throws {
-        try delegate.openFolder(at: url)
+        try manager.openFolder(at: url)
     }
 }
 
 
-// MARK: - Dependencies
-protocol PackageCacheDelegate {
-    func deleteFolder(_ folder: PurgeFolder) throws
-    func loadFolders(path: String) throws -> [PurgeFolder]
-    func openFolder(at url: URL) throws
-}

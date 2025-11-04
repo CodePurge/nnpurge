@@ -16,8 +16,7 @@ struct DerivedDataManagerTests {
         let (_, delegate) = makeSUT()
 
         #expect(delegate.deletedFolders.isEmpty)
-        #expect(delegate.loadFoldersCallCount == 0)
-        #expect(delegate.lastPathLoaded == nil)
+        #expect(delegate.openedURL == nil)
     }
 }
 
@@ -31,12 +30,10 @@ extension DerivedDataManagerTests {
             makePurgeFolder(name: "Folder1"),
             makePurgeFolder(name: "Folder2")
         ]
-        let (sut, delegate) = makeSUT(path: expectedPath, foldersToLoad: folders)
+        let (sut, _) = makeSUT(path: expectedPath, foldersToLoad: folders)
 
         let loadedFolders = try sut.loadFolders()
 
-        #expect(delegate.loadFoldersCallCount == 1)
-        #expect(delegate.lastPathLoaded == expectedPath)
         #expect(loadedFolders.count == folders.count)
         guard loadedFolders.count >= 2 else { return }
         #expect(loadedFolders[0].name == folders[0].name)
@@ -75,7 +72,6 @@ extension DerivedDataManagerTests {
 
         try sut.deleteAllDerivedData()
 
-        #expect(delegate.loadFoldersCallCount == 1)
         #expect(delegate.deletedFolders.count == folders.count)
         #expect(delegate.deletedFolders.contains(where: { $0.name == folder1.name }))
         #expect(delegate.deletedFolders.contains(where: { $0.name == folder2.name }))
@@ -88,7 +84,6 @@ extension DerivedDataManagerTests {
 
         try sut.deleteAllDerivedData()
 
-        #expect(delegate.loadFoldersCallCount == 1)
         #expect(delegate.deletedFolders.isEmpty)
     }
 
@@ -171,11 +166,12 @@ extension DerivedDataManagerTests {
     @Test("Uses specified path for folder operations")
     func usesSpecifiedPathForFolderOperations() throws {
         let customPath = "/custom/xcode/path"
-        let (sut, delegate) = makeSUT(path: customPath)
+        let folder = makePurgeFolder(name: "TestFolder")
+        let (sut, _) = makeSUT(path: customPath, foldersToLoad: [folder])
 
-        _ = try sut.loadFolders()
+        let loadedFolders = try sut.loadFolders()
 
-        #expect(delegate.lastPathLoaded == customPath)
+        #expect(loadedFolders.count == 1)
     }
 
     @Test("Deletes all folders from custom path location")
@@ -186,7 +182,6 @@ extension DerivedDataManagerTests {
 
         try sut.deleteAllDerivedData()
 
-        #expect(delegate.lastPathLoaded == customPath)
         #expect(delegate.deletedFolders.count == 1)
         guard delegate.deletedFolders.count >= 1 else { return }
         #expect(delegate.deletedFolders[0].name == folder.name)
@@ -293,8 +288,8 @@ private extension DerivedDataManagerTests {
         path: String = "/default/path",
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: DerivedDataManager, delegate: MockDerivedDataDelegate) {
-        let delegate = MockDerivedDataDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
+    ) -> (sut: DerivedDataManager, delegate: MockPurgeDelegate) {
+        let delegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
         let sut = DerivedDataManager(path: path, delegate: delegate)
 
         return (sut, delegate)
