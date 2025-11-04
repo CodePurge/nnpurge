@@ -10,9 +10,11 @@ import Foundation
 public struct ArchiveManager {
     private let path: String
     private let loader: any PurgeFolderLoader
+    private let delegate: any ArchiveDelegate
     
-    init(loader: any PurgeFolderLoader) {
+    init(loader: any PurgeFolderLoader, delegate: any ArchiveDelegate) {
         self.loader = loader
+        self.delegate = delegate
         self.path = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
     }
 }
@@ -21,7 +23,7 @@ public struct ArchiveManager {
 // MARK: - Init
 public extension ArchiveManager {
     init() {
-        self.init(loader: DefaultPurgeFolderLoader())
+        self.init(loader: DefaultPurgeFolderLoader(), delegate: DefaultArchiveDelegate())
     }
 }
 
@@ -35,11 +37,14 @@ extension ArchiveManager: ArchiveService {
     }
     
     public func deleteArchives(_ archives: [ArchiveFolder], progressHandler: (any PurgeProgressHandler)?) throws {
-        // TODO: -
-    }
-    
-    public func deleteAllArchives(progressHandler: PurgeProgressHandler?) throws {
-//        try manager.deleteAllFolders(progressHandler: progressHandler)
+        let total = archives.count
+        
+        for (index, folder) in archives.enumerated() {
+            try delegate.deleteArchive(folder)
+            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
+        }
+        
+        progressHandler?.complete(message: "✅ All archives moved to trash.")
     }
 }
 
@@ -51,52 +56,8 @@ private extension ArchiveManager {
     }
 }
 
-protocol PurgeFolderLoader {
-    func loadPurgeFolders(at path: String) throws -> [any PurgeFolder]
-}
 
-struct DefaultPurgeFolderLoader: PurgeFolderLoader {
-    func loadPurgeFolders(at path: String) throws -> [any PurgeFolder] {
-        return try Folder(path: path).subfolders.map({ PurgeFolderContainer(folder: $0) })
-    }
-}
-
-import Files
-
-struct PurgeFolderContainer {
-    private let folder: Folder
-    
-    init(folder: Folder) {
-        self.folder = folder
-    }
-}
-
-extension PurgeFolderContainer: PurgeFolder {
-    var url: URL {
-        return folder.url
-    }
-    
-    var name: String {
-        return folder.name
-    }
-    
-    var path: String {
-        return folder.path
-    }
-    
-    var creationDate: Date? {
-        return folder.creationDate
-    }
-    
-    var modificationDate: Date? {
-        return folder.modificationDate
-    }
-    
-    var subfolders: [PurgeFolderContainer] {
-        return folder.subfolders.map({ .init(folder: $0) })
-    }
-    
-    func getSize() -> Int64 {
-        return 0 // TODO: - 
-    }
+// MARK: - Dependencies
+protocol ArchiveDelegate {
+    func deleteArchive(_ archive: ArchiveFolder) throws
 }

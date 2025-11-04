@@ -16,7 +16,7 @@ extension Nnpurge {
             abstract: "Manage Xcode archives",
             subcommands: [
                 Delete.self,
-                Open.self
+//                Open.self
             ]
         )
     }

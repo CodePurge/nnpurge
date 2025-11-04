@@ -25,7 +25,7 @@ struct ArchiveController {
 // MARK: - Open
 extension ArchiveController {
     func openArchiveFolder() throws {
-//        try controller.openFolder()
+        print("should open archive folder") // TODO: -
     }
 }
 
@@ -33,66 +33,53 @@ extension ArchiveController {
 // MARK: - Delete
 extension ArchiveController {
     func deleteArchives(deleteAll: Bool) throws {
-        let option = try selectOption(deleteAll: deleteAll)
-        let allArchives = try service.loadArchives()
+        let archivesToDelete = try selectArchivesToDelete(deleteAll: deleteAll)
         
-        switch option {
-        case .deleteAll:
-            try picker.requiredPermission("") // TODO: -
-        case .deleteStale:
-            break
-        case .selectFolders:
-            let archivesToDelete = picker.multiSelection("", items: allArchives)
-            
-            print("delete \(archivesToDelete.count) archives")
-        }
+        try service.deleteArchives(archivesToDelete, progressHandler: progressHandler)
     }
 }
 
 
 // MARK: - Private Methods
 private extension ArchiveController {
-    func selectOption(deleteAll: Bool) throws -> DeleteOption {
+    func selectArchivesToDelete(deleteAll: Bool) throws -> [ArchiveFolder] {
+        let allArchives = try service.loadArchives()
+        let option = try selectOption(deleteAll: deleteAll)
+        
+        switch option {
+        case .deleteAll:
+            try picker.requiredPermission("Are you sure you want to delete all Xcode archives?")
+            
+            return allArchives
+        case .selectFolders:
+            return picker.multiSelection("Select the archives to delete.", items: allArchives)
+        }
+    }
+    
+    func selectOption(deleteAll: Bool) throws -> ArchiveOption {
         if deleteAll {
             return .deleteAll
         }
 
-        let selectedDisplayable = try picker.requiredSingleSelection("What would you like to do?", items: makeOptions())
-
-        return selectedDisplayable.option
-    }
-    
-    func makeOptions() -> [DisplayableDeleteOption] {
-        return [
-            .init(.deleteAll, displayName: "Delete all archives"),
-            .init(.deleteStale, displayName: "Delete stale archives (90+ days old)"),
-            .init(.selectFolders, displayName: "Select specific archives to delete")
-        ]
-    }
-}
-
-extension ArchiveFolder: DisplayablePickerItem {
-    public var displayName: String {
-        return name // TODO: -
+        return try picker.requiredSingleSelection("What would you like to do?", items: ArchiveOption.allCases)
     }
 }
 
 
-// MARK: - Configuration
-private extension PurgeControllerConfiguration {
-    static var archiveConfiguration: PurgeControllerConfiguration {
-        let path = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
+// MARK: - Dependencies
+enum ArchiveOption: CaseIterable {
+    case deleteAll, selectFolders
+}
 
-        return .init(
-            deleteAllPrompt: "Are you sure you want to delete all Xcode archives?",
-            selectionPrompt: "Select the archives to delete.",
-            path: path,
-            availableOptions: [
-                .init(.deleteAll, displayName: "Delete all archives"),
-                .init(.deleteStale, displayName: "Delete stale archives (90+ days old)"),
-                .init(.selectFolders, displayName: "Select specific archives to delete")
-            ],
-            staleDaysThreshold: 90
-        )
+
+// MARK: - Extension Dependencies
+extension ArchiveOption: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .deleteAll:
+            return "Delete all archives"
+        case .selectFolders:
+            return "Select specific archives to delete"
+        }
     }
 }
