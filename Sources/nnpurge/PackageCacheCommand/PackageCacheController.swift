@@ -10,14 +10,24 @@ import SwiftPicker
 import CodePurgeKit
 
 struct PackageCacheController {
-    private let picker: any CommandLinePicker
-    private let service: any PackageCacheService
-    private let progressHandler: any PackageCacheProgressHandler
+    private let controller: GenericPurgeController
 
     init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PackageCacheProgressHandler) {
-        self.picker = picker
-        self.service = service
-        self.progressHandler = progressHandler
+        let configuration = PurgeControllerConfiguration(
+            deleteAllPrompt: "Are you sure you want to delete all cached package repositories?",
+            selectionPrompt: "Select the package repositories to delete.",
+            pathProvider: {
+                let path = "~/Library/Caches/org.swift.swiftpm/repositories"
+                return NSString(string: path).expandingTildeInPath
+            }
+        )
+
+        self.controller = GenericPurgeController(
+            picker: picker,
+            service: service,
+            progressHandler: progressHandler,
+            configuration: configuration
+        )
     }
 }
 
@@ -25,11 +35,7 @@ struct PackageCacheController {
 // MARK: - Open
 extension PackageCacheController {
     func openPackageCacheFolder() throws {
-        let path = "~/Library/Caches/org.swift.swiftpm/repositories"
-        let expandedPath = NSString(string: path).expandingTildeInPath
-        let url = URL(fileURLWithPath: expandedPath)
-
-        try service.openFolder(at: url)
+        try controller.openFolder()
     }
 }
 
@@ -37,30 +43,6 @@ extension PackageCacheController {
 // MARK: - Delete
 extension PackageCacheController {
     func deletePackageCache(deleteAll: Bool) throws {
-        let option = try selectOption(deleteAll: deleteAll)
-        let allFolders = try service.loadFolders()
-
-        switch option {
-        case .deleteAll:
-            try picker.requiredPermission(prompt: "Are you sure you want to delete all cached package repositories?")
-
-            try service.deleteAllPackages(progressHandler: progressHandler)
-        case .selectFolders:
-            let foldersToDelete = picker.multiSelection("Select the package repositories to delete.", items: allFolders)
-
-            try service.deleteFolders(foldersToDelete, progressHandler: progressHandler)
-        }
-    }
-}
-
-
-// MARK: - Private Methods
-private extension PackageCacheController {
-    func selectOption(deleteAll: Bool) throws -> DeleteOption {
-        if deleteAll {
-            return .deleteAll
-        }
-
-        return try picker.requiredSingleSelection("What would you like to do?", items: DeleteOption.allCases)
+        try controller.deleteFolders(deleteAll: deleteAll)
     }
 }

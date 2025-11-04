@@ -45,7 +45,7 @@ extension Nnpurge {
     static func makePackageCacheController() -> PackageCacheController {
         let picker = Nnpurge.makePicker()
         let service = Nnpurge.makePackageCacheService()
-        let progressHandler = DefaultPackageCacheProgressHandler()
+        let progressHandler = DefaultPurgeProgressHandler()
 
         return .init(picker: picker, service: service, progressHandler: progressHandler)
     }

@@ -11,15 +11,23 @@ import CodePurgeKit
 
 struct DerivedDataController {
     private let store: any DerivedDataStore
-    private let picker: any CommandLinePicker
-    private let service: any DerivedDataService
-    private let progressHandler: any DerivedDataProgressHandler
+    private let controller: GenericPurgeController
 
     init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any DerivedDataProgressHandler) {
         self.store = store
-        self.picker = picker
-        self.service = service
-        self.progressHandler = progressHandler
+
+        let configuration = PurgeControllerConfiguration(
+            deleteAllPrompt: "Are you sure you want to delete all derived data?",
+            selectionPrompt: "Select the folders to delete.",
+            pathProvider: { store.loadDerivedDataPath() }
+        )
+
+        self.controller = GenericPurgeController(
+            picker: picker,
+            service: service,
+            progressHandler: progressHandler,
+            configuration: configuration
+        )
     }
 }
 
@@ -27,10 +35,7 @@ struct DerivedDataController {
 // MARK: - Open
 extension DerivedDataController {
     func openDerivedDataFolder() throws {
-        let path = store.loadDerivedDataPath()
-        let url = URL(fileURLWithPath: path)
-
-        try service.openFolder(at: url)
+        try controller.openFolder()
     }
 }
 
@@ -38,19 +43,7 @@ extension DerivedDataController {
 // MARK: - Delete
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
-        let option = try selectOption(deleteAll: deleteAll)
-        let allFolders = try service.loadFolders()
-
-        switch option {
-        case .deleteAll:
-            try picker.requiredPermission(prompt: "Are you sure you want to delete all derived data?")
-
-            try service.deleteAllDerivedData(progressHandler: progressHandler)
-        case .selectFolders:
-            let foldersToDelete = picker.multiSelection("Select the folders to delete.", items: allFolders)
-
-            try service.deleteFolders(foldersToDelete, progressHandler: progressHandler)
-        }
+        try controller.deleteFolders(deleteAll: deleteAll)
     }
 }
 
@@ -76,18 +69,6 @@ extension DerivedDataController {
             message += "\n(using default)"
         }
         return message
-    }
-}
-
-
-// MARK: - Private Methods
-private extension DerivedDataController {
-    func selectOption(deleteAll: Bool) throws -> DeleteOption {
-        if deleteAll {
-            return .deleteAll
-        }
-
-        return try picker.requiredSingleSelection("What would you like to do?", items: DeleteOption.allCases)
     }
 }
 
