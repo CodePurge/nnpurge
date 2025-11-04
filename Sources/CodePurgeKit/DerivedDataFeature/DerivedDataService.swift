@@ -7,11 +7,12 @@
 
 import Foundation
 
-public protocol DerivedDataService {
-    func loadFolders() throws -> [PurgeFolder]
+// Type alias for progress handler to maintain API compatibility
+public typealias DerivedDataProgressHandler = PurgeProgressHandler
+
+// DerivedDataService now inherits from PurgeService
+public protocol DerivedDataService: PurgeService {
     func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws
-    func openFolder(at url: URL) throws
 }
 
 public extension DerivedDataService {
@@ -19,7 +20,8 @@ public extension DerivedDataService {
         try deleteAllDerivedData(progressHandler: nil)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
-        try deleteFolders(folders, progressHandler: nil)
+    // Default implementation of PurgeService.deleteAllFolders using deleteAllDerivedData
+    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
+        try deleteAllDerivedData(progressHandler: progressHandler)
     }
 }

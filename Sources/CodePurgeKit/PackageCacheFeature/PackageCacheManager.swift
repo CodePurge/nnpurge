@@ -53,10 +53,6 @@ public extension PackageCacheManager {
 
 
 // MARK: - Dependencies
-public protocol PackageCacheProgressHandler {
-    func didDeleteFolder(_ folder: PurgeFolder)
-}
-
 protocol PackageCacheDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws
     func loadFolders(path: String) throws -> [PurgeFolder]

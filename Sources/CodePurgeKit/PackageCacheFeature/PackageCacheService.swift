@@ -7,11 +7,12 @@
 
 import Foundation
 
-public protocol PackageCacheService {
-    func loadFolders() throws -> [PurgeFolder]
+// Type alias for progress handler to maintain API compatibility
+public typealias PackageCacheProgressHandler = PurgeProgressHandler
+
+// PackageCacheService now inherits from PurgeService
+public protocol PackageCacheService: PurgeService {
     func deleteAllPackages(progressHandler: PackageCacheProgressHandler?) throws
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PackageCacheProgressHandler?) throws
-    func openFolder(at url: URL) throws
 }
 
 public extension PackageCacheService {
@@ -19,7 +20,8 @@ public extension PackageCacheService {
         try deleteAllPackages(progressHandler: nil)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
-        try deleteFolders(folders, progressHandler: nil)
+    // Default implementation of PurgeService.deleteAllFolders using deleteAllPackages
+    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
+        try deleteAllPackages(progressHandler: progressHandler)
     }
 }

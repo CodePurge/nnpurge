@@ -54,10 +54,6 @@ public extension DerivedDataManager {
 
 
 // MARK: - Dependencies
-public protocol DerivedDataProgressHandler {
-    func didDeleteFolder(_ folder: PurgeFolder)
-}
-
 protocol DerivedDataDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws
     func loadFolders(path: String) throws -> [PurgeFolder]
