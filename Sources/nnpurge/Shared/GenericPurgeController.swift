@@ -47,7 +47,9 @@ extension GenericPurgeController {
             try service.deleteAllFolders(progressHandler: progressHandler)
         case .deleteStale:
             let staleFolders = PurgeFolder.filterStale(allFolders, olderThanDays: configuration.staleDaysThreshold)
-            try picker.requiredPermission(prompt: configuration.deleteStalePrompt)
+            let count = staleFolders.count
+            let prompt = "Are you sure you want to delete \(count) stale \(count == 1 ? "package" : "packages") (not modified in \(configuration.staleDaysThreshold)+ days)?"
+            try picker.requiredPermission(prompt: prompt)
 
             try service.deleteFolders(staleFolders, progressHandler: progressHandler)
         case .selectFolders:
@@ -77,15 +79,13 @@ private extension GenericPurgeController {
 struct PurgeControllerConfiguration {
     let path: String
     let deleteAllPrompt: String
-    let deleteStalePrompt: String
     let selectionPrompt: String
     let availableOptions: [DisplayableDeleteOption]
     let staleDaysThreshold: Int
 
-    init(deleteAllPrompt: String, selectionPrompt: String, path: String, deleteStalePrompt: String = "", availableOptions: [DisplayableDeleteOption], staleDaysThreshold: Int = 30) {
+    init(deleteAllPrompt: String, selectionPrompt: String, path: String, availableOptions: [DisplayableDeleteOption], staleDaysThreshold: Int = 30) {
         self.path = path
         self.deleteAllPrompt = deleteAllPrompt
-        self.deleteStalePrompt = deleteStalePrompt
         self.selectionPrompt = selectionPrompt
         self.availableOptions = availableOptions
         self.staleDaysThreshold = staleDaysThreshold
