@@ -9,16 +9,28 @@ import Foundation
 import ANSITerminal
 import CodePurgeKit
 
-public final class ConsoleProgressBar: PurgeProgressHandler {
+public final class ConsoleProgressBar {
     private let width: Int
     
     private var current = 0
     private var firstUpdate = true
-
+    
     public init(width: Int = 50) {
         self.width = width
     }
+}
 
+
+// MARK: - PurgeProgressHandler
+extension ConsoleProgressBar: PurgeProgressHandler {
+    public func complete(message: String? = nil) {
+        if let message = message {
+            print("\n\(message)")
+        } else {
+            print("\n✅ Completed.")
+        }
+    }
+    
     public func updateProgress(current: Int, total: Int, message: String) {
         self.current = current
         let total = total
@@ -34,13 +46,5 @@ public final class ConsoleProgressBar: PurgeProgressHandler {
         print("\u{1B}[2K\(message)")
         print("\u{1B}[2K\(bar) \(percent)")
         fflush(stdout)
-    }
-
-    public func complete(message: String? = nil) {
-        if let message = message {
-            print("\n\(message)")
-        } else {
-            print("\n✅ Completed.")
-        }
     }
 }
