@@ -16,17 +16,11 @@ struct DerivedDataController {
     init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any DerivedDataProgressHandler) {
         self.store = store
 
-        let configuration = PurgeControllerConfiguration(
-            deleteAllPrompt: "Are you sure you want to delete all derived data?",
-            selectionPrompt: "Select the folders to delete.",
-            pathProvider: { store.loadDerivedDataPath() }
-        )
-
         self.controller = .init(
             picker: picker,
             service: service,
             progressHandler: progressHandler,
-            configuration: configuration
+            configuration: .derivedDataConfiguration(store: store)
         )
     }
 }
@@ -86,6 +80,18 @@ extension DerivedDataStore {
         let path = string(forKey: .derivedDataPathKey) ?? "~/Library/Developer/Xcode/DerivedData"
 
         return NSString(string: path).expandingTildeInPath
+    }
+}
+
+
+// MARK: - Configuration
+private extension PurgeControllerConfiguration {
+    static func derivedDataConfiguration(store: any DerivedDataStore) -> PurgeControllerConfiguration {
+        return .init(
+            deleteAllPrompt: "Are you sure you want to delete all derived data?",
+            selectionPrompt: "Select the folders to delete.",
+            path: store.loadDerivedDataPath()
+        )
     }
 }
 

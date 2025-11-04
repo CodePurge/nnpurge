@@ -9,20 +9,6 @@ import Foundation
 import SwiftPicker
 import CodePurgeKit
 
-/// Configuration for purge controller prompts
-struct PurgeControllerConfiguration {
-    let deleteAllPrompt: String
-    let selectionPrompt: String
-    let pathProvider: () -> String
-
-    init(deleteAllPrompt: String, selectionPrompt: String, pathProvider: @escaping () -> String) {
-        self.deleteAllPrompt = deleteAllPrompt
-        self.selectionPrompt = selectionPrompt
-        self.pathProvider = pathProvider
-    }
-}
-
-/// Generic controller for purge operations
 struct GenericPurgeController {
     private let picker: any CommandLinePicker
     private let service: any PurgeService
@@ -41,8 +27,7 @@ struct GenericPurgeController {
 // MARK: - Open
 extension GenericPurgeController {
     func openFolder() throws {
-        let path = configuration.pathProvider()
-        let url = URL(fileURLWithPath: path)
+        let url = URL(fileURLWithPath: configuration.path)
 
         try service.openFolder(at: url)
     }
@@ -77,5 +62,19 @@ private extension GenericPurgeController {
         }
 
         return try picker.requiredSingleSelection("What would you like to do?", items: DeleteOption.allCases)
+    }
+}
+
+
+// MARK: - Dependencies
+struct PurgeControllerConfiguration {
+    let path: String
+    let deleteAllPrompt: String
+    let selectionPrompt: String
+
+    init(deleteAllPrompt: String, selectionPrompt: String, path: String) {
+        self.path = path
+        self.deleteAllPrompt = deleteAllPrompt
+        self.selectionPrompt = selectionPrompt
     }
 }

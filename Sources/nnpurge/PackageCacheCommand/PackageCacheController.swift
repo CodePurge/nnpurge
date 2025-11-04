@@ -13,20 +13,11 @@ struct PackageCacheController {
     private let controller: GenericPurgeController
 
     init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PackageCacheProgressHandler) {
-        let configuration = PurgeControllerConfiguration(
-            deleteAllPrompt: "Are you sure you want to delete all cached package repositories?",
-            selectionPrompt: "Select the package repositories to delete.",
-            pathProvider: {
-                let path = "~/Library/Caches/org.swift.swiftpm/repositories"
-                return NSString(string: path).expandingTildeInPath
-            }
-        )
-
         self.controller = .init(
             picker: picker,
             service: service,
             progressHandler: progressHandler,
-            configuration: configuration
+            configuration: .packageCacheConfiguration
         )
     }
 }
@@ -44,5 +35,19 @@ extension PackageCacheController {
 extension PackageCacheController {
     func deletePackageCache(deleteAll: Bool) throws {
         try controller.deleteFolders(deleteAll: deleteAll)
+    }
+}
+
+
+// MARK: - Configuration
+private extension PurgeControllerConfiguration {
+    static var packageCacheConfiguration: PurgeControllerConfiguration {
+        let path = NSString(string: "~/Library/Caches/org.swift.swiftpm/repositories").expandingTildeInPath
+
+        return .init(
+            deleteAllPrompt: "Are you sure you want to delete all cached package repositories?",
+            selectionPrompt: "Select the package repositories to delete.",
+            path: path
+        )
     }
 }
