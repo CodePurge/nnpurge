@@ -45,5 +45,3 @@ public extension DerivedDataManager {
         try manager.openFolder(at: url)
     }
 }
-
-

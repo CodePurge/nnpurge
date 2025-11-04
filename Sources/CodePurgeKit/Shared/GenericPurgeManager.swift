@@ -7,27 +7,19 @@
 
 import Foundation
 
-/// Configuration for purge operations
-public struct PurgeConfiguration {
-    public let path: String
-    public let expandPath: Bool
-
-    public init(path: String, expandPath: Bool = true) {
-        self.path = path
-        self.expandPath = expandPath
+public struct GenericPurgeManager {
+    private let delegate: any PurgeDelegate
+    private let configuration: PurgeConfiguration
+    
+    init(configuration: PurgeConfiguration, delegate: any PurgeDelegate) {
+        self.delegate = delegate
+        self.configuration = configuration
     }
 }
 
-/// Generic manager for purge operations that can be configured for different purge types
-public struct GenericPurgeManager: PurgeService {
-    private let configuration: PurgeConfiguration
-    private let delegate: any PurgeDelegate
 
-    init(configuration: PurgeConfiguration, delegate: any PurgeDelegate) {
-        self.configuration = configuration
-        self.delegate = delegate
-    }
-
+// MARK: - PurgeService
+extension GenericPurgeManager: PurgeService {
     public func loadFolders() throws -> [PurgeFolder] {
         let path = configuration.expandPath
             ? NSString(string: configuration.path).expandingTildeInPath
@@ -52,9 +44,20 @@ public struct GenericPurgeManager: PurgeService {
     }
 }
 
-/// Internal delegate protocol for file system operations
+
+// MARK: - Dependencies
 protocol PurgeDelegate {
     func deleteFolder(_ folder: PurgeFolder) throws
     func loadFolders(path: String) throws -> [PurgeFolder]
     func openFolder(at url: URL) throws
+}
+
+public struct PurgeConfiguration {
+    public let path: String
+    public let expandPath: Bool
+
+    public init(path: String, expandPath: Bool = true) {
+        self.path = path
+        self.expandPath = expandPath
+    }
 }

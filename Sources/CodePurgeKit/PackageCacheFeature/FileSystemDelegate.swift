@@ -9,19 +9,19 @@ import Foundation
 
 struct DefaultFileSystemDelegate: FileSystemDelegate {
     var currentDirectoryPath: String {
-        FileManager.default.currentDirectoryPath
+        return FileManager.default.currentDirectoryPath
     }
 
     func fileExists(atPath path: String) -> Bool {
-        FileManager.default.fileExists(atPath: path)
+        return FileManager.default.fileExists(atPath: path)
     }
 
     func appendingPathComponent(_ path: String, _ component: String) -> String {
-        (path as NSString).appendingPathComponent(component)
+        return (path as NSString).appendingPathComponent(component)
     }
 
     func readData(atPath path: String) throws -> Data {
-        try Data(contentsOf: URL(fileURLWithPath: path))
+        return try Data(contentsOf: URL(fileURLWithPath: path))
     }
 }
 
