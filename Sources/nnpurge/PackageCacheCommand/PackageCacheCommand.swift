@@ -16,6 +16,7 @@ extension Nnpurge {
             abstract: "Manage Swift Package Manager caches",
             subcommands: [
                 Delete.self,
+                Clean.self,
                 Open.self
             ]
         )
@@ -35,6 +36,23 @@ extension Nnpurge.PackageCacheCommand {
 
         func run() throws {
             try Nnpurge.makePackageCacheController().deletePackageCache(deleteAll: all)
+        }
+    }
+}
+
+
+// MARK: - Clean
+extension Nnpurge.PackageCacheCommand {
+    struct Clean: ParsableCommand {
+        static let configuration = CommandConfiguration(
+            abstract: "Deletes cached packages for the current project's dependencies"
+        )
+
+        @Option(name: .shortAndLong, help: "Path to the project directory (defaults to current directory)")
+        var path: String?
+
+        func run() throws {
+            try Nnpurge.makePackageCacheController().cleanProjectDependencies(projectPath: path)
         }
     }
 }

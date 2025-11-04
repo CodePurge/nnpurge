@@ -45,3 +45,21 @@ public extension PurgeFolder {
         }
     }
 }
+
+
+// MARK: - Dependency Filtering
+public extension PurgeFolder {
+    static func filterByDependencies(_ folders: [PurgeFolder], identities: [String]) -> [PurgeFolder] {
+        let lowercaseIdentities = Set(identities.map { $0.lowercased() })
+
+        return folders.filter { folder in
+            guard let packageName = folder.packageName else { return false }
+            return lowercaseIdentities.contains(packageName.lowercased())
+        }
+    }
+
+    private var packageName: String? {
+        guard let lastDashIndex = name.lastIndex(of: "-") else { return nil }
+        return String(name[..<lastDashIndex])
+    }
+}

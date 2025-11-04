@@ -10,9 +10,17 @@ import SwiftPicker
 import CodePurgeKit
 
 struct PackageCacheController {
+    private let picker: any CommandLinePicker
+    private let service: any PackageCacheService
+    private let progressHandler: any PackageCacheProgressHandler
+    private let dependencyFinder: any ProjectDependencyFinder
     private let controller: GenericPurgeController
 
-    init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PackageCacheProgressHandler) {
+    init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PackageCacheProgressHandler, dependencyFinder: any ProjectDependencyFinder) {
+        self.picker = picker
+        self.service = service
+        self.progressHandler = progressHandler
+        self.dependencyFinder = dependencyFinder
         self.controller = .init(
             picker: picker,
             service: service,
@@ -35,6 +43,31 @@ extension PackageCacheController {
 extension PackageCacheController {
     func deletePackageCache(deleteAll: Bool) throws {
         try controller.deleteFolders(deleteAll: deleteAll)
+    }
+}
+
+
+// MARK: - Clean Project Dependencies
+extension PackageCacheController {
+    func cleanProjectDependencies(projectPath: String?) throws {
+        let dependencies = try dependencyFinder.findDependencies(in: projectPath)
+        let allFolders = try service.loadFolders()
+        let matchedFolders = PurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
+
+        guard !matchedFolders.isEmpty else {
+            print("No cached packages found for project dependencies.")
+            return
+        }
+
+        print("\nFound \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages") matching project dependencies:")
+        for folder in matchedFolders {
+            print("  - \(folder.name)")
+        }
+
+        let prompt = "\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?"
+        try picker.requiredPermission(prompt: prompt)
+
+        try service.deleteFolders(matchedFolders, progressHandler: progressHandler)
     }
 }
 
