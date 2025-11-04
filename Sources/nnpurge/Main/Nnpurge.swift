@@ -16,7 +16,8 @@ struct Nnpurge: ParsableCommand {
         version: "0.2.0",
         subcommands: [
             DerivedDataCommand.self,
-            PackageCacheCommand.self
+            PackageCacheCommand.self,
+            ArchiveCommand.self
         ]
     )
 
@@ -49,6 +50,10 @@ extension Nnpurge {
 
         return .init(picker: picker, service: service, progressHandler: progressHandler)
     }
+
+    static func makeArchiveService() -> any ArchiveService {
+        return contextFactory.makeArchiveService()
+    }
 }
 
 
@@ -58,4 +63,5 @@ protocol ContextFactory {
     func makeUserDefaults() -> any DerivedDataStore
     func makeDerivedDataService(path: String) -> any DerivedDataService
     func makePackageCacheService() -> any PackageCacheService
+    func makeArchiveService() -> any ArchiveService
 }

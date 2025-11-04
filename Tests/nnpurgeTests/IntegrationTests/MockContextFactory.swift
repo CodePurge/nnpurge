@@ -29,6 +29,10 @@ struct MockContextFactory {
 
 // MARK: - ContextFactory
 extension MockContextFactory: ContextFactory {
+    func makeArchiveService() -> any ArchiveService {
+        fatalError() // TODO: -
+    }
+    
     func makePicker() -> any CommandLinePicker {
         if let picker {
             return picker
