@@ -17,7 +17,8 @@ struct Nnpurge: ParsableCommand {
         subcommands: [
             DerivedDataCommand.self,
             PackageCacheCommand.self,
-            ArchiveCommand.self
+            ArchiveCommand.self,
+            DemoProgressCommand.self
         ]
     )
 
@@ -46,7 +47,7 @@ extension Nnpurge {
     static func makePackageCacheController() -> PackageCacheController {
         let picker = Nnpurge.makePicker()
         let service = Nnpurge.makePackageCacheService()
-        let progressHandler = DefaultPurgeProgressHandler()
+        let progressHandler = ConsoleProgressBar()
 
         return .init(picker: picker, service: service, progressHandler: progressHandler)
     }
@@ -64,4 +65,58 @@ protocol ContextFactory {
     func makeDerivedDataService(path: String) -> any DerivedDataService
     func makePackageCacheService() -> any PackageCacheService
     func makeArchiveService() -> any ArchiveService
+}
+
+import Foundation
+
+struct DemoProgressCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "progress-demo",
+        abstract: "Simulates progress for 70 items over 10 seconds."
+    )
+
+    func run() throws {
+        let totalItems = 70
+        let totalDuration: TimeInterval = 10
+        let delay = totalDuration / Double(totalItems)
+        var progressBar = ProgressBar(total: totalItems)
+
+        for i in 1...totalItems {
+            progressBar.update(to: i, message: "Processing item \(i) of \(totalItems)...")
+            Thread.sleep(forTimeInterval: delay)
+        }
+
+        print("\n✅ Completed all \(totalItems) items.")
+    }
+}
+
+struct ProgressBar {
+    private let total: Int
+    private let width: Int
+    private var firstUpdate = true
+
+    init(total: Int, width: Int = 50) {
+        self.total = total
+        self.width = width
+    }
+
+    mutating func update(to value: Int, message: String) {
+        let progress = Double(value) / Double(total)
+        let filled = Int(progress * Double(width))
+        let empty = width - filled
+        let bar = String(repeating: "█", count: filled) + String(repeating: "-", count: empty)
+        let percent = String(format: "%.2f%%", progress * 100)
+
+        if !firstUpdate {
+            // Move cursor up two lines to overwrite previous message and bar
+            print("\u{1B}[2A", terminator: "")
+        } else {
+            firstUpdate = false
+        }
+
+        // Clear both lines
+        print("\u{1B}[2K\(message)")
+        print("\u{1B}[2K\(bar) \(percent)")
+        fflush(stdout)
+    }
 }

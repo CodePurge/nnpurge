@@ -59,7 +59,7 @@ extension Nnpurge.ArchiveCommand {
 private extension Nnpurge {
     static func makeArchiveController() -> ArchiveController {
         let picker = Nnpurge.makePicker()
-        let progressHandler = DefaultPurgeProgressHandler()
+        let progressHandler = ConsoleProgressBar()
         let service = Nnpurge.makeArchiveService()
 
         return .init(picker: picker, service: service, progressHandler: progressHandler)

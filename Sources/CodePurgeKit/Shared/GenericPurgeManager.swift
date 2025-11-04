@@ -29,14 +29,19 @@ extension GenericPurgeManager: PurgeService {
 
     public func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
         let allFolders = try loadFolders()
+        
         try deleteFolders(allFolders, progressHandler: progressHandler)
     }
 
     public func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
-        for folder in folders {
+        let total = folders.count
+        
+        for (index, folder) in folders.enumerated() {
             try delegate.deleteFolder(folder)
-            progressHandler?.didDeleteFolder(folder)
+            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
+        
+        progressHandler?.complete(message: "✅ All items moved to trash.")
     }
 
     public func openFolder(at url: URL) throws {

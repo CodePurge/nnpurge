@@ -25,5 +25,6 @@ public extension PurgeService {
 }
 
 public protocol PurgeProgressHandler {
-    func didDeleteFolder(_ folder: PurgeFolder)
+    func complete(message: String?)
+    func updateProgress(current: Int, total: Int, message: String)
 }
