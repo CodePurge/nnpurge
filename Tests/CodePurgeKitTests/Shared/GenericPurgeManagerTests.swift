@@ -91,8 +91,7 @@ extension GenericPurgeManagerTests {
 
         try sut.deleteAllFolders(progressHandler: progressHandler)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == folders.count)
+        #expect(progressHandler.progressUpdates.count == folders.count)
     }
 
     @Test("Throws error when delete all fails")
@@ -129,8 +128,7 @@ extension GenericPurgeManagerTests {
 
         try sut.deleteFolders(folders, progressHandler: progressHandler)
 
-        // TODO: - 
-//        #expect(progressHandler.deletedFolders.count == folders.count)
+        #expect(progressHandler.progressUpdates.count == folders.count)
     }
 
     @Test("Throws error when deleting specific folders fails")
@@ -191,10 +189,9 @@ extension GenericPurgeManagerTests {
 
         try sut.deleteAllFolders(progressHandler: progressHandler)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders[0].name == folder1.name)
-//        #expect(progressHandler.deletedFolders[1].name == folder2.name)
-//        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+        #expect(progressHandler.progressUpdates[0].message.contains(folder1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(folder2.name))
+        #expect(progressHandler.progressUpdates[2].message.contains(folder3.name))
     }
 }
 

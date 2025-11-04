@@ -265,12 +265,11 @@ extension PackageCacheControllerTests {
 
         try sut.deletePackageCache(deleteAll: true)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == packages.count)
-//        guard progressHandler.deletedFolders.count >= 3 else { return }
-//        #expect(progressHandler.deletedFolders[0].name == package1.name)
-//        #expect(progressHandler.deletedFolders[1].name == package2.name)
-//        #expect(progressHandler.deletedFolders[2].name == package3.name)
+        #expect(progressHandler.progressUpdates.count == packages.count)
+        guard progressHandler.progressUpdates.count >= 3 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(package1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(package2.name))
+        #expect(progressHandler.progressUpdates[2].message.contains(package3.name))
     }
 
     @Test("Reports progress for each selected package when deleting specific packages")
@@ -290,11 +289,10 @@ extension PackageCacheControllerTests {
 
         try sut.deletePackageCache(deleteAll: false)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == 2)
-//        guard progressHandler.deletedFolders.count >= 2 else { return }
-//        #expect(progressHandler.deletedFolders[0].name == package1.name)
-//        #expect(progressHandler.deletedFolders[1].name == package3.name)
+        #expect(progressHandler.progressUpdates.count == 2)
+        guard progressHandler.progressUpdates.count >= 2 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(package1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(package3.name))
     }
 
     @Test("Reports no progress when no packages selected")
@@ -313,8 +311,7 @@ extension PackageCacheControllerTests {
 
         try sut.deletePackageCache(deleteAll: false)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.isEmpty)
+        #expect(progressHandler.progressUpdates.isEmpty)
     }
 
     @Test("Reports progress in correct order for multiple packages")
@@ -331,11 +328,10 @@ extension PackageCacheControllerTests {
 
         try sut.deletePackageCache(deleteAll: true)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == 4)
-//        for (index, package) in packages.enumerated() {
-//            #expect(progressHandler.deletedFolders[index].name == package.name)
-//        }
+        #expect(progressHandler.progressUpdates.count == 4)
+        for (index, package) in packages.enumerated() {
+            #expect(progressHandler.progressUpdates[index].message.contains(package.name))
+        }
     }
 }
 
@@ -453,10 +449,9 @@ extension PackageCacheControllerTests {
 
         try sut.cleanProjectDependencies(projectPath: nil)
 
-        // TODO: -
-//        #expect(progressHandler.deletedFolders.count == 2)
-//        #expect(progressHandler.deletedFolders.contains(where: { $0.name == package1.name }))
-//        #expect(progressHandler.deletedFolders.contains(where: { $0.name == package2.name }))
+        #expect(progressHandler.progressUpdates.count == 2)
+        #expect(progressHandler.progressUpdates[0].message.contains(package1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(package2.name))
     }
 
     @Test("Matches packages case insensitively")
