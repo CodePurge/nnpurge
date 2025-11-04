@@ -8,7 +8,7 @@
 import Foundation
 import CodePurgeKit
 
-final class MockProgressHandler: @unchecked Sendable, DerivedDataProgressHandler {
+final class MockProgressHandler: @unchecked Sendable, PurgeProgressHandler {
     private(set) var deletedFolders: [PurgeFolder] = []
 
     func didDeleteFolder(_ folder: PurgeFolder) {

@@ -341,10 +341,10 @@ private extension PackageCacheControllerTests {
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: PackageCacheController, service: MockPackageCacheService, progressHandler: MockPackageCacheProgressHandler) {
+    ) -> (sut: PackageCacheController, service: MockPurgeService, progressHandler: MockProgressHandler) {
         let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
-        let service = MockPackageCacheService(throwError: throwError, foldersToLoad: foldersToLoad)
-        let progressHandler = MockPackageCacheProgressHandler()
+        let service = MockPurgeService(throwError: throwError, foldersToLoad: foldersToLoad)
+        let progressHandler = MockProgressHandler()
         let sut = PackageCacheController(picker: picker, service: service, progressHandler: progressHandler)
 
         return (sut, service, progressHandler)

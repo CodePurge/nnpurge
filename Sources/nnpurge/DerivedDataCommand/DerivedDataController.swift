@@ -22,7 +22,7 @@ struct DerivedDataController {
             pathProvider: { store.loadDerivedDataPath() }
         )
 
-        self.controller = GenericPurgeController(
+        self.controller = .init(
             picker: picker,
             service: service,
             progressHandler: progressHandler,

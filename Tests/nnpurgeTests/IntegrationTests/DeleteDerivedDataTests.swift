@@ -84,14 +84,14 @@ private extension DeleteDerivedDataTests {
     func makeSUT(
         foldersToLoad: [PurgeFolder] = [],
         selectionResult: MockSelectionResult = .init()
-    ) -> (factory: MockContextFactory, service: MockDerivedDataService) {
+    ) -> (factory: MockContextFactory, service: MockPurgeService) {
         let store = MockUserDefaults()
-        let service = MockDerivedDataService(foldersToLoad: foldersToLoad)
+        let service = MockPurgeService(foldersToLoad: foldersToLoad)
         let picker = makePicker(selectionResult: selectionResult)
         let factory = MockContextFactory(
             picker: picker,
             derivedDataStore: store,
-            derivedDataService: service
+            purgeService: service
         )
 
         return (factory, service)

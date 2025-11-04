@@ -22,7 +22,7 @@ struct PackageCacheController {
             }
         )
 
-        self.controller = GenericPurgeController(
+        self.controller = .init(
             picker: picker,
             service: service,
             progressHandler: progressHandler,

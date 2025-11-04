@@ -84,12 +84,12 @@ private extension DeletePackageCacheTests {
     func makeSUT(
         foldersToLoad: [PurgeFolder] = [],
         selectionResult: MockSelectionResult = .init()
-    ) -> (factory: MockContextFactory, service: MockPackageCacheService) {
-        let service = MockPackageCacheService(foldersToLoad: foldersToLoad)
+    ) -> (factory: MockContextFactory, service: MockPurgeService) {
+        let service = MockPurgeService(foldersToLoad: foldersToLoad)
         let picker = makePicker(selectionResult: selectionResult)
         let factory = MockContextFactory(
             picker: picker,
-            packageCacheService: service
+            purgeService: service
         )
 
         return (factory, service)
