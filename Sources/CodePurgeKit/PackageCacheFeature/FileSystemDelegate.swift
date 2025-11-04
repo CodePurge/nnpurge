@@ -1,0 +1,37 @@
+//
+//  FileSystemDelegate.swift
+//  Nnpurge
+//
+//  Created by Nikolai Nobadi on 11/4/25.
+//
+
+import Foundation
+
+struct DefaultFileSystemDelegate: FileSystemDelegate {
+    var currentDirectoryPath: String {
+        FileManager.default.currentDirectoryPath
+    }
+
+    func fileExists(atPath path: String) -> Bool {
+        FileManager.default.fileExists(atPath: path)
+    }
+
+    func appendingPathComponent(_ path: String, _ component: String) -> String {
+        (path as NSString).appendingPathComponent(component)
+    }
+
+    func readData(atPath path: String) throws -> Data {
+        try Data(contentsOf: URL(fileURLWithPath: path))
+    }
+}
+
+public enum PackageCacheError: Error, CustomStringConvertible {
+    case packageResolvedNotFound(path: String)
+
+    public var description: String {
+        switch self {
+        case .packageResolvedNotFound(let path):
+            return "Package.resolved not found in: \(path)"
+        }
+    }
+}

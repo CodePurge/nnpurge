@@ -16,12 +16,12 @@ import SwiftPickerTesting
 struct PackageCacheControllerTests {
     @Test("Starting values empty")
     func emptyStartingValues() {
-        let (_, service, progressHandler, dependencyFinder) = makeSUT()
+        let (_, service, progressHandler) = makeSUT()
 
         #expect(!service.didDeleteAllPackages)
         #expect(service.deletedFolders.isEmpty)
         #expect(progressHandler.deletedFolders.isEmpty)
-        #expect(!dependencyFinder.didFindDependencies)
+        #expect(!service.didFindDependencies)
     }
 }
 
@@ -30,7 +30,7 @@ struct PackageCacheControllerTests {
 extension PackageCacheControllerTests {
     @Test("Deletes all packages when flag true and permission granted")
     func deletesAllPackagesWhenFlagTrueAndPermissionGranted() throws {
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true]))
         )
 
@@ -41,7 +41,7 @@ extension PackageCacheControllerTests {
 
     @Test("Throws error when delete all flag true but permission denied")
     func throwsErrorWhenDeleteAllFlagTrueButPermissionDenied() throws {
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([false]))
         )
 
@@ -53,7 +53,7 @@ extension PackageCacheControllerTests {
     @Test("Requests permission with correct prompt when deleting all")
     func requestsPermissionWithCorrectPromptWhenDeletingAll() throws {
         let expectedPrompt = "Are you sure you want to delete all cached package repositories?"
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(
                 type: .dictionary([expectedPrompt: true])
             )
@@ -68,7 +68,7 @@ extension PackageCacheControllerTests {
 extension PackageCacheControllerTests {
     @Test("Shows option selection when delete all flag false")
     func showsOptionSelectionWhenDeleteAllFlagFalse() throws {
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
                 singleSelectionType: .ordered([0])
@@ -80,7 +80,7 @@ extension PackageCacheControllerTests {
 
     @Test("Throws error when user cancels option selection")
     func throwsErrorWhenUserCancelsOptionSelection() throws {
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([nil])
             )
@@ -94,7 +94,7 @@ extension PackageCacheControllerTests {
     @Test("Deletes all when user selects delete all option")
     func deletesAllWhenUserSelectsDeleteAllOption() throws {
         let deleteAllIndex = 0
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
                 singleSelectionType: .ordered([deleteAllIndex])
@@ -113,7 +113,7 @@ extension PackageCacheControllerTests {
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
         ]
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([selectFoldersIndex]),
                 multiSelectionType: .ordered([[0]])
@@ -138,7 +138,7 @@ extension PackageCacheControllerTests {
         let package3 = makePurgeFolder(name: "Package3")
         let packages = [package1, package2, package3]
         let selectedIndices = [0, 2]
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([selectedIndices])
@@ -159,7 +159,7 @@ extension PackageCacheControllerTests {
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
         ]
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([[]])
@@ -179,7 +179,7 @@ extension PackageCacheControllerTests {
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
         ]
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .dictionary([expectedPrompt: [0]])
@@ -196,7 +196,7 @@ extension PackageCacheControllerTests {
 extension PackageCacheControllerTests {
     @Test("Propagates delete all error from service")
     func propagatesDeleteAllErrorFromService() throws {
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             throwError: true
         )
@@ -209,7 +209,7 @@ extension PackageCacheControllerTests {
     @Test("Propagates delete folders error from service")
     func propagatesDeleteFoldersErrorFromService() throws {
         let packages = [makePurgeFolder(name: "Package1")]
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[0]])
@@ -229,7 +229,7 @@ extension PackageCacheControllerTests {
 extension PackageCacheControllerTests {
     @Test("Opens package cache folder at correct path")
     func opensPackageCacheFolderAtCorrectPath() throws {
-        let (sut, service, _, _) = makeSUT()
+        let (sut, service, _) = makeSUT()
 
         try sut.openPackageCacheFolder()
 
@@ -239,7 +239,7 @@ extension PackageCacheControllerTests {
 
     @Test("Propagates open folder error from service")
     func propagatesOpenFolderErrorFromService() throws {
-        let (sut, _, _, _) = makeSUT(throwError: true)
+        let (sut, _, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
             try sut.openPackageCacheFolder()
@@ -256,7 +256,7 @@ extension PackageCacheControllerTests {
         let package2 = makePurgeFolder(name: "Package2")
         let package3 = makePurgeFolder(name: "Package3")
         let packages = [package1, package2, package3]
-        let (sut, _, progressHandler, _) = makeSUT(
+        let (sut, _, progressHandler) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: packages
         )
@@ -277,7 +277,7 @@ extension PackageCacheControllerTests {
         let package3 = makePurgeFolder(name: "Package3")
         let packages = [package1, package2, package3]
         let selectedIndices = [0, 2]
-        let (sut, _, progressHandler, _) = makeSUT(
+        let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([selectedIndices])
@@ -299,7 +299,7 @@ extension PackageCacheControllerTests {
             makePurgeFolder(name: "Package1"),
             makePurgeFolder(name: "Package2")
         ]
-        let (sut, _, progressHandler, _) = makeSUT(
+        let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([2]),
                 multiSelectionType: .ordered([[]])
@@ -319,7 +319,7 @@ extension PackageCacheControllerTests {
         let package3 = makePurgeFolder(name: "Gamma")
         let package4 = makePurgeFolder(name: "Delta")
         let packages = [package1, package2, package3, package4]
-        let (sut, _, progressHandler, _) = makeSUT(
+        let (sut, _, progressHandler) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: packages
         )
@@ -343,7 +343,7 @@ extension PackageCacheControllerTests {
         let package1 = makePurgeFolder(name: "Files-abc123")
         let package2 = makePurgeFolder(name: "SwiftPicker-def456")
         let package3 = makePurgeFolder(name: "OtherPackage-xyz789")
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: [package1, package2, package3],
             dependenciesToLoad: [dependency1, dependency2]
@@ -359,7 +359,7 @@ extension PackageCacheControllerTests {
     @Test("Throws error when user denies permission to delete")
     func throwsErrorWhenUserDeniesPermissionToDelete() throws {
         let package = makePurgeFolder(name: "Files-abc123")
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([false])),
             foldersToLoad: [package],
             dependenciesToLoad: ["files"]
@@ -374,7 +374,7 @@ extension PackageCacheControllerTests {
     func doesNotDeletePackagesWhenNoMatchesFound() throws {
         let package1 = makePurgeFolder(name: "SomeOtherPackage-abc123")
         let package2 = makePurgeFolder(name: "DifferentPackage-def456")
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             foldersToLoad: [package1, package2],
             dependenciesToLoad: ["nonexistent"]
         )
@@ -386,30 +386,30 @@ extension PackageCacheControllerTests {
 
     @Test("Uses current directory when path is nil")
     func usesCurrentDirectoryWhenPathIsNil() throws {
-        let (sut, _, _, dependencyFinder) = makeSUT(
+        let (sut, service, _) = makeSUT(
             foldersToLoad: []
         )
 
         try? sut.cleanProjectDependencies(projectPath: nil)
 
-        #expect(dependencyFinder.searchedPath == nil)
+        #expect(service.searchedPath == nil)
     }
 
     @Test("Uses specified path when provided")
     func usesSpecifiedPathWhenProvided() throws {
         let testPath = "/test/path"
-        let (sut, _, _, dependencyFinder) = makeSUT(
+        let (sut, service, _) = makeSUT(
             foldersToLoad: []
         )
 
         try? sut.cleanProjectDependencies(projectPath: testPath)
 
-        #expect(dependencyFinder.searchedPath == testPath)
+        #expect(service.searchedPath == testPath)
     }
 
     @Test("Propagates error from dependency finder")
     func propagatesErrorFromDependencyFinder() throws {
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             throwDependencyError: true
         )
 
@@ -421,7 +421,7 @@ extension PackageCacheControllerTests {
     @Test("Propagates error from service when deleting")
     func propagatesErrorFromServiceWhenDeleting() throws {
         let package = makePurgeFolder(name: "Files-abc123")
-        let (sut, _, _, _) = makeSUT(
+        let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             throwError: true,
             foldersToLoad: [package],
@@ -439,7 +439,7 @@ extension PackageCacheControllerTests {
         let dependency2 = "swiftpicker"
         let package1 = makePurgeFolder(name: "Files-abc123")
         let package2 = makePurgeFolder(name: "SwiftPicker-def456")
-        let (sut, _, progressHandler, _) = makeSUT(
+        let (sut, _, progressHandler) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: [package1, package2],
             dependenciesToLoad: [dependency1, dependency2]
@@ -457,7 +457,7 @@ extension PackageCacheControllerTests {
         let dependency = "swiftpicker"
         let package1 = makePurgeFolder(name: "SwiftPicker-abc123")
         let package2 = makePurgeFolder(name: "SWIFTPICKER-def456")
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: [package1, package2],
             dependenciesToLoad: [dependency]
@@ -473,7 +473,7 @@ extension PackageCacheControllerTests {
         let package1 = makePurgeFolder(name: "Files-abc123")
         let package2 = makePurgeFolder(name: "SwiftPicker-def456")
         let package3 = makePurgeFolder(name: "firebase-ios-sdk-xyz789")
-        let (sut, service, _, _) = makeSUT(
+        let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             foldersToLoad: [package1, package2, package3],
             dependenciesToLoad: ["files"]
@@ -497,14 +497,13 @@ private extension PackageCacheControllerTests {
         foldersToLoad: [PurgeFolder] = [],
         dependenciesToLoad: [String] = [],
         throwDependencyError: Bool = false
-    ) -> (sut: PackageCacheController, service: MockPurgeService, progressHandler: MockProgressHandler, dependencyFinder: MockProjectDependencyFinder) {
+    ) -> (sut: PackageCacheController, service: MockPurgeService, progressHandler: MockProgressHandler) {
         let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
-        let service = MockPurgeService(throwError: throwError, foldersToLoad: foldersToLoad)
+        let service = MockPurgeService(throwError: throwError, throwDependencyError: throwDependencyError, foldersToLoad: foldersToLoad, dependenciesToLoad: dependenciesToLoad)
         let progressHandler = MockProgressHandler()
-        let dependencyFinder = MockProjectDependencyFinder(throwError: throwDependencyError, identities: dependenciesToLoad)
-        let sut = PackageCacheController(picker: picker, service: service, progressHandler: progressHandler, dependencyFinder: dependencyFinder)
+        let sut = PackageCacheController(picker: picker, service: service, progressHandler: progressHandler)
 
-        return (sut, service, progressHandler, dependencyFinder)
+        return (sut, service, progressHandler)
     }
 
     func makePurgeFolder(name: String = "TestFolder") -> PurgeFolder {
@@ -514,39 +513,5 @@ private extension PackageCacheControllerTests {
             path: "/test/\(name)",
             size: 1024
         )
-    }
-}
-
-
-// MARK: - Mock Dependencies
-private final class MockProjectDependencyFinder: ProjectDependencyFinder {
-    private let throwError: Bool
-    private let identities: [String]
-    private(set) var didFindDependencies = false
-    private(set) var searchedPath: String?
-
-    init(throwError: Bool = false, identities: [String] = []) {
-        self.throwError = throwError
-        self.identities = identities
-    }
-
-    func findDependencies(in path: String?) throws -> ProjectDependencies {
-        didFindDependencies = true
-        searchedPath = path
-
-        if throwError {
-            throw NSError(domain: "Test", code: 1)
-        }
-
-        let pins = identities.map { identity in
-            ProjectDependencies.Pin(
-                identity: identity,
-                kind: "remoteSourceControl",
-                location: "https://github.com/test/\(identity)",
-                state: .init(revision: "abc123", version: "1.0.0")
-            )
-        }
-
-        return ProjectDependencies(pins: pins, version: 3)
     }
 }

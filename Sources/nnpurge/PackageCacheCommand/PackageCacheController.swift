@@ -12,15 +12,13 @@ import CodePurgeKit
 struct PackageCacheController {
     private let picker: any CommandLinePicker
     private let service: any PackageCacheService
-    private let progressHandler: any PackageCacheProgressHandler
-    private let dependencyFinder: any ProjectDependencyFinder
+    private let progressHandler: any PurgeProgressHandler
     private let controller: GenericPurgeController
 
-    init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PackageCacheProgressHandler, dependencyFinder: any ProjectDependencyFinder) {
+    init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
-        self.dependencyFinder = dependencyFinder
         self.controller = .init(
             picker: picker,
             service: service,
@@ -50,7 +48,7 @@ extension PackageCacheController {
 // MARK: - Clean Project Dependencies
 extension PackageCacheController {
     func cleanProjectDependencies(projectPath: String?) throws {
-        let dependencies = try dependencyFinder.findDependencies(in: projectPath)
+        let dependencies = try service.findDependencies(in: projectPath)
         let allFolders = try service.loadFolders()
         let matchedFolders = PurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
 

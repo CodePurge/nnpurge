@@ -13,7 +13,7 @@ struct DerivedDataController {
     private let store: any DerivedDataStore
     private let controller: GenericPurgeController
 
-    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any DerivedDataProgressHandler) {
+    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
         self.store = store
 
         self.controller = .init(

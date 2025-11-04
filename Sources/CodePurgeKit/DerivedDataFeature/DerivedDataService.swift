@@ -7,12 +7,8 @@
 
 import Foundation
 
-// Type alias for progress handler to maintain API compatibility
-public typealias DerivedDataProgressHandler = PurgeProgressHandler
-
-// DerivedDataService now inherits from PurgeService
 public protocol DerivedDataService: PurgeService {
-    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws
+    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws
 }
 
 public extension DerivedDataService {

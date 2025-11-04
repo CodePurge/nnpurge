@@ -46,9 +46,8 @@ extension Nnpurge {
         let picker = Nnpurge.makePicker()
         let service = Nnpurge.makePackageCacheService()
         let progressHandler = DefaultPurgeProgressHandler()
-        let dependencyFinder = DefaultProjectDependencyFinder()
 
-        return .init(picker: picker, service: service, progressHandler: progressHandler, dependencyFinder: dependencyFinder)
+        return .init(picker: picker, service: service, progressHandler: progressHandler)
     }
 }
 

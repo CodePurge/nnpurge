@@ -11,7 +11,9 @@ import CodePurgeKit
 
 final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataService, PackageCacheService {
     private let throwError: Bool
+    private let throwDependencyError: Bool
     private let foldersToLoad: [PurgeFolder]
+    private let dependenciesToLoad: [String]
 
     // Track generic calls
     private(set) var didDeleteAllFolders = false
@@ -23,9 +25,15 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
     private(set) var didDeleteAllDerivedData = false
     private(set) var didDeleteAllPackages = false
 
-    init(throwError: Bool = false, foldersToLoad: [PurgeFolder] = []) {
+    // Track dependency finding
+    private(set) var didFindDependencies = false
+    private(set) var searchedPath: String?
+
+    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [PurgeFolder] = [], dependenciesToLoad: [String] = []) {
         self.throwError = throwError
+        self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
+        self.dependenciesToLoad = dependenciesToLoad
     }
 
     func loadFolders() -> [PurgeFolder] {
@@ -48,7 +56,7 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         }
     }
 
-    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws {
+    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
@@ -62,7 +70,7 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         }
     }
 
-    func deleteAllPackages(progressHandler: PackageCacheProgressHandler?) throws {
+    func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
@@ -95,5 +103,25 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         }
 
         openedFolderURL = url
+    }
+
+    func findDependencies(in path: String?) throws -> ProjectDependencies {
+        didFindDependencies = true
+        searchedPath = path
+
+        if throwDependencyError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        let pins = dependenciesToLoad.map { identity in
+            ProjectDependencies.Pin(
+                identity: identity,
+                kind: "remoteSourceControl",
+                location: "https://github.com/test/\(identity)",
+                state: .init(revision: "abc123", version: "1.0.0")
+            )
+        }
+
+        return ProjectDependencies(pins: pins, version: 3)
     }
 }

@@ -31,11 +31,11 @@ public extension DerivedDataManager {
         try manager.loadFolders()
     }
 
-    func deleteAllDerivedData(progressHandler: DerivedDataProgressHandler?) throws {
+    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
         try manager.deleteAllFolders(progressHandler: progressHandler)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: DerivedDataProgressHandler?) throws {
+    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
         try manager.deleteFolders(folders, progressHandler: progressHandler)
 
         // TODO: - save purge record?

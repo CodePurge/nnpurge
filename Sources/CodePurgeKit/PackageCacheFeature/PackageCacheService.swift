@@ -7,10 +7,9 @@
 
 import Foundation
 
-public typealias PackageCacheProgressHandler = PurgeProgressHandler
-
 public protocol PackageCacheService: PurgeService {
-    func deleteAllPackages(progressHandler: PackageCacheProgressHandler?) throws
+    func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws
+    func findDependencies(in path: String?) throws -> ProjectDependencies
 }
 
 public extension PackageCacheService {

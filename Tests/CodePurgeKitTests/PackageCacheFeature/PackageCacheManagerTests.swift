@@ -283,9 +283,28 @@ private extension PackageCacheManagerTests {
         throwError: Bool = false,
         foldersToLoad: [PurgeFolder] = []
     ) -> (sut: PackageCacheManager, delegate: MockPurgeDelegate) {
-        let delegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
-        let sut = PackageCacheManager(delegate: delegate)
+        let purgeDelegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
+        let fileSystemDelegate = MockFileSystemDelegate()
+        let sut = PackageCacheManager(purgeDelegate: purgeDelegate, fileSystemDelegate: fileSystemDelegate)
 
-        return (sut, delegate)
+        return (sut, purgeDelegate)
+    }
+}
+
+
+// MARK: - Mock Dependencies
+private final class MockFileSystemDelegate: FileSystemDelegate {
+    var currentDirectoryPath: String = "/test"
+
+    func fileExists(atPath path: String) -> Bool {
+        return true
+    }
+
+    func appendingPathComponent(_ path: String, _ component: String) -> String {
+        return (path as NSString).appendingPathComponent(component)
+    }
+
+    func readData(atPath path: String) throws -> Data {
+        return Data()
     }
 }
