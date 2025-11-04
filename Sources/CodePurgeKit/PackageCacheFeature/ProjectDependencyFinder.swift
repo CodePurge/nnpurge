@@ -7,12 +7,7 @@
 
 import Foundation
 
-/// Service for finding and parsing Package.resolved files
 public protocol ProjectDependencyFinder {
-    /// Finds and parses Package.resolved in the specified directory
-    /// - Parameter path: Directory path to search (defaults to current directory)
-    /// - Returns: Parsed project dependencies
-    /// - Throws: Error if Package.resolved not found or parsing fails
     func findDependencies(in path: String?) throws -> ProjectDependencies
 }
 

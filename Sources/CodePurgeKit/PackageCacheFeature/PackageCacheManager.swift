@@ -44,5 +44,3 @@ public extension PackageCacheManager {
         try manager.openFolder(at: url)
     }
 }
-
-
