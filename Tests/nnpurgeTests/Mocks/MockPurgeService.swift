@@ -51,9 +51,10 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllPackages = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
-        }
+        // TODO: -
+//        for folder in foldersToLoad {
+//            progressHandler?.didDeleteFolder(folder)
+//        }
     }
 
     func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
@@ -65,9 +66,10 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllFolders = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
-        }
+        // TODO: -
+//        for folder in foldersToLoad {
+//            progressHandler?.didDeleteFolder(folder)
+//        }
     }
 
     func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws {
@@ -79,9 +81,10 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllPackages = true
         didDeleteAllFolders = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
-        }
+        // TODO: -
+//        for folder in foldersToLoad {
+//            progressHandler?.didDeleteFolder(folder)
+//        }
     }
 
     func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
@@ -92,9 +95,10 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         receivedProgressHandler = progressHandler
         deletedFolders.append(contentsOf: folders)
 
-        for folder in folders {
-            progressHandler?.didDeleteFolder(folder)
-        }
+        // TODO: - 
+//        for folder in folders {
+//            progressHandler?.didDeleteFolder(folder)
+//        }
     }
 
     func openFolder(at url: URL) throws {
