@@ -200,7 +200,7 @@ extension GenericPurgeManagerTests {
 private extension GenericPurgeManagerTests {
     func makeSUT(
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = [],
+        foldersToLoad: [OldPurgeFolder] = [],
         path: String = "/default/path",
         expandPath: Bool = false
     ) -> (sut: GenericPurgeManager, delegate: MockPurgeDelegate, progressHandler: MockPurgeProgressHandler) {
@@ -212,8 +212,8 @@ private extension GenericPurgeManagerTests {
         return (sut, delegate, progressHandler)
     }
 
-    func makePurgeFolder(name: String = "TestFolder") -> PurgeFolder {
-        PurgeFolder(
+    func makePurgeFolder(name: String = "TestFolder") -> OldPurgeFolder {
+        OldPurgeFolder(
             url: URL(fileURLWithPath: "/test/\(name)"),
             name: name,
             path: "/test/\(name)",

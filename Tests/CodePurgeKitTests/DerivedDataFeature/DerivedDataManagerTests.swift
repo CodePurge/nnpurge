@@ -287,7 +287,7 @@ private extension DerivedDataManagerTests {
     func makeSUT(
         path: String = "/default/path",
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = []
+        foldersToLoad: [OldPurgeFolder] = []
     ) -> (sut: DerivedDataManager, delegate: MockPurgeDelegate) {
         let delegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
         let sut = DerivedDataManager(path: path, delegate: delegate)

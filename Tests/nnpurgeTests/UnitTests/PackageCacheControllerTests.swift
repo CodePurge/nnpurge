@@ -496,7 +496,7 @@ private extension PackageCacheControllerTests {
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = [],
+        foldersToLoad: [OldPurgeFolder] = [],
         dependenciesToLoad: [String] = [],
         throwDependencyError: Bool = false
     ) -> (sut: PackageCacheController, service: MockPurgeService, progressHandler: MockPurgeProgressHandler) {

@@ -281,7 +281,7 @@ extension PackageCacheManagerTests {
 private extension PackageCacheManagerTests {
     func makeSUT(
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = []
+        foldersToLoad: [OldPurgeFolder] = []
     ) -> (sut: PackageCacheManager, delegate: MockPurgeDelegate) {
         let purgeDelegate = MockPurgeDelegate(throwError: throwError, foldersToLoad: foldersToLoad)
         let fileSystemDelegate = MockFileSystemDelegate()

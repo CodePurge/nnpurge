@@ -5,18 +5,8 @@
 //  Created by Nikolai Nobadi on 11/4/25.
 //
 
-import Foundation
-
-public protocol ArchiveService: PurgeService {
+public protocol ArchiveService {
+    func loadArchives() throws -> [ArchiveFolder]
     func deleteAllArchives(progressHandler: PurgeProgressHandler?) throws
-}
-
-public extension ArchiveService {
-    func deleteAllArchives() throws {
-        try deleteAllArchives(progressHandler: nil)
-    }
-
-    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
-        try deleteAllArchives(progressHandler: progressHandler)
-    }
+    func deleteArchives(_ archives: [ArchiveFolder], progressHandler: PurgeProgressHandler?) throws
 }

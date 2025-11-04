@@ -9,9 +9,9 @@ import Foundation
 
 public protocol PurgeService {
     func openFolder(at url: URL) throws
-    func loadFolders() throws -> [PurgeFolder]
+    func loadFolders() throws -> [OldPurgeFolder]
     func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws
+    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws
 }
 
 public extension PurgeService {
@@ -19,7 +19,7 @@ public extension PurgeService {
         try deleteAllFolders(progressHandler: nil)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder]) throws {
+    func deleteFolders(_ folders: [OldPurgeFolder]) throws {
         try deleteFolders(folders, progressHandler: nil)
     }
 }

@@ -13,18 +13,11 @@ struct ArchiveController {
     private let picker: any CommandLinePicker
     private let service: any ArchiveService
     private let progressHandler: any PurgeProgressHandler
-    private let controller: GenericPurgeController
 
     init(picker: any CommandLinePicker, service: any ArchiveService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
-        self.controller = .init(
-            picker: picker,
-            service: service,
-            progressHandler: progressHandler,
-            configuration: .archiveConfiguration
-        )
     }
 }
 
@@ -32,7 +25,7 @@ struct ArchiveController {
 // MARK: - Open
 extension ArchiveController {
     func openArchiveFolder() throws {
-        try controller.openFolder()
+//        try controller.openFolder()
     }
 }
 
@@ -40,7 +33,47 @@ extension ArchiveController {
 // MARK: - Delete
 extension ArchiveController {
     func deleteArchives(deleteAll: Bool) throws {
-        try controller.deleteFolders(deleteAll: deleteAll)
+        let option = try selectOption(deleteAll: deleteAll)
+        let allArchives = try service.loadArchives()
+        
+        switch option {
+        case .deleteAll:
+            try picker.requiredPermission("") // TODO: -
+        case .deleteStale:
+            break
+        case .selectFolders:
+            let archivesToDelete = picker.multiSelection("", items: allArchives)
+            
+            print("delete \(archivesToDelete.count) archives")
+        }
+    }
+}
+
+
+// MARK: - Private Methods
+private extension ArchiveController {
+    func selectOption(deleteAll: Bool) throws -> DeleteOption {
+        if deleteAll {
+            return .deleteAll
+        }
+
+        let selectedDisplayable = try picker.requiredSingleSelection("What would you like to do?", items: makeOptions())
+
+        return selectedDisplayable.option
+    }
+    
+    func makeOptions() -> [DisplayableDeleteOption] {
+        return [
+            .init(.deleteAll, displayName: "Delete all archives"),
+            .init(.deleteStale, displayName: "Delete stale archives (90+ days old)"),
+            .init(.selectFolders, displayName: "Select specific archives to delete")
+        ]
+    }
+}
+
+extension ArchiveFolder: DisplayablePickerItem {
+    public var displayName: String {
+        return name // TODO: -
     }
 }
 

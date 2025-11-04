@@ -27,7 +27,7 @@ public extension DerivedDataManager {
 
 // MARK: - Actions
 public extension DerivedDataManager {
-    func loadFolders() throws -> [PurgeFolder] {
+    func loadFolders() throws -> [OldPurgeFolder] {
         try manager.loadFolders()
     }
 
@@ -35,7 +35,7 @@ public extension DerivedDataManager {
         try manager.deleteAllFolders(progressHandler: progressHandler)
     }
 
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
         try manager.deleteFolders(folders, progressHandler: progressHandler)
 
         // TODO: - save purge record?

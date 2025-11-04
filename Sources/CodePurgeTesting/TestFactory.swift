@@ -8,7 +8,7 @@
 import Foundation
 import CodePurgeKit
 
-public func makePurgeFolder(name: String = "TestFolder", path: String = "/path/to/folder", size: Int = 1000) -> PurgeFolder {
+public func makePurgeFolder(name: String = "TestFolder", path: String = "/path/to/folder", size: Int = 1000) -> OldPurgeFolder {
     let url = URL(fileURLWithPath: path).appendingPathComponent(name)
     
     return .init(url: url, name: name, path: path, size: size)

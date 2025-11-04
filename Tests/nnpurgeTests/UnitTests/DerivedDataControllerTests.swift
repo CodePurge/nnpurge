@@ -441,7 +441,7 @@ private extension DerivedDataControllerTests {
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = []
+        foldersToLoad: [OldPurgeFolder] = []
     ) -> (sut: DerivedDataController, service: MockPurgeService, store: MockUserDefaults, progressHandler: MockPurgeProgressHandler) {
         let actualStore = store ?? MockUserDefaults()
         let progressHandler = MockPurgeProgressHandler()

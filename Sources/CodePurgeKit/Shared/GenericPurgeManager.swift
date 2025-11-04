@@ -20,7 +20,7 @@ public struct GenericPurgeManager {
 
 // MARK: - PurgeService
 extension GenericPurgeManager: PurgeService {
-    public func loadFolders() throws -> [PurgeFolder] {
+    public func loadFolders() throws -> [OldPurgeFolder] {
         let path = configuration.expandPath
             ? NSString(string: configuration.path).expandingTildeInPath
             : configuration.path
@@ -33,7 +33,7 @@ extension GenericPurgeManager: PurgeService {
         try deleteFolders(allFolders, progressHandler: progressHandler)
     }
 
-    public func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+    public func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
         let total = folders.count
         
         for (index, folder) in folders.enumerated() {
@@ -52,8 +52,8 @@ extension GenericPurgeManager: PurgeService {
 
 // MARK: - Dependencies
 protocol PurgeDelegate {
-    func deleteFolder(_ folder: PurgeFolder) throws
-    func loadFolders(path: String) throws -> [PurgeFolder]
+    func deleteFolder(_ folder: OldPurgeFolder) throws
+    func loadFolders(path: String) throws -> [OldPurgeFolder]
     func openFolder(at url: URL) throws
 }
 

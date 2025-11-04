@@ -12,12 +12,12 @@ import CodePurgeKit
 final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataService, PackageCacheService {
     private let throwError: Bool
     private let throwDependencyError: Bool
-    private let foldersToLoad: [PurgeFolder]
+    private let foldersToLoad: [OldPurgeFolder]
     private let dependenciesToLoad: [String]
 
     // Track generic calls
     private(set) var didDeleteAllFolders = false
-    private(set) var deletedFolders: [PurgeFolder] = []
+    private(set) var deletedFolders: [OldPurgeFolder] = []
     private(set) var openedFolderURL: URL?
     private(set) var receivedProgressHandler: PurgeProgressHandler?
 
@@ -29,14 +29,14 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
     private(set) var didFindDependencies = false
     private(set) var searchedPath: String?
 
-    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [PurgeFolder] = [], dependenciesToLoad: [String] = []) {
+    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [OldPurgeFolder] = [], dependenciesToLoad: [String] = []) {
         self.throwError = throwError
         self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
     }
 
-    func loadFolders() -> [PurgeFolder] {
+    func loadFolders() -> [OldPurgeFolder] {
         return foldersToLoad
     }
 
@@ -84,7 +84,7 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         }
     }
 
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
