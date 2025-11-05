@@ -16,15 +16,16 @@ struct PackageCacheController {
     private let controller: GenericPurgeController
 
     init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
-        self.picker = picker
-        self.service = service
-        self.progressHandler = progressHandler
-        self.controller = .init(
-            picker: picker,
-            service: service,
-            progressHandler: progressHandler,
-            configuration: .packageCacheConfiguration
-        )
+        fatalError() // TODO: - 
+//        self.picker = picker
+//        self.service = service
+//        self.progressHandler = progressHandler
+//        self.controller = .init(
+//            picker: picker,
+//            service: service,
+//            progressHandler: progressHandler,
+//            configuration: .packageCacheConfiguration
+//        )
     }
 }
 
@@ -48,24 +49,25 @@ extension PackageCacheController {
 // MARK: - Clean Project Dependencies
 extension PackageCacheController {
     func cleanProjectDependencies(projectPath: String?) throws {
-        let dependencies = try service.findDependencies(in: projectPath)
-        let allFolders = try service.loadFolders()
-        let matchedFolders = OldPurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
-
-        guard !matchedFolders.isEmpty else {
-            print("No cached packages found for project dependencies.")
-            return
-        }
-
-        print("\nFound \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages") matching project dependencies:")
-        for folder in matchedFolders {
-            print("  - \(folder.name)")
-        }
-
-        let prompt = "\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?"
-        try picker.requiredPermission(prompt: prompt)
-
-        try service.deleteFolders(matchedFolders, progressHandler: progressHandler)
+        // TODO: - 
+//        let dependencies = try service.findDependencies(in: projectPath)
+//        let allFolders = try service.loadFolders()
+//        let matchedFolders = OldPurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
+//
+//        guard !matchedFolders.isEmpty else {
+//            print("No cached packages found for project dependencies.")
+//            return
+//        }
+//
+//        print("\nFound \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages") matching project dependencies:")
+//        for folder in matchedFolders {
+//            print("  - \(folder.name)")
+//        }
+//
+//        let prompt = "\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?"
+//        try picker.requiredPermission(prompt: prompt)
+//
+//        try service.deleteFolders(matchedFolders, progressHandler: progressHandler)
     }
 }
 
