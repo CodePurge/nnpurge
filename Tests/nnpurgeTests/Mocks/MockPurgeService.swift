@@ -50,7 +50,7 @@ extension MockPurgeService {
         return derivedDataFoldersToLoad
     }
 
-    func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+    func deleteFolders(_ folders: [DerivedDataFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }

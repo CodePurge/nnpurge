@@ -38,7 +38,7 @@ extension DerivedDataController {
         let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
 
         do {
-            try service.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
+            try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
         } catch DerivedDataError.xcodeIsRunning {
             try handleXcodeRunning(foldersToDelete: foldersToDelete)
         }
@@ -100,7 +100,7 @@ private extension DerivedDataController {
 
         switch option {
         case .proceedAnyway:
-            print("TODO: Implement proceed anyway logic")
+            try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
         case .closeXcodeAndProceed:
             print("TODO: Implement close Xcode and proceed logic")
         case .cancel:

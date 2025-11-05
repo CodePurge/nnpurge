@@ -35,17 +35,18 @@ extension DerivedDataManager: DerivedDataService {
     public func loadFolders() throws -> [DerivedDataFolder] {
         return try loader.loadPurgeFolders(at: path).map({ .init(folder: $0) })
     }
-    
-    public func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws {
-        guard !xcodeChecker.isXcodeRunning() else {
-            throw DerivedDataError.xcodeIsRunning
+
+    public func deleteFolders(_ folders: [DerivedDataFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
+        if !force {
+            guard !xcodeChecker.isXcodeRunning() else {
+                throw DerivedDataError.xcodeIsRunning
+            }
         }
 
         let total = folders.count
 
         for (index, folder) in folders.enumerated() {
             try delegate.deleteFolder(folder)
-//            print("should delete \(folder.name)")
             progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
 
