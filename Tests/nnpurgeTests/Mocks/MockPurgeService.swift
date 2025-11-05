@@ -13,6 +13,7 @@ final class MockPurgeService: @unchecked Sendable, PackageCacheService {
     private let throwError: Bool
     private let throwDependencyError: Bool
     private let foldersToLoad: [OldPurgeFolder]
+    private let derivedDataFoldersToLoad: [DerivedDataFolder]
     private let dependenciesToLoad: [String]
 
     // Track generic calls
@@ -24,15 +25,23 @@ final class MockPurgeService: @unchecked Sendable, PackageCacheService {
     // Track feature-specific calls for backward compatibility
     private(set) var didDeleteAllDerivedData = false
     private(set) var didDeleteAllPackages = false
+    private(set) var deletedDerivedDataFolders: [DerivedDataFolder] = []
 
     // Track dependency finding
     private(set) var didFindDependencies = false
     private(set) var searchedPath: String?
 
-    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [OldPurgeFolder] = [], dependenciesToLoad: [String] = []) {
+    init(
+        throwError: Bool = false,
+        throwDependencyError: Bool = false,
+        foldersToLoad: [OldPurgeFolder] = [],
+        derivedDataFoldersToLoad: [DerivedDataFolder] = [],
+        dependenciesToLoad: [String] = []
+    ) {
         self.throwError = throwError
         self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
+        self.derivedDataFoldersToLoad = derivedDataFoldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
     }
 
@@ -142,6 +151,11 @@ extension MockPurgeService: DerivedDataService {
             throw NSError(domain: "TestError", code: 1)
         }
 
+        // If derivedDataFoldersToLoad is not empty, use it; otherwise map from foldersToLoad for backward compatibility
+        if !derivedDataFoldersToLoad.isEmpty {
+            return derivedDataFoldersToLoad
+        }
+
         return foldersToLoad.map { folder in
             DerivedDataFolder(url: folder.url, name: folder.name, path: folder.path, creationDate: folder.creationDate, modificationDate: folder.modificationDate)
         }
@@ -154,6 +168,7 @@ extension MockPurgeService: DerivedDataService {
 
         receivedProgressHandler = progressHandler
         didDeleteAllDerivedData = true
+        deletedDerivedDataFolders.append(contentsOf: folders)
 
         for (index, folder) in folders.enumerated() {
             progressHandler?.updateProgress(current: index + 1, total: folders.count, message: "Deleting \(folder.name)...")

@@ -292,55 +292,29 @@ private extension DerivedDataManagerTests {
         return (sut, loader, delegate)
     }
 
+    // TODO: - move to CodePurgeTesting
     func makePurgeFolder(name: String = "TestFolder") -> MockPurgeFolder {
-        return MockPurgeFolder(name: name)
-    }
-
-    func makeDerivedDataFolder(name: String = "TestFolder") -> DerivedDataFolder {
-        let url = URL(fileURLWithPath: "/path/to/\(name)")
-        return DerivedDataFolder(url: url, name: name, path: url.path, creationDate: Date(), modificationDate: Date())
+        return .init(name: name)
     }
 }
 
 
-// MARK: - Mock PurgeFolder
-private struct MockPurgeFolder: PurgeFolder {
-    let url: URL
-    let name: String
-    let path: String
-    let subfolders: [MockPurgeFolder] = []
-    let creationDate: Date?
-    let modificationDate: Date?
-
-    init(name: String) {
-        let url = URL(fileURLWithPath: "/path/to/\(name)")
-        self.url = url
-        self.name = name
-        self.path = url.path
-        self.creationDate = Date()
-        self.modificationDate = Date()
-    }
-
-    func getSize() -> Int64 {
-        return 1024
-    }
-}
-
-
-// MARK: - Mock DerivedDataDelegate
-private final class MockDerivedDataDelegate: DerivedDataDelegate, @unchecked Sendable {
-    private let throwError: Bool
-
-    private(set) var deletedFolders: [DerivedDataFolder] = []
-
-    init(throwError: Bool = false) {
-        self.throwError = throwError
-    }
-
-    func deleteFolder(_ folder: DerivedDataFolder) throws {
-        if throwError {
-            throw NSError(domain: "MockDerivedDataDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
+// MARK: - Mocks
+private extension DerivedDataManagerTests {
+    final class MockDerivedDataDelegate: DerivedDataDelegate, @unchecked Sendable {
+        private let throwError: Bool
+        
+        private(set) var deletedFolders: [DerivedDataFolder] = []
+        
+        init(throwError: Bool = false) {
+            self.throwError = throwError
         }
-        deletedFolders.append(folder)
+        
+        func deleteFolder(_ folder: DerivedDataFolder) throws {
+            if throwError {
+                throw NSError(domain: "MockDerivedDataDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
+            }
+            deletedFolders.append(folder)
+        }
     }
 }
