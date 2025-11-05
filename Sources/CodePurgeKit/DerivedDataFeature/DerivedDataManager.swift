@@ -11,11 +11,13 @@ public struct DerivedDataManager {
     private let path: String
     private let loader: any PurgeFolderLoader
     private let delegate: any DerivedDataDelegate
+    private let xcodeChecker: any XcodeStatusChecker
 
-    init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate) {
+    init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate, xcodeChecker: any XcodeStatusChecker) {
         self.path = path
         self.loader = loader
         self.delegate = delegate
+        self.xcodeChecker = xcodeChecker
     }
 }
 
@@ -23,7 +25,7 @@ public struct DerivedDataManager {
 // MARK: - Init
 public extension DerivedDataManager {
     init(path: String) {
-        self.init(path: path, loader: DefaultPurgeFolderLoader(), delegate: DefaultDerivedDataDelegate())
+        self.init(path: path, loader: DefaultPurgeFolderLoader(), delegate: DefaultDerivedDataDelegate(), xcodeChecker: DefaultXcodeStatusChecker())
     }
 }
 
@@ -35,13 +37,18 @@ extension DerivedDataManager: DerivedDataService {
     }
     
     public func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+        guard !xcodeChecker.isXcodeRunning() else {
+            throw DerivedDataError.xcodeIsRunning
+        }
+
         let total = folders.count
-        
+
         for (index, folder) in folders.enumerated() {
             try delegate.deleteFolder(folder)
+//            print("should delete \(folder.name)")
             progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
-        
+
         progressHandler?.complete(message: "✅ Derived Data moved to trash.")
     }
 }
@@ -50,6 +57,14 @@ extension DerivedDataManager: DerivedDataService {
 // MARK: - Dependencies
 protocol DerivedDataDelegate {
     func deleteFolder(_ folder: DerivedDataFolder) throws
+}
+
+protocol XcodeStatusChecker {
+    func isXcodeRunning() -> Bool
+}
+
+enum DerivedDataError: Error {
+    case xcodeIsRunning
 }
 
 

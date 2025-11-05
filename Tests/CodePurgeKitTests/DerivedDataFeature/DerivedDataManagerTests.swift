@@ -13,7 +13,7 @@ import CodePurgeTesting
 struct DerivedDataManagerTests {
     @Test("Starting values empty")
     func emptyStartingValues() {
-        let (_, _, delegate) = makeSUT()
+        let (_, _, delegate, _) = makeSUT()
 
         #expect(delegate.deletedFolders.isEmpty)
     }
@@ -29,7 +29,7 @@ extension DerivedDataManagerTests {
             makePurgeFolder(name: "Folder1"),
             makePurgeFolder(name: "Folder2")
         ]
-        let (sut, loader, _) = makeSUT(path: expectedPath, foldersToLoad: folders)
+        let (sut, loader, _, _) = makeSUT(path: expectedPath, foldersToLoad: folders)
 
         let loadedFolders = try sut.loadFolders()
 
@@ -42,7 +42,7 @@ extension DerivedDataManagerTests {
 
     @Test("Returns empty array when no folders available")
     func returnsEmptyArrayWhenNoFoldersAvailable() throws {
-        let (sut, _, _) = makeSUT(foldersToLoad: [])
+        let (sut, _, _, _) = makeSUT(foldersToLoad: [])
 
         let loadedFolders = try sut.loadFolders()
 
@@ -51,7 +51,7 @@ extension DerivedDataManagerTests {
 
     @Test("Propagates load folders error from loader")
     func propagatesLoadFoldersErrorFromLoader() throws {
-        let (sut, _, _) = makeSUT(throwError: true)
+        let (sut, _, _, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
             try sut.loadFolders()
@@ -68,7 +68,7 @@ extension DerivedDataManagerTests {
         let folder2 = makePurgeFolder(name: "Folder2")
         let folder3 = makePurgeFolder(name: "Folder3")
         let folders = [folder1, folder2, folder3]
-        let (sut, _, delegate) = makeSUT(foldersToLoad: folders)
+        let (sut, _, delegate, _) = makeSUT(foldersToLoad: folders)
 
         let loadedFolders = try sut.loadFolders()
         try sut.deleteDerivedData(loadedFolders, progressHandler: nil)
@@ -81,7 +81,7 @@ extension DerivedDataManagerTests {
 
     @Test("Deletes no folders when given empty array")
     func deletesNoFoldersWhenGivenEmptyArray() throws {
-        let (sut, _, delegate) = makeSUT(foldersToLoad: [])
+        let (sut, _, delegate, _) = makeSUT(foldersToLoad: [])
 
         try sut.deleteDerivedData([], progressHandler: nil)
 
@@ -97,7 +97,7 @@ extension DerivedDataManagerTests {
         let folder1 = makeDerivedDataFolder(name: "Folder1")
         let folder2 = makeDerivedDataFolder(name: "Folder2")
         let foldersToDelete = [folder1, folder2]
-        let (sut, _, delegate) = makeSUT()
+        let (sut, _, delegate, _) = makeSUT()
 
         try sut.deleteDerivedData(foldersToDelete, progressHandler: nil)
 
@@ -110,7 +110,7 @@ extension DerivedDataManagerTests {
     @Test("Deletes single folder successfully")
     func deletesSingleFolderSuccessfully() throws {
         let folder = makeDerivedDataFolder(name: "SingleFolder")
-        let (sut, _, delegate) = makeSUT()
+        let (sut, _, delegate, _) = makeSUT()
 
         try sut.deleteDerivedData([folder], progressHandler: nil)
 
@@ -121,7 +121,7 @@ extension DerivedDataManagerTests {
 
     @Test("Completes successfully when given empty folder list")
     func completesSuccessfullyWhenGivenEmptyFolderList() throws {
-        let (sut, _, delegate) = makeSUT()
+        let (sut, _, delegate, _) = makeSUT()
 
         try sut.deleteDerivedData([], progressHandler: nil)
 
@@ -131,7 +131,7 @@ extension DerivedDataManagerTests {
     @Test("Propagates deletion error from delegate")
     func propagatesDeletionErrorFromDelegate() throws {
         let folder = makeDerivedDataFolder(name: "ErrorFolder")
-        let (sut, _, _) = makeSUT(throwError: true)
+        let (sut, _, _, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
             try sut.deleteDerivedData([folder], progressHandler: nil)
@@ -142,7 +142,7 @@ extension DerivedDataManagerTests {
     func stopsDeletionOnFirstErrorAndDoesNotContinue() throws {
         let folder1 = makeDerivedDataFolder(name: "Folder1")
         let folder2 = makeDerivedDataFolder(name: "Folder2")
-        let (sut, _, delegate) = makeSUT(throwError: true)
+        let (sut, _, delegate, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
             try sut.deleteDerivedData([folder1, folder2], progressHandler: nil)
@@ -153,13 +153,70 @@ extension DerivedDataManagerTests {
 }
 
 
+// MARK: - Xcode Running Tests
+extension DerivedDataManagerTests {
+    @Test("Prevents deletion when Xcode is running")
+    func preventsDeletionWhenXcodeIsRunning() throws {
+        let folder = makeDerivedDataFolder(name: "TestFolder")
+        let (sut, _, delegate, _) = makeSUT(isXcodeRunning: true)
+
+        #expect(throws: DerivedDataError.xcodeIsRunning) {
+            try sut.deleteDerivedData([folder], progressHandler: nil)
+        }
+
+        #expect(delegate.deletedFolders.isEmpty)
+    }
+
+    @Test("Allows deletion when Xcode is not running")
+    func allowsDeletionWhenXcodeIsNotRunning() throws {
+        let folder = makeDerivedDataFolder(name: "TestFolder")
+        let (sut, _, delegate, _) = makeSUT(isXcodeRunning: false)
+
+        try sut.deleteDerivedData([folder], progressHandler: nil)
+
+        #expect(delegate.deletedFolders.count == 1)
+        guard delegate.deletedFolders.count >= 1 else { return }
+        #expect(delegate.deletedFolders[0].name == folder.name)
+    }
+
+    @Test("Checks Xcode status before attempting any deletions")
+    func checksXcodeStatusBeforeAttemptingAnyDeletions() throws {
+        let folder1 = makeDerivedDataFolder(name: "Folder1")
+        let folder2 = makeDerivedDataFolder(name: "Folder2")
+        let folder3 = makeDerivedDataFolder(name: "Folder3")
+        let folders = [folder1, folder2, folder3]
+        let (sut, _, delegate, _) = makeSUT(isXcodeRunning: true)
+
+        #expect(throws: DerivedDataError.xcodeIsRunning) {
+            try sut.deleteDerivedData(folders, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedFolders.isEmpty)
+    }
+
+    @Test("Does not call progress handler when Xcode is running")
+    func doesNotCallProgressHandlerWhenXcodeIsRunning() throws {
+        let folder = makeDerivedDataFolder(name: "TestFolder")
+        let progressHandler = MockPurgeProgressHandler()
+        let (sut, _, _, _) = makeSUT(isXcodeRunning: true)
+
+        #expect(throws: DerivedDataError.xcodeIsRunning) {
+            try sut.deleteDerivedData([folder], progressHandler: progressHandler)
+        }
+
+        #expect(progressHandler.progressUpdates.isEmpty)
+        #expect(!progressHandler.didComplete)
+    }
+}
+
+
 // MARK: - Path Configuration Tests
 extension DerivedDataManagerTests {
     @Test("Uses specified path for folder operations")
     func usesSpecifiedPathForFolderOperations() throws {
         let customPath = "/custom/xcode/path"
         let folder = makePurgeFolder(name: "TestFolder")
-        let (sut, loader, _) = makeSUT(path: customPath, foldersToLoad: [folder])
+        let (sut, loader, _, _) = makeSUT(path: customPath, foldersToLoad: [folder])
 
         let loadedFolders = try sut.loadFolders()
 
@@ -171,7 +228,7 @@ extension DerivedDataManagerTests {
     func deletesFoldersFromCustomPathLocation() throws {
         let customPath = "/custom/path/DerivedData"
         let folder = makePurgeFolder(name: "CustomPathFolder")
-        let (sut, _, delegate) = makeSUT(path: customPath, foldersToLoad: [folder])
+        let (sut, _, delegate, _) = makeSUT(path: customPath, foldersToLoad: [folder])
 
         let loadedFolders = try sut.loadFolders()
         try sut.deleteDerivedData(loadedFolders, progressHandler: nil)
@@ -192,7 +249,7 @@ extension DerivedDataManagerTests {
         let folder3 = makeDerivedDataFolder(name: "Folder3")
         let folders = [folder1, folder2, folder3]
         let progressHandler = MockPurgeProgressHandler()
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
 
         try sut.deleteDerivedData(folders, progressHandler: progressHandler)
 
@@ -210,7 +267,7 @@ extension DerivedDataManagerTests {
         let folder3 = makeDerivedDataFolder(name: "Gamma")
         let foldersToDelete = [folder1, folder2, folder3]
         let progressHandler = MockPurgeProgressHandler()
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
 
         try sut.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
 
@@ -224,7 +281,7 @@ extension DerivedDataManagerTests {
     @Test("Does not call progress handler when no folders to delete")
     func doesNotCallProgressHandlerWhenNoFoldersToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
-        let (sut, _, _) = makeSUT(foldersToLoad: [])
+        let (sut, _, _, _) = makeSUT(foldersToLoad: [])
 
         try sut.deleteDerivedData([], progressHandler: progressHandler)
 
@@ -239,7 +296,7 @@ extension DerivedDataManagerTests {
         let folder4 = makeDerivedDataFolder(name: "Fourth")
         let folders = [folder1, folder2, folder3, folder4]
         let progressHandler = MockPurgeProgressHandler()
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
 
         try sut.deleteDerivedData(folders, progressHandler: progressHandler)
 
@@ -253,7 +310,7 @@ extension DerivedDataManagerTests {
     @Test("Works correctly when progress handler is nil")
     func worksCorrectlyWhenProgressHandlerIsNil() throws {
         let folder = makeDerivedDataFolder(name: "TestFolder")
-        let (sut, _, delegate) = makeSUT()
+        let (sut, _, delegate, _) = makeSUT()
 
         try sut.deleteDerivedData([folder], progressHandler: nil as (any PurgeProgressHandler)?)
 
@@ -268,7 +325,7 @@ extension DerivedDataManagerTests {
         let folder2 = makeDerivedDataFolder(name: "Folder2")
         let folders = [folder1, folder2]
         let progressHandler = MockPurgeProgressHandler()
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
 
         try sut.deleteDerivedData(folders, progressHandler: progressHandler)
 
@@ -283,13 +340,15 @@ private extension DerivedDataManagerTests {
     func makeSUT(
         path: String = "/default/path",
         throwError: Bool = false,
-        foldersToLoad: [any PurgeFolder] = []
-    ) -> (sut: DerivedDataManager, loader: MockPurgeFolderLoader, delegate: MockDerivedDataDelegate) {
+        foldersToLoad: [any PurgeFolder] = [],
+        isXcodeRunning: Bool = false
+    ) -> (sut: DerivedDataManager, loader: MockPurgeFolderLoader, delegate: MockDerivedDataDelegate, xcodeChecker: MockXcodeStatusChecker) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockDerivedDataDelegate(throwError: throwError)
-        let sut = DerivedDataManager(path: path, loader: loader, delegate: delegate)
+        let xcodeChecker = MockXcodeStatusChecker(xcodeRunningStatus: isXcodeRunning)
+        let sut = DerivedDataManager(path: path, loader: loader, delegate: delegate, xcodeChecker: xcodeChecker)
 
-        return (sut, loader, delegate)
+        return (sut, loader, delegate, xcodeChecker)
     }
 
     // TODO: - move to CodePurgeTesting
@@ -303,18 +362,26 @@ private extension DerivedDataManagerTests {
 private extension DerivedDataManagerTests {
     final class MockDerivedDataDelegate: DerivedDataDelegate, @unchecked Sendable {
         private let throwError: Bool
-        
+
         private(set) var deletedFolders: [DerivedDataFolder] = []
-        
+
         init(throwError: Bool = false) {
             self.throwError = throwError
         }
-        
+
         func deleteFolder(_ folder: DerivedDataFolder) throws {
             if throwError {
                 throw NSError(domain: "MockDerivedDataDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
             }
             deletedFolders.append(folder)
+        }
+    }
+
+    struct MockXcodeStatusChecker: XcodeStatusChecker {
+        let xcodeRunningStatus: Bool
+
+        func isXcodeRunning() -> Bool {
+            return xcodeRunningStatus
         }
     }
 }
