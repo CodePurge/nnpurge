@@ -36,7 +36,7 @@ extension MockContextFactory: ContextFactory {
             return picker
         }
 
-        fatalError("makePicker() not implemented")
+        return MockSwiftPicker()
     }
 
     func makeUserDefaults() -> DerivedDataStore {
@@ -48,7 +48,7 @@ extension MockContextFactory: ContextFactory {
             return derivedDataService
         }
 
-        fatalError("makeDerivedDataService() not implemented")
+        return MockPurgeService()
     }
 
     func makePackageCacheService() -> any PackageCacheService {
@@ -56,6 +56,6 @@ extension MockContextFactory: ContextFactory {
             return packageCacheService
         }
 
-        return PackageCacheManager()
+        return MockPurgeService()
     }
 }
