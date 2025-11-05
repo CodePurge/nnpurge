@@ -36,8 +36,12 @@ extension DerivedDataController {
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
-        
-        try service.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
+
+        do {
+            try service.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
+        } catch DerivedDataError.xcodeIsRunning {
+            try handleXcodeRunning(foldersToDelete: foldersToDelete)
+        }
     }
 }
 
@@ -72,23 +76,36 @@ private extension DerivedDataController {
     func selectFoldersToDelete(deleteAll: Bool) throws -> [DerivedDataFolder] {
         let allFolders = try service.loadFolders()
         let option = try selectOption(deleteAll: deleteAll)
-        
+
         switch option {
         case .deleteAll:
             try picker.requiredPermission("Are you sure you want to delete all derived data?")
-            
+
             return allFolders
         case .selectFolders:
             return picker.multiSelection("Select the folders to delete.", items: allFolders)
         }
     }
-    
+
     func selectOption(deleteAll: Bool) throws -> DerivedDataDeleteOption {
         if deleteAll {
             return .deleteAll
         }
-        
+
         return try picker.requiredSingleSelection("What would you like to do?", items: DerivedDataDeleteOption.allCases)
+    }
+
+    func handleXcodeRunning(foldersToDelete: [DerivedDataFolder]) throws {
+        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
+
+        switch option {
+        case .proceedAnyway:
+            print("TODO: Implement proceed anyway logic")
+        case .closeXcodeAndProceed:
+            print("TODO: Implement close Xcode and proceed logic")
+        case .cancel:
+            print("Operation cancelled.")
+        }
     }
 }
 
@@ -101,6 +118,10 @@ protocol DerivedDataStore {
 
 enum DerivedDataDeleteOption: CaseIterable {
     case deleteAll, selectFolders
+}
+
+enum XcodeRunningOption: CaseIterable {
+    case proceedAnyway, closeXcodeAndProceed, cancel
 }
 
 
@@ -132,6 +153,19 @@ extension DerivedDataDeleteOption: DisplayablePickerItem {
             return "Delete all derived data folders"
         case .selectFolders:
             return "Select specific folders to delete"
+        }
+    }
+}
+
+extension XcodeRunningOption: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .proceedAnyway:
+            return "Proceed anyway (may cause issues)"
+        case .closeXcodeAndProceed:
+            return "Close Xcode and proceed"
+        case .cancel:
+            return "Cancel operation"
         }
     }
 }

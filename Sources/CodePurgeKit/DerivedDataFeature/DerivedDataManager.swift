@@ -63,7 +63,7 @@ protocol XcodeStatusChecker {
     func isXcodeRunning() -> Bool
 }
 
-enum DerivedDataError: Error {
+public enum DerivedDataError: Error {
     case xcodeIsRunning
 }
 
