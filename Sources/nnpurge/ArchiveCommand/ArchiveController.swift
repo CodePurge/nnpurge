@@ -45,12 +45,23 @@ private extension ArchiveController {
     func selectArchivesToDelete(deleteAll: Bool) throws -> [ArchiveFolder] {
         let allArchives = try service.loadArchives()
         let option = try selectOption(deleteAll: deleteAll)
-        
+
         switch option {
         case .deleteAll:
             try picker.requiredPermission("Are you sure you want to delete all Xcode archives?")
-            
+
             return allArchives
+        case .deleteStale:
+            let staleArchives = filterStaleArchives(allArchives, daysOld: 30)
+
+            guard !staleArchives.isEmpty else {
+                print("No stale archives found (30+ days old).")
+                return []
+            }
+
+            try picker.requiredPermission("Found \(staleArchives.count) stale archive(s). Delete them?")
+
+            return staleArchives
         case .selectFolders:
             return picker.multiSelection("Select the archives to delete.", items: allArchives)
         }
@@ -63,12 +74,28 @@ private extension ArchiveController {
 
         return try picker.requiredSingleSelection("What would you like to do?", items: ArchiveOption.allCases)
     }
+
+    func filterStaleArchives(_ archives: [ArchiveFolder], daysOld: Int) -> [ArchiveFolder] {
+        let calendar = Calendar.current
+        let now = Date()
+        let daysAgo = calendar.date(byAdding: .day, value: -daysOld, to: now) ?? now
+
+        return archives.filter { archive in
+            let dateToCheck = archive.modificationDate ?? archive.creationDate
+
+            guard let date = dateToCheck else {
+                return false
+            }
+
+            return date < daysAgo
+        }
+    }
 }
 
 
 // MARK: - Dependencies
 enum ArchiveOption: CaseIterable {
-    case deleteAll, selectFolders
+    case deleteAll, deleteStale, selectFolders
 }
 
 
@@ -78,6 +105,8 @@ extension ArchiveOption: DisplayablePickerItem {
         switch self {
         case .deleteAll:
             return "Delete all archives"
+        case .deleteStale:
+            return "Delete stale archives (30+ days old)"
         case .selectFolders:
             return "Select specific archives to delete"
         }
