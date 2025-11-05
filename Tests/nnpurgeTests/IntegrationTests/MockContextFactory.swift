@@ -15,12 +15,14 @@ struct MockContextFactory {
     private let derivedDataStore: any DerivedDataStore
     private let derivedDataService: (any DerivedDataService)?
     private let packageCacheService: (any PackageCacheService)?
+    private let archiveService: (any ArchiveService)?
 
-    init(picker: MockSwiftPicker? = nil, derivedDataStore: any DerivedDataStore = MockUserDefaults(), derivedDataService: (any DerivedDataService)? = nil, packageCacheService: (any PackageCacheService)? = nil) {
+    init(picker: MockSwiftPicker? = nil, derivedDataStore: any DerivedDataStore = MockUserDefaults(), derivedDataService: (any DerivedDataService)? = nil, packageCacheService: (any PackageCacheService)? = nil, archiveService: (any ArchiveService)? = nil) {
         self.picker = picker
         self.derivedDataStore = derivedDataStore
         self.derivedDataService = derivedDataService
         self.packageCacheService = packageCacheService
+        self.archiveService = archiveService
     }
 }
 
@@ -28,7 +30,11 @@ struct MockContextFactory {
 // MARK: - ContextFactory
 extension MockContextFactory: ContextFactory {
     func makeArchiveService() -> any ArchiveService {
-        fatalError() // TODO: -
+        if let archiveService {
+            return archiveService
+        }
+
+        return MockArchiveService()
     }
     
     func makePicker() -> any CommandLinePicker {

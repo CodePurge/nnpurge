@@ -17,7 +17,7 @@ struct Nnpurge: ParsableCommand {
         subcommands: [
             DerivedDataCommand.self,
             PackageCacheCommand.self,
-//            ArchiveCommand.self
+            ArchiveCommand.self
         ]
     )
 
