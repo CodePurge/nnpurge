@@ -14,11 +14,13 @@ final class MockPurgeService: @unchecked Sendable, PackageCacheService {
     private let throwDependencyError: Bool
     private let foldersToLoad: [OldPurgeFolder]
     private let derivedDataFoldersToLoad: [DerivedDataFolder]
+    private let packageCacheFoldersToLoad: [PackageCacheFolder]
     private let dependenciesToLoad: [String]
 
     // Track generic calls
     private(set) var didDeleteAllFolders = false
     private(set) var deletedFolders: [OldPurgeFolder] = []
+    private(set) var deletedPackageCacheFolders: [PackageCacheFolder] = []
     private(set) var openedFolderURL: URL?
     private(set) var receivedProgressHandler: PurgeProgressHandler?
 
@@ -36,12 +38,14 @@ final class MockPurgeService: @unchecked Sendable, PackageCacheService {
         throwDependencyError: Bool = false,
         foldersToLoad: [OldPurgeFolder] = [],
         derivedDataFoldersToLoad: [DerivedDataFolder] = [],
+        packageCacheFoldersToLoad: [PackageCacheFolder] = [],
         dependenciesToLoad: [String] = []
     ) {
         self.throwError = throwError
         self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
         self.derivedDataFoldersToLoad = derivedDataFoldersToLoad
+        self.packageCacheFoldersToLoad = packageCacheFoldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
     }
 
@@ -140,6 +144,41 @@ extension MockPurgeService: PurgeService {
         }
 
         return foldersToLoad
+    }
+}
+
+
+// MARK: - PackageCacheService
+extension MockPurgeService {
+    func loadFolders() throws -> [PackageCacheFolder] {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        // If packageCacheFoldersToLoad is not empty, use it; otherwise map from foldersToLoad for backward compatibility
+        if !packageCacheFoldersToLoad.isEmpty {
+            return packageCacheFoldersToLoad
+        }
+
+        return foldersToLoad.map { folder in
+            PackageCacheFolder(url: folder.url, name: folder.name, path: folder.path, creationDate: folder.creationDate, modificationDate: folder.modificationDate, branchId: "", lastFetchedDate: nil)
+        }
+    }
+
+    func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        receivedProgressHandler = progressHandler
+        didDeleteAllPackages = true
+        deletedPackageCacheFolders.append(contentsOf: folders)
+
+        for (index, folder) in folders.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: folders.count, message: "Deleting \(folder.name)...")
+        }
+
+        progressHandler?.complete(message: "✅ Package Repositories moved to trash.")
     }
 }
 

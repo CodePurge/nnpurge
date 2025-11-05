@@ -10,21 +10,16 @@ import SwiftPicker
 import CodePurgeKit
 
 struct PackageCacheController {
+    private let staleDaysThreshold: Int
     private let picker: any CommandLinePicker
     private let service: any PackageCacheService
     private let progressHandler: any PurgeProgressHandler
-    private let controller: GenericPurgeController
 
-    init(picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
+    init(staleDaysThreshold: Int = 30, picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
-        self.controller = .init(
-            picker: picker,
-            service: service,
-            progressHandler: progressHandler,
-            configuration: .packageCacheConfiguration
-        )
+        self.staleDaysThreshold = staleDaysThreshold
     }
 }
 
@@ -32,7 +27,7 @@ struct PackageCacheController {
 // MARK: - Open
 extension PackageCacheController {
     func openPackageCacheFolder() throws {
-        try controller.openFolder()
+        print("should open Package Cache Repositories folder") // TODO: -
     }
 }
 
@@ -40,7 +35,9 @@ extension PackageCacheController {
 // MARK: - Delete
 extension PackageCacheController {
     func deletePackageCache(deleteAll: Bool) throws {
-        try controller.deleteFolders(deleteAll: deleteAll)
+        let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
+        
+        try service.deleteFolders(foldersToDelete, progressHandler: progressHandler)
     }
 }
 
@@ -48,9 +45,9 @@ extension PackageCacheController {
 // MARK: - Clean Project Dependencies
 extension PackageCacheController {
     func cleanProjectDependencies(projectPath: String?) throws {
-        let dependencies = try service.findDependencies(in: projectPath)
         let allFolders = try service.loadFolders()
-        let matchedFolders = OldPurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
+        let dependencies = try service.findDependencies(in: projectPath)
+        let matchedFolders = PackageCacheFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
 
         guard !matchedFolders.isEmpty else {
             print("No cached packages found for project dependencies.")
@@ -62,10 +59,100 @@ extension PackageCacheController {
             print("  - \(folder.name)")
         }
 
-        let prompt = "\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?"
-        try picker.requiredPermission(prompt: prompt)
-
+        try picker.requiredPermission("\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?")
         try service.deleteFolders(matchedFolders, progressHandler: progressHandler)
+    }
+}
+
+
+// MARK: - Private Methods
+private extension PackageCacheController {
+    func selectFoldersToDelete(deleteAll: Bool) throws -> [PackageCacheFolder] {
+        let allFolders = try service.loadFolders()
+        let option = try selectOption(deleteAll: deleteAll)
+        
+        switch option {
+        case .deleteAll:
+            try picker.requiredPermission("Are you sure you want to delete all derived data?")
+            
+            return allFolders
+        case .deleteStale:
+            let staleFolders = PackageCacheFolder.filterStale(allFolders, olderThanDays: staleDaysThreshold)
+            let count = staleFolders.count
+            try picker.requiredPermission(
+                "Are you sure you want to delete \(count) stale \(count == 1 ? "package" : "packages") (not modified in \(staleDaysThreshold)+ days)?"
+            )
+
+            return staleFolders
+        case .selectFolders:
+            return picker.multiSelection("Select the folders to delete.", items: allFolders)
+        }
+    }
+    
+    func selectOption(deleteAll: Bool) throws -> PackageCacheDeleteOption {
+        if deleteAll {
+            return .deleteAll
+        }
+        
+        return try picker.requiredSingleSelection("What would you like to do?", items: PackageCacheDeleteOption.allCases)
+    }
+}
+
+
+// MARK: - Dependencies
+enum PackageCacheDeleteOption: CaseIterable {
+    case deleteAll, deleteStale, selectFolders
+}
+
+
+// MARK: - Extension Dependencies
+extension PackageCacheFolder: DisplayablePickerItem {
+    public var displayName: String {
+        return name // TODO: - may need to expand or format somehow
+    }
+    
+    static func filterByDependencies(_ folders: [PackageCacheFolder], identities: [String]) -> [PackageCacheFolder] {
+        let lowercaseIdentities = Set(identities.map { $0.lowercased() })
+
+        return folders.filter { folder in
+            guard let packageName = folder.packageName else { return false }
+            return lowercaseIdentities.contains(packageName.lowercased())
+        }
+    }
+    
+    private var packageName: String? {
+        guard let lastDashIndex = name.lastIndex(of: "-") else { return nil }
+        return String(name[..<lastDashIndex])
+    }
+    
+    static func filterStale(_ folders: [PackageCacheFolder], olderThanDays days: Int) -> [PackageCacheFolder] {
+        let calendar = Calendar.current
+        let threshold = calendar.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+
+        return folders.filter { folder in
+            if folder.modificationDate == nil && folder.creationDate == nil {
+                return true
+            } else if let modificationDate = folder.modificationDate {
+                return modificationDate < threshold
+            } else if folder.modificationDate == nil, let creationDate = folder.creationDate {
+                return creationDate < threshold
+            }
+
+            return false
+        }
+    }
+}
+
+extension PackageCacheDeleteOption: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .deleteAll:
+            return "Delete all package repositories"
+        case .deleteStale:
+            return "Delete stale packages (30+ days old)"
+        case .selectFolders:
+            return "Select specific packages to delete"
+        }
     }
 }
 

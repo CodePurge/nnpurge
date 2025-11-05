@@ -25,6 +25,15 @@ public struct MockPurgeFolder: PurgeFolder {
         self.subfolders = subfolders
     }
 
+    public init(folder: PackageCacheFolder) {
+        self.url = folder.url
+        self.name = folder.name
+        self.path = folder.path
+        self.creationDate = folder.creationDate
+        self.modificationDate = folder.modificationDate
+        self.subfolders = []
+    }
+
     public func getSize() -> Int64 {
         return 1000
     }

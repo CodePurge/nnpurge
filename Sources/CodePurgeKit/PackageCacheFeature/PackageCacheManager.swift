@@ -7,15 +7,17 @@
 
 import Foundation
 
-public struct PackageCacheManager: PackageCacheService {
-    private let manager: GenericPurgeManager
+public struct PackageCacheManager {
+    private let path: String
+    private let loader: any PurgeFolderLoader
+    private let delegate: any PackageCacheDelegate
     private let fileSystemDelegate: any FileSystemDelegate
 
-    init(purgeDelegate: any PurgeDelegate, fileSystemDelegate: any FileSystemDelegate) {
-        let path = "~/Library/Caches/org.swift.swiftpm/repositories"
-        let config = PurgeConfiguration(path: path, expandPath: true)
-        self.manager = GenericPurgeManager(configuration: config, delegate: purgeDelegate)
+    init(loader: any PurgeFolderLoader, delegate: any PackageCacheDelegate, fileSystemDelegate: any FileSystemDelegate) {
+        self.loader = loader
+        self.delegate = delegate
         self.fileSystemDelegate = fileSystemDelegate
+        self.path = NSString(string: "~/Library/Caches/org.swift.swiftpm/repositories").expandingTildeInPath
     }
 }
 
@@ -23,30 +25,29 @@ public struct PackageCacheManager: PackageCacheService {
 // MARK: - Init
 public extension PackageCacheManager {
     init() {
-        self.init(purgeDelegate: DefaultPurgeDelegate(), fileSystemDelegate: DefaultFileSystemDelegate())
+        self.init(loader: DefaultPurgeFolderLoader(), delegate: DefaultPackageCacheDelegate(), fileSystemDelegate: DefaultFileSystemDelegate())
     }
 }
 
 
 // MARK: - Actions
-public extension PackageCacheManager {
-    func loadFolders() throws -> [OldPurgeFolder] {
-        try manager.loadFolders()
+extension PackageCacheManager: PackageCacheService {
+    public func loadFolders() throws -> [PackageCacheFolder] {
+        return try loader.loadPurgeFolders(at: path).map({ .init(folder: $0) })
+    }
+    
+    public func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+        let total = folders.count
+        
+        for (index, folder) in folders.enumerated() {
+            try delegate.deleteFolder(folder)
+            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
+        }
+        
+        progressHandler?.complete(message: "✅ Package Repositories moved to trash.")
     }
 
-    func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws {
-        try manager.deleteAllFolders(progressHandler: progressHandler)
-    }
-
-    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
-        try manager.deleteFolders(folders, progressHandler: progressHandler)
-    }
-
-    func openFolder(at url: URL) throws {
-        try manager.openFolder(at: url)
-    }
-
-    func findDependencies(in path: String?) throws -> ProjectDependencies {
+    public func findDependencies(in path: String?) throws -> ProjectDependencies {
         let searchPath = path ?? fileSystemDelegate.currentDirectoryPath
         let resolvedPath = fileSystemDelegate.appendingPathComponent(searchPath, "Package.resolved")
 
@@ -63,9 +64,29 @@ public extension PackageCacheManager {
 
 
 // MARK: - Dependencies
+protocol PackageCacheDelegate {
+    func deleteFolder(_ folder: PackageCacheFolder) throws
+}
+
 protocol FileSystemDelegate {
     var currentDirectoryPath: String { get }
     func fileExists(atPath path: String) -> Bool
     func appendingPathComponent(_ path: String, _ component: String) -> String
     func readData(atPath path: String) throws -> Data
+}
+
+
+// MARK: - Extension Dependencies
+private extension PackageCacheFolder {
+    init(folder: any PurgeFolder) {
+        self.init(
+            url: folder.url,
+            name: folder.name,
+            path: folder.path,
+            creationDate: folder.creationDate,
+            modificationDate: folder.modificationDate,
+            branchId: "", // TODO: -
+            lastFetchedDate: nil // TODO: -
+        )
+    }
 }

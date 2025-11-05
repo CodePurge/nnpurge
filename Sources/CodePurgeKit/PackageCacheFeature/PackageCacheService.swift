@@ -7,17 +7,8 @@
 
 import Foundation
 
-public protocol PackageCacheService: PurgeService {
-    func deleteAllPackages(progressHandler: PurgeProgressHandler?) throws
+public protocol PackageCacheService {
+    func loadFolders() throws -> [PackageCacheFolder]
     func findDependencies(in path: String?) throws -> ProjectDependencies
-}
-
-public extension PackageCacheService {
-    func deleteAllPackages() throws {
-        try deleteAllPackages(progressHandler: nil)
-    }
-
-    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
-        try deleteAllPackages(progressHandler: progressHandler)
-    }
+    func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws
 }

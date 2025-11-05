@@ -25,3 +25,9 @@ public func makeArchiveFolder(name: String = "TestArchive.xcarchive", path: Stri
 
     return .init(url: url, name: name, path: path, creationDate: creationDate, modificationDate: modificationDate)
 }
+
+public func makePackageCacheFolder(name: String = "TestPackage", path: String = "/path/to/package", branchId: String = "main", lastFetchedDate: String? = nil, creationDate: Date? = Date(), modificationDate: Date? = Date()) -> PackageCacheFolder {
+    let url = URL(fileURLWithPath: path).appendingPathComponent(name)
+
+    return .init(url: url, name: name, path: url.path, creationDate: creationDate, modificationDate: modificationDate, branchId: branchId, lastFetchedDate: lastFetchedDate)
+}
