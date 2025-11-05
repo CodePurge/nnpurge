@@ -14,11 +14,13 @@ struct MockContextFactory {
     private let picker: MockSwiftPicker?
     private let derivedDataStore: any DerivedDataStore
     private let derivedDataService: (any DerivedDataService)?
+    private let packageCacheService: (any PackageCacheService)?
 
-    init(picker: MockSwiftPicker? = nil, derivedDataStore: any DerivedDataStore = MockUserDefaults(), derivedDataService: (any DerivedDataService)? = nil) {
+    init(picker: MockSwiftPicker? = nil, derivedDataStore: any DerivedDataStore = MockUserDefaults(), derivedDataService: (any DerivedDataService)? = nil, packageCacheService: (any PackageCacheService)? = nil) {
         self.picker = picker
         self.derivedDataStore = derivedDataStore
         self.derivedDataService = derivedDataService
+        self.packageCacheService = packageCacheService
     }
 }
 
@@ -50,6 +52,10 @@ extension MockContextFactory: ContextFactory {
     }
 
     func makePackageCacheService() -> any PackageCacheService {
+        if let packageCacheService {
+            return packageCacheService
+        }
+
         return PackageCacheManager()
     }
 }
