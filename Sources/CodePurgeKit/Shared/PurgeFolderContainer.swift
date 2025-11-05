@@ -46,4 +46,8 @@ extension PurgeFolderContainer: PurgeFolder {
     func getSize() -> Int64 {
         return 0 // TODO: - 
     }
+    
+    func getFilePath(named name: String) -> String? {
+        return try? folder.file(named: name).path
+    }
 }

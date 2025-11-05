@@ -101,7 +101,7 @@ private extension DeleteDerivedDataTests {
         let factory = MockContextFactory(
             picker: picker,
             derivedDataStore: store,
-            purgeService: service
+            derivedDataService: service
         )
 
         return (factory, service)

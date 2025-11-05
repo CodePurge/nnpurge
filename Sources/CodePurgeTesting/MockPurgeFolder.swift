@@ -37,4 +37,8 @@ public struct MockPurgeFolder: PurgeFolder {
     public func getSize() -> Int64 {
         return 1000
     }
+    
+    public func getFilePath(named name: String) -> String? {
+        return nil
+    }
 }

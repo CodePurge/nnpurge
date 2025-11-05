@@ -61,3 +61,43 @@ private extension ArchiveManager {
 protocol ArchiveDelegate {
     func deleteArchive(_ archive: ArchiveFolder) throws
 }
+
+
+// MARK: - Extension Dependencies
+private extension ArchiveFolder {
+    init(folder: any PurgeFolder) {
+        self.init(
+            url: folder.url,
+            name: folder.name,
+            path: folder.path,
+            creationDate: folder.creationDate,
+            modificationDate: folder.modificationDate,
+            imageData: nil,
+            uploadStatus: nil,
+            versionNumber: nil
+        )
+    }
+}
+
+private extension PurgeFolder {
+    func parseInfoPlist() -> [String: Any]? {
+        guard let path = getFilePath(named: "Info.plist"),
+              let data = FileManager.default.contents(atPath: path)
+        else {
+            print("Failed to read data from plist path")
+            return nil
+        }
+        
+        do {
+            let plistData = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+            guard let dictionary = plistData as? [String: Any] else {
+                print("Failed to cast plist data to [String: Any]")
+                return nil
+            }
+            return dictionary
+        } catch {
+            print("Error parsing plist: \(error)")
+            return nil
+        }
+    }
+}

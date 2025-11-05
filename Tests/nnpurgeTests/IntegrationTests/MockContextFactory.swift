@@ -13,16 +13,12 @@ import SwiftPickerTesting
 struct MockContextFactory {
     private let picker: MockSwiftPicker?
     private let derivedDataStore: any DerivedDataStore
-    private let purgeService: MockPurgeService?
+    private let derivedDataService: (any DerivedDataService)?
 
-    init(
-        picker: MockSwiftPicker? = nil,
-        derivedDataStore: any DerivedDataStore = MockUserDefaults(),
-        purgeService: MockPurgeService? = nil
-    ) {
+    init(picker: MockSwiftPicker? = nil, derivedDataStore: any DerivedDataStore = MockUserDefaults(), derivedDataService: (any DerivedDataService)? = nil) {
         self.picker = picker
         self.derivedDataStore = derivedDataStore
-        self.purgeService = purgeService
+        self.derivedDataService = derivedDataService
     }
 }
 
@@ -46,18 +42,14 @@ extension MockContextFactory: ContextFactory {
     }
 
     func makeDerivedDataService(path: String) -> any DerivedDataService {
-        if let purgeService {
-            return purgeService
+        if let derivedDataService {
+            return derivedDataService
         }
 
         fatalError("makeDerivedDataService() not implemented")
     }
 
     func makePackageCacheService() -> any PackageCacheService {
-        if let purgeService {
-            return purgeService
-        }
-
         return PackageCacheManager()
     }
 }
