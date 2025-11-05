@@ -7,12 +7,15 @@
 
 import Foundation
 
-public struct DerivedDataManager: DerivedDataService {
-    private let manager: GenericPurgeManager
+public struct DerivedDataManager {
+    private let path: String
+    private let loader: any PurgeFolderLoader
+    private let delegate: any DerivedDataDelegate
 
-    init(path: String, delegate: any PurgeDelegate) {
-        let config = PurgeConfiguration(path: path, expandPath: false)
-        self.manager = GenericPurgeManager(configuration: config, delegate: delegate)
+    init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate) {
+        self.path = path
+        self.loader = loader
+        self.delegate = delegate
     }
 }
 
@@ -20,28 +23,39 @@ public struct DerivedDataManager: DerivedDataService {
 // MARK: - Init
 public extension DerivedDataManager {
     init(path: String) {
-        self.init(path: path, delegate: DefaultPurgeDelegate())
+        self.init(path: path, loader: DefaultPurgeFolderLoader(), delegate: DefaultDerivedDataDelegate())
     }
 }
 
 
-// MARK: - Actions
-public extension DerivedDataManager {
-    func loadFolders() throws -> [OldPurgeFolder] {
-        try manager.loadFolders()
+// MARK: - DerivedDataService
+extension DerivedDataManager: DerivedDataService {
+    public func loadFolders() throws -> [DerivedDataFolder] {
+        return try loader.loadPurgeFolders(at: path).map({ .init(folder: $0) })
     }
-
-    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws {
-        try manager.deleteAllFolders(progressHandler: progressHandler)
+    
+    public func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+        let total = folders.count
+        
+        for (index, folder) in folders.enumerated() {
+            try delegate.deleteFolder(folder)
+            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
+        }
+        
+        progressHandler?.complete(message: "✅ Derived Data moved to trash.")
     }
+}
 
-    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
-        try manager.deleteFolders(folders, progressHandler: progressHandler)
 
-        // TODO: - save purge record?
-    }
+// MARK: - Dependencies
+protocol DerivedDataDelegate {
+    func deleteFolder(_ folder: DerivedDataFolder) throws
+}
 
-    func openFolder(at url: URL) throws {
-        try manager.openFolder(at: url)
+
+// MARK: - Extension Dependencies
+private extension DerivedDataFolder {
+    init(folder: any PurgeFolder) {
+        self.init(url: folder.url, name: folder.name, path: folder.path, creationDate: folder.creationDate, modificationDate: folder.modificationDate)
     }
 }

@@ -14,14 +14,15 @@ struct DerivedDataController {
     private let controller: GenericPurgeController
 
     init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
-        self.store = store
-
-        self.controller = .init(
-            picker: picker,
-            service: service,
-            progressHandler: progressHandler,
-            configuration: .derivedDataConfiguration(store: store)
-        )
+        fatalError()
+//        self.store = store
+//
+//        self.controller = .init(
+//            picker: picker,
+//            service: service,
+//            progressHandler: progressHandler,
+//            configuration: .derivedDataConfiguration(store: store)
+//        )
     }
 }
 
