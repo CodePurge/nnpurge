@@ -55,6 +55,10 @@ extension PurgeFolderContainer: PurgeFolder {
         return try? folder.file(named: fileName).read()
     }
     
+    func getFileModificationDate(fileName: String) -> Date? {
+        return try? folder.file(named: fileName).modificationDate
+    }
+    
     func getSubfolder(named name: String) -> PurgeFolderContainer? {
         guard let subfolder = try? folder.subfolder(named: name) else {
             return nil

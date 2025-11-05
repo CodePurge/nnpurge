@@ -62,4 +62,8 @@ public struct MockPurgeFolder: PurgeFolder {
     public func getSubfolder(named name: String) -> MockPurgeFolder? {
         return nil
     }
+    
+    public func getFileModificationDate(fileName: String) -> Date? {
+        return nil
+    }
 }

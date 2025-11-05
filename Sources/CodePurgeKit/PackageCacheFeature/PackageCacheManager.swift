@@ -33,7 +33,7 @@ public extension PackageCacheManager {
 // MARK: - Actions
 extension PackageCacheManager: PackageCacheService {
     public func loadFolders() throws -> [PackageCacheFolder] {
-        return try loader.loadPurgeFolders(at: path).map({ .init(folder: $0) })
+        return try loader.loadPurgeFolders(at: path).compactMap({ .init(folder: $0) })
     }
     
     public func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws {
@@ -78,15 +78,34 @@ protocol FileSystemDelegate {
 
 // MARK: - Extension Dependencies
 private extension PackageCacheFolder {
-    init(folder: any PurgeFolder) {
+    init?(folder: any PurgeFolder) {
+        guard let (name, branchId) = folder.parseNameAndBranchId() else {
+            return nil
+        }
+        
         self.init(
             url: folder.url,
-            name: folder.name,
+            name: name,
             path: folder.path,
             creationDate: folder.creationDate,
             modificationDate: folder.modificationDate,
-            branchId: "", // TODO: -
-            lastFetchedDate: nil // TODO: -
+            branchId: branchId,
+            lastFetchedDate: folder.getFilePath(named: "FETCH_HEAD")
         )
+    }
+}
+
+private extension PurgeFolder {
+    func parseNameAndBranchId() -> (name: String, branchId: String)? {
+        let components = name.split(separator: "-").map(String.init)
+        
+        guard components.count > 1 else {
+            return nil
+        }
+        
+        let branchId = components.last!
+        let combinedName = components.dropLast().joined(separator: "-")
+        
+        return (combinedName, branchId)
     }
 }
