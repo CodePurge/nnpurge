@@ -25,8 +25,8 @@ extension PackageCacheManagerTests {
     @Test("Loads folders from package cache path using loader")
     func loadsFoldersFromPackageCachePathUsingLoader() throws {
         let folders = [
-            makePackageCacheFolder(name: "Package1"),
-            makePackageCacheFolder(name: "Package2")
+            makeMockPurgeFolder(name: "Package1-abc123"),
+            makeMockPurgeFolder(name: "Package2-def456")
         ]
         let (sut, _) = makeSUT(foldersToLoad: folders)
 
@@ -34,8 +34,10 @@ extension PackageCacheManagerTests {
 
         #expect(loadedFolders.count == folders.count)
         guard loadedFolders.count >= 2 else { return }
-        #expect(loadedFolders[0].name == folders[0].name)
-        #expect(loadedFolders[1].name == folders[1].name)
+        #expect(loadedFolders[0].name == "Package1")
+        #expect(loadedFolders[0].branchId == "abc123")
+        #expect(loadedFolders[1].name == "Package2")
+        #expect(loadedFolders[1].branchId == "def456")
     }
 
     @Test("Returns empty array when no packages available")
@@ -55,6 +57,22 @@ extension PackageCacheManagerTests {
             try sut.loadFolders()
         }
     }
+
+    @Test("Filters out folders without valid branch ID format")
+    func filtersOutFoldersWithoutValidBranchIdFormat() throws {
+        let folders = [
+            makeMockPurgeFolder(name: "ValidPackage-abc123"),
+            makeMockPurgeFolder(name: "InvalidPackage")
+        ]
+        let (sut, _) = makeSUT(foldersToLoad: folders)
+
+        let loadedFolders = try sut.loadFolders()
+
+        #expect(loadedFolders.count == 1)
+        guard loadedFolders.count >= 1 else { return }
+        #expect(loadedFolders[0].name == "ValidPackage")
+        #expect(loadedFolders[0].branchId == "abc123")
+    }
 }
 
 
@@ -62,8 +80,8 @@ extension PackageCacheManagerTests {
 extension PackageCacheManagerTests {
     @Test("Deletes specified packages in correct order")
     func deletesSpecifiedPackagesInCorrectOrder() throws {
-        let package1 = makePackageCacheFolder(name: "Package1")
-        let package2 = makePackageCacheFolder(name: "Package2")
+        let package1 = makePackageCacheFolder(name: "Package1", branchId: "abc123")
+        let package2 = makePackageCacheFolder(name: "Package2", branchId: "def456")
         let packagesToDelete = [package1, package2]
         let (sut, delegate) = makeSUT()
 
@@ -77,7 +95,7 @@ extension PackageCacheManagerTests {
 
     @Test("Deletes single package successfully")
     func deletesSinglePackageSuccessfully() throws {
-        let package = makePackageCacheFolder(name: "SinglePackage")
+        let package = makePackageCacheFolder(name: "SinglePackage", branchId: "xyz789")
         let (sut, delegate) = makeSUT()
 
         try sut.deleteFolders([package], progressHandler: nil)
@@ -98,7 +116,7 @@ extension PackageCacheManagerTests {
 
     @Test("Propagates deletion error from delegate")
     func propagatesDeletionErrorFromDelegate() throws {
-        let package = makePackageCacheFolder(name: "ErrorPackage")
+        let package = makePackageCacheFolder(name: "ErrorPackage", branchId: "err123")
         let (sut, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
@@ -108,8 +126,8 @@ extension PackageCacheManagerTests {
 
     @Test("Stops deletion on first error and does not continue")
     func stopsDeletionOnFirstErrorAndDoesNotContinue() throws {
-        let package1 = makePackageCacheFolder(name: "Package1")
-        let package2 = makePackageCacheFolder(name: "Package2")
+        let package1 = makePackageCacheFolder(name: "Package1", branchId: "abc123")
+        let package2 = makePackageCacheFolder(name: "Package2", branchId: "def456")
         let (sut, delegate) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
@@ -125,9 +143,9 @@ extension PackageCacheManagerTests {
 extension PackageCacheManagerTests {
     @Test("Calls progress handler for each specified package")
     func callsProgressHandlerForEachSpecifiedPackage() throws {
-        let package1 = makePackageCacheFolder(name: "Alpha")
-        let package2 = makePackageCacheFolder(name: "Beta")
-        let package3 = makePackageCacheFolder(name: "Gamma")
+        let package1 = makePackageCacheFolder(name: "Alpha", branchId: "a1")
+        let package2 = makePackageCacheFolder(name: "Beta", branchId: "b2")
+        let package3 = makePackageCacheFolder(name: "Gamma", branchId: "g3")
         let packagesToDelete = [package1, package2, package3]
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
@@ -143,10 +161,10 @@ extension PackageCacheManagerTests {
 
     @Test("Calls progress handler in correct deletion order")
     func callsProgressHandlerInCorrectDeletionOrder() throws {
-        let package1 = makePackageCacheFolder(name: "First")
-        let package2 = makePackageCacheFolder(name: "Second")
-        let package3 = makePackageCacheFolder(name: "Third")
-        let package4 = makePackageCacheFolder(name: "Fourth")
+        let package1 = makePackageCacheFolder(name: "First", branchId: "f1")
+        let package2 = makePackageCacheFolder(name: "Second", branchId: "s2")
+        let package3 = makePackageCacheFolder(name: "Third", branchId: "t3")
+        let package4 = makePackageCacheFolder(name: "Fourth", branchId: "f4")
         let packages = [package1, package2, package3, package4]
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
@@ -162,22 +180,22 @@ extension PackageCacheManagerTests {
 
     @Test("Works correctly when progress handler is nil")
     func worksCorrectlyWhenProgressHandlerIsNil() throws {
-        let package = makePackageCacheFolder(name: "TestPackage")
-        let (sut, delegate) = makeSUT(foldersToLoad: [package])
+        let mockFolder = makeMockPurgeFolder(name: "TestPackage-test123")
+        let (sut, delegate) = makeSUT(foldersToLoad: [mockFolder])
 
         let folders = try sut.loadFolders()
         try sut.deleteFolders(folders, progressHandler: nil)
 
         #expect(delegate.deletedFolders.count == 1)
         guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == package.name)
+        #expect(delegate.deletedFolders[0].name == "TestPackage")
     }
 
     @Test("Calls complete on progress handler after all deletions")
     func callsCompleteOnProgressHandlerAfterAllDeletions() throws {
         let packages = [
-            makePackageCacheFolder(name: "Package1"),
-            makePackageCacheFolder(name: "Package2")
+            makePackageCacheFolder(name: "Package1", branchId: "p1"),
+            makePackageCacheFolder(name: "Package2", branchId: "p2")
         ]
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
@@ -235,16 +253,32 @@ extension PackageCacheManagerTests {
 private extension PackageCacheManagerTests {
     func makeSUT(
         throwError: Bool = false,
-        foldersToLoad: [PackageCacheFolder] = [],
+        foldersToLoad: [MockPurgeFolder] = [],
         packageResolvedExists: Bool = true
     ) -> (sut: PackageCacheManager, delegate: MockPackageCacheDelegate) {
-        let mockFolders = foldersToLoad.map { MockPurgeFolder(folder: $0) }
-        let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: mockFolders)
+        let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockPackageCacheDelegate(throwError: throwError)
         let fileSystemDelegate = MockFileSystemDelegate(packageResolvedExists: packageResolvedExists)
         let sut = PackageCacheManager(loader: loader, delegate: delegate, fileSystemDelegate: fileSystemDelegate)
 
         return (sut, delegate)
+    }
+
+    func makeMockPurgeFolder(name: String) -> MockPurgeFolder {
+        return MockPurgeFolder(name: name)
+    }
+
+    func makePackageCacheFolder(name: String, branchId: String) -> PackageCacheFolder {
+        let url = URL(fileURLWithPath: "/test/path/\(name)-\(branchId)")
+        return PackageCacheFolder(
+            url: url,
+            name: name,
+            path: url.path,
+            creationDate: Date(),
+            modificationDate: Date(),
+            branchId: branchId,
+            lastFetchedDate: "/test/path/\(name)-\(branchId)/FETCH_HEAD"
+        )
     }
 }
 
