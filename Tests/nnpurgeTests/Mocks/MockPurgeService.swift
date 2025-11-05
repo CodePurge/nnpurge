@@ -9,7 +9,7 @@ import Foundation
 import CodePurgeKit
 @testable import nnpurge
 
-final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataService, PackageCacheService {
+final class MockPurgeService: @unchecked Sendable, PackageCacheService {
     private let throwError: Bool
     private let throwDependencyError: Bool
     private let foldersToLoad: [OldPurgeFolder]
@@ -34,10 +34,6 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
-    }
-
-    func loadFolders() -> [OldPurgeFolder] {
-        return foldersToLoad
     }
 
     func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
@@ -123,5 +119,31 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         }
 
         return ProjectDependencies(pins: pins, version: 3)
+    }
+}
+
+
+// MARK: - PurgeService
+extension MockPurgeService: PurgeService {
+    func loadFolders() throws -> [OldPurgeFolder] {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        return foldersToLoad
+    }
+}
+
+
+// MARK: - DerivedDataService
+extension MockPurgeService: DerivedDataService {
+    func loadFolders() throws -> [DerivedDataFolder] {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        return foldersToLoad.map { folder in
+            DerivedDataFolder(url: folder.url, name: folder.name, path: folder.path, creationDate: folder.creationDate, modificationDate: folder.modificationDate)
+        }
     }
 }
