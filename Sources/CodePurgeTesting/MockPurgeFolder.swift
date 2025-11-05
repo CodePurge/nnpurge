@@ -1,0 +1,31 @@
+//
+//  MockPurgeFolder.swift
+//  nnpurge
+//
+//  Created by Nikolai Nobadi on 11/5/25.
+//
+
+import Foundation
+import CodePurgeKit
+
+public struct MockPurgeFolder: PurgeFolder {
+    public let url: URL
+    public let name: String
+    public let path: String
+    public let creationDate: Date?
+    public let modificationDate: Date?
+    public let subfolders: [MockPurgeFolder]
+
+    public init(name: String = "TestFolder", path: String = "/path/to/folder", creationDate: Date? = nil, modificationDate: Date? = nil, subfolders: [MockPurgeFolder] = []) {
+        self.url = URL(fileURLWithPath: path).appendingPathComponent(name)
+        self.name = name
+        self.path = path
+        self.creationDate = creationDate
+        self.modificationDate = modificationDate
+        self.subfolders = subfolders
+    }
+
+    public func getSize() -> Int64 {
+        return 1000
+    }
+}

@@ -44,7 +44,7 @@ extension ArchiveManager: ArchiveService {
             progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
         
-        progressHandler?.complete(message: "✅ All archives moved to trash.")
+        progressHandler?.complete(message: "✅ Archives moved to trash.")
     }
 }
 

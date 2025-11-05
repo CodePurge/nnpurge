@@ -11,17 +11,15 @@ import CodePurgeKit
 
 struct DerivedDataController {
     private let store: any DerivedDataStore
-    private let controller: GenericPurgeController
+    private let picker: any CommandLinePicker
+    private let service: any DerivedDataService
+    private let progressHandler: any PurgeProgressHandler
 
     init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
         self.store = store
-
-        self.controller = .init(
-            picker: picker,
-            service: service,
-            progressHandler: progressHandler,
-            configuration: .derivedDataConfiguration(store: store)
-        )
+        self.picker = picker
+        self.service = service
+        self.progressHandler = progressHandler
     }
 }
 
@@ -29,7 +27,7 @@ struct DerivedDataController {
 // MARK: - Open
 extension DerivedDataController {
     func openDerivedDataFolder() throws {
-        try controller.openFolder()
+        print("should open DerivedData folder") // TODO: -
     }
 }
 
@@ -37,7 +35,9 @@ extension DerivedDataController {
 // MARK: - Delete
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
-        try controller.deleteFolders(deleteAll: deleteAll)
+        let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
+        
+        try service.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
     }
 }
 
@@ -67,10 +67,40 @@ extension DerivedDataController {
 }
 
 
+// MARK: - Private Methods
+private extension DerivedDataController {
+    func selectFoldersToDelete(deleteAll: Bool) throws -> [DerivedDataFolder] {
+        let allFolders = try service.loadFolders()
+        let option = try selectOption(deleteAll: deleteAll)
+        
+        switch option {
+        case .deleteAll:
+            try picker.requiredPermission("Are you sure you want to delete all derived data?")
+            
+            return allFolders
+        case .selectFolders:
+            return picker.multiSelection("Select the folders to delete.", items: allFolders)
+        }
+    }
+    
+    func selectOption(deleteAll: Bool) throws -> DerivedDataDeleteOption {
+        if deleteAll {
+            return .deleteAll
+        }
+        
+        return try picker.requiredSingleSelection("What would you like to do?", items: DerivedDataDeleteOption.allCases)
+    }
+}
+
+
 // MARK: - Dependencies
 protocol DerivedDataStore {
     func string(forKey defaultName: String) -> String?
     func set(_ value: Any?, forKey defaultName: String)
+}
+
+enum DerivedDataDeleteOption: CaseIterable {
+    case deleteAll, selectFolders
 }
 
 
@@ -83,24 +113,25 @@ extension DerivedDataStore {
     }
 }
 
-
-// MARK: - Configuration
-private extension PurgeControllerConfiguration {
-    static func derivedDataConfiguration(store: any DerivedDataStore) -> PurgeControllerConfiguration {
-        return .init(
-            deleteAllPrompt: "Are you sure you want to delete all derived data?",
-            selectionPrompt: "Select the folders to delete.",
-            path: store.loadDerivedDataPath(),
-            availableOptions: [
-                .init(.deleteAll, displayName: "Delete all derived data folders"),
-                .init(.selectFolders, displayName: "Select specific folders to delete")
-            ]
-        )
-    }
-}
-
 private extension String {
     static var derivedDataPathKey: String {
         return "derivedDataPathKey"
+    }
+}
+
+extension DerivedDataFolder: DisplayablePickerItem {
+    public var displayName: String {
+        return name
+    }
+}
+
+extension DerivedDataDeleteOption: DisplayablePickerItem {
+    var displayName: String {
+        switch self {
+        case .deleteAll:
+            return "Delete all derived data folders"
+        case .selectFolders:
+            return "Select specific folders to delete"
+        }
     }
 }

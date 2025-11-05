@@ -7,16 +7,7 @@
 
 import Foundation
 
-public protocol DerivedDataService: PurgeService {
-    func deleteAllDerivedData(progressHandler: PurgeProgressHandler?) throws
-}
-
-public extension DerivedDataService {
-    func deleteAllDerivedData() throws {
-        try deleteAllDerivedData(progressHandler: nil)
-    }
-
-    func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
-        try deleteAllDerivedData(progressHandler: progressHandler)
-    }
+public protocol DerivedDataService {
+    func loadFolders() throws -> [DerivedDataFolder]
+    func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws
 }
