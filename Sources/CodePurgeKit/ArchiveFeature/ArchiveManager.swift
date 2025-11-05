@@ -8,14 +8,14 @@
 import Foundation
 
 public struct ArchiveManager {
-    private let path: String
+    private let config: ArchiveConfig
     private let loader: any PurgeFolderLoader
     private let delegate: any ArchiveDelegate
     
-    init(loader: any PurgeFolderLoader, delegate: any ArchiveDelegate) {
+    init(config: ArchiveConfig, loader: any PurgeFolderLoader, delegate: any ArchiveDelegate) {
+        self.config = config
         self.loader = loader
         self.delegate = delegate
-        self.path = NSString(string: "~/Library/Developer/Xcode/Archives").expandingTildeInPath
     }
 }
 
@@ -23,7 +23,7 @@ public struct ArchiveManager {
 // MARK: - Init
 public extension ArchiveManager {
     init() {
-        self.init(loader: DefaultPurgeFolderLoader(), delegate: DefaultArchiveDelegate())
+        self.init(config: .defaultConfig, loader: DefaultPurgeFolderLoader(), delegate: DefaultArchiveDelegate())
     }
 }
 
@@ -31,9 +31,7 @@ public extension ArchiveManager {
 // MARK: - Actions
 extension ArchiveManager: ArchiveService {
     public func loadArchives() throws -> [ArchiveFolder] {
-        let purgeFolders = try loader.loadPurgeFolders(at: path)
-        
-        return makeArchives(from: purgeFolders)
+        return try loader.loadPurgeFolders(at: config.path).compactMap({ makeArchive(folder: $0) })
     }
     
     public func deleteArchives(_ archives: [ArchiveFolder], progressHandler: (any PurgeProgressHandler)?) throws {
@@ -51,8 +49,34 @@ extension ArchiveManager: ArchiveService {
 
 // MARK: - Private Methods
 private extension ArchiveManager {
-    func makeArchives(from folders: [any PurgeFolder]) -> [ArchiveFolder] {
-        return [] // TODO: -
+    func makeArchive(folder: any PurgeFolder) -> ArchiveFolder? {
+        guard let plist = delegate.parseFolderPList(folder) else {
+            return nil
+        }
+        
+        let name: String = plist["Name"] as? String ?? ""
+        let size: Int64? = config.calculateSize ? folder.getSize() : nil
+        let imageData: Data? = config.includeImageData ? folder.getImageData() : nil
+        let creationDate = plist["CreationDate"] as? Date
+        let appProperties = plist["ApplicationProperties"] as? [String: Any]
+        let version = appProperties?["CFBundleShortVersionString"] as? String ?? ""
+        let distributions = plist["Distributions"] as? [[String: Any]]
+        let shortTitle = distributions?
+            .compactMap { $0["uploadEvent"] as? [String: Any] }
+            .compactMap { $0["shortTitle"] as? String }
+            .first
+        
+        return .init(
+            url: folder.url,
+            name: name,
+            path: folder.path,
+            creationDate: creationDate,
+            modificationDate: folder.modificationDate,
+            size: size,
+            imageData: imageData,
+            uploadStatus: shortTitle,
+            versionNumber: version
+        )
     }
 }
 
@@ -60,4 +84,5 @@ private extension ArchiveManager {
 // MARK: - Dependencies
 protocol ArchiveDelegate {
     func deleteArchive(_ archive: ArchiveFolder) throws
+    func parseFolderPList(_ folder: any PurgeFolder) -> [String: Any]?
 }

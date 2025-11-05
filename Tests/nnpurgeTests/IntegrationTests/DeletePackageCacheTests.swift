@@ -116,7 +116,7 @@ private extension DeletePackageCacheTests {
         let picker = makePicker(selectionResult: selectionResult)
         let factory = MockContextFactory(
             picker: picker,
-            purgeService: service
+            packageCacheService: service
         )
 
         return (factory, service)
@@ -126,6 +126,21 @@ private extension DeletePackageCacheTests {
         return .init(
             permissionResult: .init(grantByDefault: true, type: .ordered([])),
             selectionResult: selectionResult
+        )
+    }
+
+    func makePackageCacheFolder(name: String, modificationDate: Date? = nil) -> PackageCacheFolder {
+        let url = URL(fileURLWithPath: "/path/to/PackageCache/\(name)")
+        let date = modificationDate ?? Date()
+
+        return .init(
+            url: url,
+            name: name,
+            path: url.path,
+            creationDate: date,
+            modificationDate: date,
+            branchId: "main",
+            lastFetchedDate: nil
         )
     }
 }

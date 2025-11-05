@@ -155,23 +155,3 @@ extension PackageCacheDeleteOption: DisplayablePickerItem {
         }
     }
 }
-
-
-// MARK: - Configuration
-private extension PurgeControllerConfiguration {
-    static var packageCacheConfiguration: PurgeControllerConfiguration {
-        let path = NSString(string: "~/Library/Caches/org.swift.swiftpm/repositories").expandingTildeInPath
-
-        return .init(
-            deleteAllPrompt: "Are you sure you want to delete all cached package repositories?",
-            selectionPrompt: "Select the package repositories to delete.",
-            path: path,
-            availableOptions: [
-                .init(.deleteAll, displayName: "Delete all package repositories"),
-                .init(.deleteStale, displayName: "Delete stale packages (30+ days old)"),
-                .init(.selectFolders, displayName: "Select specific packages to delete")
-            ],
-            staleDaysThreshold: 30
-        )
-    }
-}

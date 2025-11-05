@@ -88,51 +88,50 @@ final class DerivedDataPathTests {
 
     @Test("Opens default derived data folder when open subcommand invoked", .disabled()) // TODO: - enable once open feature is working
     func opensDefaultDerivedDataFolderWhenOpenSubcommandInvoked() throws {
-        let service = MockPurgeService()
-        let (factory, store) = makeSUT(service: service)
-
-        let output = try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "open"])
-
-        #expect(output.contains("Opening derived data folder"))
-        let openedURL = try #require(service.openedFolderURL)
-        #expect(openedURL.path.contains("Library/Developer/Xcode/DerivedData"))
-        #expect(store.string(forKey: "derivedDataPathKey") == nil)
+//        let service = MockPurgeService()
+//        let (factory, store) = makeSUT(service: service)
+//
+//        let output = try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "open"])
+//
+//        #expect(output.contains("Opening derived data folder"))
+//        let openedURL = try #require(service.openedFolderURL)
+//        #expect(openedURL.path.contains("Library/Developer/Xcode/DerivedData"))
+//        #expect(store.string(forKey: "derivedDataPathKey") == nil)
     }
 
     @Test("Opens custom derived data folder when custom path set", .disabled()) // TODO: - enable once open feature is working
     func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
-        let customPath = "/custom/derived/data/path"
-        let store = MockUserDefaults()
-        store.set(customPath, forKey: "derivedDataPathKey")
-        let service = MockPurgeService()
-        let picker = makePicker()
-        let factory = MockContextFactory(
-            picker: picker,
-            derivedDataStore: store,
-            purgeService: service
-        )
-
-        let output = try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "open"])
-
-        #expect(output.contains("Opening derived data folder"))
-        let openedURL = try #require(service.openedFolderURL)
-        #expect(openedURL.path == customPath)
+//        let customPath = "/custom/derived/data/path"
+//        let store = MockUserDefaults()
+//        store.set(customPath, forKey: "derivedDataPathKey")
+//        let picker = makePicker()
+//        let factory = MockContextFactory(
+//            picker: picker,
+//            derivedDataStore: store
+//        )
+//
+//        let output = try Nnpurge.testRun(contextFactory: factory, args: ["derived-data", "open"])
+//
+//        #expect(output.contains("Opening derived data folder"))
+//        let openedURL = try #require(service.openedFolderURL)
+//        #expect(openedURL.path == customPath)
     }
 }
 
 
 // MARK: - SUT
 private extension DerivedDataPathTests {
-    func makeSUT(service: MockPurgeService? = nil) -> (factory: MockContextFactory, store: MockUserDefaults) {
+    func makeSUT() -> (factory: MockContextFactory, store: MockUserDefaults) {
         let picker = makePicker()
         let store = MockUserDefaults()
-        let factory = MockContextFactory(picker: picker, derivedDataStore: store, purgeService: service ?? MockPurgeService())
+        let service = MockPurgeService()
+        let factory = MockContextFactory(picker: picker, derivedDataStore: store, derivedDataService: service)
 
         return (factory, store)
     }
     
     func makePicker() -> MockSwiftPicker {
-        return MockSwiftPicker(
+        return .init(
             permissionResult: .init(grantByDefault: true, type: .ordered([])),
             selectionResult: .init()
         )

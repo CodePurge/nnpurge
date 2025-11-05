@@ -44,6 +44,132 @@ extension ArchiveManagerTests {
         #expect(loadedArchives.isEmpty)
     }
 
+    @Test("Transforms folder with plist data into archive with correct name")
+    func transformsFolderWithPlistDataIntoArchiveWithCorrectName() throws {
+        let archiveName = "MyAppArchive"
+        let plist = makePlist(name: archiveName)
+        let folder = MockPurgeFolder(name: "ShouldNotUseThis.xcarchive")
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.name == archiveName)
+    }
+
+    @Test("Transforms folder with plist data into archive with correct creation date")
+    func transformsFolderWithPlistDataIntoArchiveWithCorrectCreationDate() throws {
+        let creationDate = Date(timeIntervalSince1970: 1609459200)
+        let plist = makePlist(creationDate: creationDate)
+        let folder = MockPurgeFolder(name: "Archive.xcarchive")
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.creationDate == creationDate)
+    }
+
+    @Test("Transforms folder with plist data into archive with correct version number")
+    func transformsFolderWithPlistDataIntoArchiveWithCorrectVersionNumber() throws {
+        let versionNumber = "1.2.3"
+        let plist = makePlist(versionNumber: versionNumber)
+        let folder = MockPurgeFolder(name: "Archive.xcarchive")
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.versionNumber == versionNumber)
+    }
+
+    @Test("Transforms folder with plist data into archive with correct upload status")
+    func transformsFolderWithPlistDataIntoArchiveWithCorrectUploadStatus() throws {
+        let uploadStatus = "Uploaded to TestFlight"
+        let plist = makePlist(uploadStatus: uploadStatus)
+        let folder = MockPurgeFolder(name: "Archive.xcarchive")
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.uploadStatus == uploadStatus)
+    }
+
+    @Test("Transforms folder into archive with correct url from folder")
+    func transformsFolderIntoArchiveWithCorrectUrlFromFolder() throws {
+        let folderUrl = URL(fileURLWithPath: "/path/to/archive/MyArchive.xcarchive")
+        let plist = makePlist()
+        let folder = MockPurgeFolder(name: "MyArchive.xcarchive", url: folderUrl, path: folderUrl.path)
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.url == folderUrl)
+    }
+
+    @Test("Transforms folder into archive with correct path from folder")
+    func transformsFolderIntoArchiveWithCorrectPathFromFolder() throws {
+        let folderPath = "/custom/path/to/MyArchive.xcarchive"
+        let plist = makePlist()
+        let folder = MockPurgeFolder(name: "MyArchive.xcarchive", url: URL(fileURLWithPath: folderPath), path: folderPath)
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.path == folderPath)
+    }
+
+    @Test("Transforms folder into archive with correct modification date from folder")
+    func transformsFolderIntoArchiveWithCorrectModificationDateFromFolder() throws {
+        let modificationDate = Date(timeIntervalSince1970: 1612137600)
+        let plist = makePlist()
+        let folder = MockPurgeFolder(name: "Archive.xcarchive", modificationDate: modificationDate)
+        let (sut, _) = makeSUT(foldersToLoad: [folder], plist: plist)
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 1)
+        let archive = try #require(loadedArchives.first)
+        #expect(archive.modificationDate == modificationDate)
+    }
+
+    @Test("Transforms multiple folders with complete plist data into archives")
+    func transformsMultipleFoldersWithCompletePlistDataIntoArchives() throws {
+        let name1 = "FirstArchive"
+        let name2 = "SecondArchive"
+        let version1 = "1.0.0"
+        let version2 = "2.0.0"
+        let date1 = Date(timeIntervalSince1970: 1609459200)
+        let date2 = Date(timeIntervalSince1970: 1612137600)
+        let plist1 = makePlist(name: name1, versionNumber: version1, creationDate: date1)
+        let plist2 = makePlist(name: name2, versionNumber: version2, creationDate: date2)
+        let folder1 = MockPurgeFolder(name: "Archive1.xcarchive", path: "/path/to/folder1")
+        let folder2 = MockPurgeFolder(name: "Archive2.xcarchive", path: "/path/to/folder2")
+        let (sut, delegate) = makeSUT(foldersToLoad: [folder1, folder2])
+        delegate.plistByFolder = [folder1.path: plist1, folder2.path: plist2]
+
+        let loadedArchives = try sut.loadArchives()
+
+        #expect(loadedArchives.count == 2)
+        let firstArchive = loadedArchives.first { $0.name == name1 }
+        let secondArchive = loadedArchives.first { $0.name == name2 }
+        #expect(firstArchive != nil)
+        #expect(secondArchive != nil)
+        #expect(firstArchive?.versionNumber == version1)
+        #expect(secondArchive?.versionNumber == version2)
+        #expect(firstArchive?.creationDate == date1)
+        #expect(secondArchive?.creationDate == date2)
+    }
+
     @Test("Propagates load folders error from loader")
     func propagatesLoadFoldersErrorFromLoader() throws {
         let (sut, _) = makeSUT(throwError: true)
@@ -215,11 +341,83 @@ extension ArchiveManagerTests {
 
 // MARK: - SUT
 private extension ArchiveManagerTests {
-    func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = []) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
+    func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = [], plist: [String: Any]? = nil) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
-        let delegate = MockArchiveDelegate(throwError: throwError)
-        let sut = ArchiveManager(loader: loader, delegate: delegate)
+        let delegate = MockArchiveDelegate(throwError: throwError, plist: plist)
+        let sut = ArchiveManager(config: .defaultConfig, loader: loader, delegate: delegate)
 
         return (sut, delegate)
+    }
+
+    func makeArchiveFolder(name: String) -> ArchiveFolder {
+        let url = URL(fileURLWithPath: "/path/to/Archives/\(name)")
+
+        return .init(
+            url: url,
+            name: name,
+            path: url.path,
+            creationDate: Date(),
+            modificationDate: Date(),
+            size: nil,
+            imageData: nil,
+            uploadStatus: nil,
+            versionNumber: nil
+        )
+    }
+
+    func makePlist(name: String = "TestArchive", versionNumber: String = "1.0.0", creationDate: Date? = nil, uploadStatus: String? = nil) -> [String: Any] {
+        var plist: [String: Any] = [
+            "Name": name,
+            "ApplicationProperties": [
+                "CFBundleShortVersionString": versionNumber
+            ]
+        ]
+
+        if let creationDate {
+            plist["CreationDate"] = creationDate
+        }
+
+        if let uploadStatus {
+            plist["Distributions"] = [
+                [
+                    "uploadEvent": [
+                        "shortTitle": uploadStatus
+                    ]
+                ]
+            ]
+        }
+
+        return plist
+    }
+}
+
+
+// MARK: - Mocks
+private extension ArchiveManagerTests {
+    final class MockArchiveDelegate: ArchiveDelegate, @unchecked Sendable {
+        private let throwError: Bool
+        private let plist: [String: Any]?
+
+        private(set) var deletedArchives: [ArchiveFolder] = []
+        var plistByFolder: [String: [String: Any]] = [:]
+
+        init(throwError: Bool = false, plist: [String: Any]?) {
+            self.plist = plist
+            self.throwError = throwError
+        }
+
+        func deleteArchive(_ archive: ArchiveFolder) throws {
+            if throwError {
+                throw NSError(domain: "MockArchiveDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
+            }
+            deletedArchives.append(archive)
+        }
+
+        func parseFolderPList(_ folder: any PurgeFolder) -> [String : Any]? {
+            if !plistByFolder.isEmpty {
+                return plistByFolder[folder.path]
+            }
+            return plist
+        }
     }
 }
