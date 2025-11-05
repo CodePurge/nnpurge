@@ -71,7 +71,7 @@ private extension ArchiveManager {
             name: name,
             path: folder.path,
             creationDate: creationDate,
-            modificationDate: folder.modificationDate, // TODO: - this might not be correct
+            modificationDate: folder.modificationDate,
             size: size,
             imageData: imageData,
             uploadStatus: shortTitle,
