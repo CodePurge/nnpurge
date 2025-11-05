@@ -146,4 +146,19 @@ extension MockPurgeService: DerivedDataService {
             DerivedDataFolder(url: folder.url, name: folder.name, path: folder.path, creationDate: folder.creationDate, modificationDate: folder.modificationDate)
         }
     }
+
+    func deleteDerivedData(_ folders: [DerivedDataFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+        if throwError {
+            throw NSError(domain: "TestError", code: 1)
+        }
+
+        receivedProgressHandler = progressHandler
+        didDeleteAllDerivedData = true
+
+        for (index, folder) in folders.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: folders.count, message: "Deleting \(folder.name)...")
+        }
+
+        progressHandler?.complete(message: "✅ Derived Data moved to trash.")
+    }
 }

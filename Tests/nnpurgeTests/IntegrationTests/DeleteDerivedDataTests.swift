@@ -81,10 +81,7 @@
 //
 //// MARK: - SUT
 //private extension DeleteDerivedDataTests {
-//    func makeSUT(
-//        foldersToLoad: [OldPurgeFolder] = [],
-//        selectionResult: MockSelectionResult = .init()
-//    ) -> (factory: MockContextFactory, service: MockPurgeService) {
+//    func makeSUT(foldersToLoad: [OldPurgeFolder] = [], selectionResult: MockSelectionResult = .init()) -> (factory: MockContextFactory, service: MockPurgeService) {
 //        let store = MockUserDefaults()
 //        let service = MockPurgeService(foldersToLoad: foldersToLoad)
 //        let picker = makePicker(selectionResult: selectionResult)
