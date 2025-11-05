@@ -41,4 +41,16 @@ public struct MockPurgeFolder: PurgeFolder {
     public func getFilePath(named name: String) -> String? {
         return nil
     }
+    
+    public func getImageData() -> Data? {
+        return nil
+    }
+    
+    public func readFileData(fileName: String) -> Data? {
+        return nil
+    }
+    
+    public func getSubfolder(named name: String) -> MockPurgeFolder? {
+        return nil
+    }
 }

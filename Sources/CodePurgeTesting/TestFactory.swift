@@ -17,7 +17,7 @@ public func makeDerivedDataFolder(name: String = "TestFolder") -> DerivedDataFol
 public func makeArchiveFolder(name: String = "TestArchive.xcarchive", path: String = "/path/to/archives", creationDate: Date? = Date(), modificationDate: Date? = Date()) -> ArchiveFolder {
     let url = URL(fileURLWithPath: path).appendingPathComponent(name)
 
-    return .init(url: url, name: name, path: path, creationDate: creationDate, modificationDate: modificationDate, imageData: nil, uploadStatus: nil, versionNumber: nil)
+    return .init(url: url, name: name, path: path, creationDate: creationDate, modificationDate: modificationDate, size: nil, imageData: nil, uploadStatus: nil, versionNumber: nil)
 }
 
 public func makePackageCacheFolder(name: String = "TestPackage", path: String = "/path/to/package", branchId: String = "main", lastFetchedDate: String? = nil, creationDate: Date? = Date(), modificationDate: Date? = Date()) -> PackageCacheFolder {

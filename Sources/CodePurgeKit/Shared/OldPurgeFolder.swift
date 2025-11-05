@@ -16,5 +16,8 @@ public protocol PurgeFolder {
     var modificationDate: Date? { get }
     
     func getSize() -> Int64
+    func getImageData() -> Data?
+    func readFileData(fileName: String) -> Data?
+    func getSubfolder(named name: String) -> Self?
     func getFilePath(named name: String) -> String?
 }

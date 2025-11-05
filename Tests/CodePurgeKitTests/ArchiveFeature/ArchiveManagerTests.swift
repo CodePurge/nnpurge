@@ -215,11 +215,38 @@ extension ArchiveManagerTests {
 
 // MARK: - SUT
 private extension ArchiveManagerTests {
-    func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = []) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
+    func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = [], plist: [String: Any]? = nil) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
-        let delegate = MockArchiveDelegate(throwError: throwError)
-        let sut = ArchiveManager(loader: loader, delegate: delegate)
+        let delegate = MockArchiveDelegate(throwError: throwError, plist: plist)
+        let sut = ArchiveManager(config: .defaultConfig, loader: loader, delegate: delegate)
 
         return (sut, delegate)
+    }
+}
+
+
+// MARK: - Mocks
+private extension ArchiveManagerTests {
+    final class MockArchiveDelegate: ArchiveDelegate, @unchecked Sendable {
+        private let throwError: Bool
+        private let plist: [String: Any]?
+
+        private(set) var deletedArchives: [ArchiveFolder] = []
+
+        init(throwError: Bool = false, plist: [String: Any]?) {
+            self.plist = plist
+            self.throwError = throwError
+        }
+
+        func deleteArchive(_ archive: ArchiveFolder) throws {
+            if throwError {
+                throw NSError(domain: "MockArchiveDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
+            }
+            deletedArchives.append(archive)
+        }
+        
+        func parseFolderPList(_ folder: any PurgeFolder) -> [String : Any]? {
+            return plist
+        }
     }
 }
