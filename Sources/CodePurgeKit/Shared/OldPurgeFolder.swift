@@ -20,4 +20,5 @@ public protocol PurgeFolder {
     func readFileData(fileName: String) -> Data?
     func getSubfolder(named name: String) -> Self?
     func getFilePath(named name: String) -> String?
+    func getFileModificationDate(fileName: String) -> Date?
 }
