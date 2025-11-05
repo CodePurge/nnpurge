@@ -307,40 +307,40 @@ extension DerivedDataControllerTests {
 }
 
 
-//// MARK: - Open Folder Tests (Disabled - TODO)
-//extension DerivedDataControllerTests {
-//    @Test("Opens default derived data folder when no custom path set")
-//    func opensDefaultDerivedDataFolderWhenNoCustomPathSet() throws {
-//        let (sut, service, _, _) = makeSUT()
-//
-//        try sut.openDerivedDataFolder()
-//
-//        let openedURL = try #require(service.openedFolderURL)
-//        #expect(openedURL.path.contains("Library/Developer/Xcode/DerivedData"))
-//    }
-//
-//    @Test("Opens custom derived data folder when custom path set")
-//    func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
-//        let customPath = "/custom/derived/data/path"
-//        let store = MockUserDefaults()
-//        store.set(customPath, forKey: "derivedDataPathKey")
-//        let (sut, service, _, _) = makeSUT(store: store)
-//
-//        try sut.openDerivedDataFolder()
-//
-//        let openedURL = try #require(service.openedFolderURL)
-//        #expect(openedURL.path == customPath)
-//    }
-//
-//    @Test("Propagates open folder error from service")
-//    func propagatesOpenFolderErrorFromService() throws {
-//        let (sut, _, _, _) = makeSUT(throwError: true)
-//
-//        #expect(throws: NSError.self) {
-//            try sut.openDerivedDataFolder()
-//        }
-//    }
-//}
+// MARK: - Open Folder Tests (Disabled - TODO)
+extension DerivedDataControllerTests {
+    @Test("Opens default derived data folder when no custom path set", .disabled())
+    func opensDefaultDerivedDataFolderWhenNoCustomPathSet() throws {
+        let (sut, service, _, _) = makeSUT()
+
+        try sut.openDerivedDataFolder()
+
+        let openedURL = try #require(service.openedFolderURL)
+        #expect(openedURL.path.contains("Library/Developer/Xcode/DerivedData"))
+    }
+
+    @Test("Opens custom derived data folder when custom path set", .disabled())
+    func opensCustomDerivedDataFolderWhenCustomPathSet() throws {
+        let customPath = "/custom/derived/data/path"
+        let store = MockUserDefaults()
+        store.set(customPath, forKey: "derivedDataPathKey")
+        let (sut, service, _, _) = makeSUT(store: store)
+
+        try sut.openDerivedDataFolder()
+
+        let openedURL = try #require(service.openedFolderURL)
+        #expect(openedURL.path == customPath)
+    }
+
+    @Test("Propagates open folder error from service", .disabled())
+    func propagatesOpenFolderErrorFromService() throws {
+        let (sut, _, _, _) = makeSUT(throwError: true)
+
+        #expect(throws: NSError.self) {
+            try sut.openDerivedDataFolder()
+        }
+    }
+}
 
 
 // MARK: - Progress Handler Tests
