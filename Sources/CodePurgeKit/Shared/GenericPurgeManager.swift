@@ -7,28 +7,20 @@
 
 import Foundation
 
-/// Configuration for purge operations
-public struct PurgeConfiguration {
-    public let path: String
-    public let expandPath: Bool
-
-    public init(path: String, expandPath: Bool = true) {
-        self.path = path
-        self.expandPath = expandPath
+public struct GenericPurgeManager {
+    private let delegate: any PurgeDelegate
+    private let configuration: PurgeConfiguration
+    
+    init(configuration: PurgeConfiguration, delegate: any PurgeDelegate) {
+        self.delegate = delegate
+        self.configuration = configuration
     }
 }
 
-/// Generic manager for purge operations that can be configured for different purge types
-public struct GenericPurgeManager: PurgeService {
-    private let configuration: PurgeConfiguration
-    private let delegate: any PurgeDelegate
 
-    init(configuration: PurgeConfiguration, delegate: any PurgeDelegate) {
-        self.configuration = configuration
-        self.delegate = delegate
-    }
-
-    public func loadFolders() throws -> [PurgeFolder] {
+// MARK: - PurgeService
+extension GenericPurgeManager: PurgeService {
+    public func loadFolders() throws -> [OldPurgeFolder] {
         let path = configuration.expandPath
             ? NSString(string: configuration.path).expandingTildeInPath
             : configuration.path
@@ -37,14 +29,19 @@ public struct GenericPurgeManager: PurgeService {
 
     public func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
         let allFolders = try loadFolders()
+        
         try deleteFolders(allFolders, progressHandler: progressHandler)
     }
 
-    public func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
-        for folder in folders {
+    public func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+        let total = folders.count
+        
+        for (index, folder) in folders.enumerated() {
             try delegate.deleteFolder(folder)
-            progressHandler?.didDeleteFolder(folder)
+            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
+        
+        progressHandler?.complete(message: "✅ All items moved to trash.")
     }
 
     public func openFolder(at url: URL) throws {
@@ -52,9 +49,20 @@ public struct GenericPurgeManager: PurgeService {
     }
 }
 
-/// Internal delegate protocol for file system operations
+
+// MARK: - Dependencies
 protocol PurgeDelegate {
-    func deleteFolder(_ folder: PurgeFolder) throws
-    func loadFolders(path: String) throws -> [PurgeFolder]
+    func deleteFolder(_ folder: OldPurgeFolder) throws
+    func loadFolders(path: String) throws -> [OldPurgeFolder]
     func openFolder(at url: URL) throws
+}
+
+public struct PurgeConfiguration {
+    public let path: String
+    public let expandPath: Bool
+
+    public init(path: String, expandPath: Bool = true) {
+        self.path = path
+        self.expandPath = expandPath
+    }
 }

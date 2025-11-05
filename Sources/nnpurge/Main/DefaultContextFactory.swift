@@ -25,6 +25,10 @@ struct DefaultContextFactory: ContextFactory {
     func makePackageCacheService() -> any PackageCacheService {
         return PackageCacheManager()
     }
+
+    func makeArchiveService() -> any ArchiveService {
+        return ArchiveManager()
+    }
 }
 
 

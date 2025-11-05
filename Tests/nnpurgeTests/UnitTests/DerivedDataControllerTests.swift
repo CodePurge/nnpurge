@@ -20,7 +20,9 @@ struct DerivedDataControllerTests {
 
         #expect(!service.didDeleteAllDerivedData)
         #expect(service.deletedFolders.isEmpty)
-        #expect(progressHandler.deletedFolders.isEmpty)
+        #expect(!progressHandler.didComplete)
+        #expect(progressHandler.completedMessage == nil)
+        #expect(progressHandler.progressUpdates.isEmpty)
     }
 }
 
@@ -360,11 +362,11 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: true)
 
-        #expect(progressHandler.deletedFolders.count == folders.count)
-        guard progressHandler.deletedFolders.count >= 3 else { return }
-        #expect(progressHandler.deletedFolders[0].name == folder1.name)
-        #expect(progressHandler.deletedFolders[1].name == folder2.name)
-        #expect(progressHandler.deletedFolders[2].name == folder3.name)
+        #expect(progressHandler.progressUpdates.count == folders.count)
+        guard progressHandler.progressUpdates.count >= 3 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(folder1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(folder2.name))
+        #expect(progressHandler.progressUpdates[2].message.contains(folder3.name))
     }
 
     @Test("Reports progress for each selected folder when deleting specific folders")
@@ -384,10 +386,10 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: false)
 
-        #expect(progressHandler.deletedFolders.count == 2)
-        guard progressHandler.deletedFolders.count >= 2 else { return }
-        #expect(progressHandler.deletedFolders[0].name == folder1.name)
-        #expect(progressHandler.deletedFolders[1].name == folder3.name)
+        #expect(progressHandler.progressUpdates.count == 2)
+        guard progressHandler.progressUpdates.count >= 2 else { return }
+        #expect(progressHandler.progressUpdates[0].message.contains(folder1.name))
+        #expect(progressHandler.progressUpdates[1].message.contains(folder3.name))
     }
 
     @Test("Reports no progress when no folders selected")
@@ -406,7 +408,7 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: false)
 
-        #expect(progressHandler.deletedFolders.isEmpty)
+        #expect(progressHandler.progressUpdates.isEmpty)
     }
 
     @Test("Reports progress in correct order for multiple folders")
@@ -423,9 +425,9 @@ extension DerivedDataControllerTests {
 
         try sut.deleteDerivedData(deleteAll: true)
 
-        #expect(progressHandler.deletedFolders.count == 4)
+        #expect(progressHandler.progressUpdates.count == 4)
         for (index, folder) in folders.enumerated() {
-            #expect(progressHandler.deletedFolders[index].name == folder.name)
+            #expect(progressHandler.progressUpdates[index].message.contains(folder.name))
         }
     }
 }
@@ -439,13 +441,22 @@ private extension DerivedDataControllerTests {
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        foldersToLoad: [PurgeFolder] = []
-    ) -> (sut: DerivedDataController, service: MockPurgeService, store: MockUserDefaults, progressHandler: MockProgressHandler) {
+        foldersToLoad: [OldPurgeFolder] = []
+    ) -> (sut: DerivedDataController, service: MockPurgeService, store: MockUserDefaults, progressHandler: MockPurgeProgressHandler) {
         let actualStore = store ?? MockUserDefaults()
-        let picker = MockSwiftPicker(inputResult: inputResult, permissionResult: permissionResult, selectionResult: selectionResult)
+        let progressHandler = MockPurgeProgressHandler()
         let service = MockPurgeService(throwError: throwError, foldersToLoad: foldersToLoad)
-        let progressHandler = MockProgressHandler()
-        let sut = DerivedDataController(store: actualStore, picker: picker, service: service, progressHandler: progressHandler)
+        let picker = MockSwiftPicker(
+            inputResult: inputResult,
+            permissionResult: permissionResult,
+            selectionResult: selectionResult
+        )
+        let sut = DerivedDataController(
+            store: actualStore,
+            picker: picker,
+            service: service,
+            progressHandler: progressHandler
+        )
 
         return (sut, service, actualStore, progressHandler)
     }

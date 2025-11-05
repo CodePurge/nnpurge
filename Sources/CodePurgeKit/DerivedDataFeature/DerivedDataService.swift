@@ -16,7 +16,6 @@ public extension DerivedDataService {
         try deleteAllDerivedData(progressHandler: nil)
     }
 
-    // Default implementation of PurgeService.deleteAllFolders using deleteAllDerivedData
     func deleteAllFolders(progressHandler: PurgeProgressHandler?) throws {
         try deleteAllDerivedData(progressHandler: progressHandler)
     }

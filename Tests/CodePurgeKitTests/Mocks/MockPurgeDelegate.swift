@@ -10,24 +10,24 @@ import Foundation
 
 final class MockPurgeDelegate: PurgeDelegate, @unchecked Sendable {
     private let throwError: Bool
-    private let foldersToLoad: [PurgeFolder]
+    private let foldersToLoad: [OldPurgeFolder]
 
-    private(set) var deletedFolders: [PurgeFolder] = []
+    private(set) var deletedFolders: [OldPurgeFolder] = []
     private(set) var openedURL: URL?
 
-    init(throwError: Bool = false, foldersToLoad: [PurgeFolder] = []) {
+    init(throwError: Bool = false, foldersToLoad: [OldPurgeFolder] = []) {
         self.throwError = throwError
         self.foldersToLoad = foldersToLoad
     }
 
-    func deleteFolder(_ folder: PurgeFolder) throws {
+    func deleteFolder(_ folder: OldPurgeFolder) throws {
         if throwError {
             throw NSError(domain: "MockPurgeDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
         }
         deletedFolders.append(folder)
     }
 
-    func loadFolders(path: String) throws -> [PurgeFolder] {
+    func loadFolders(path: String) throws -> [OldPurgeFolder] {
         if throwError {
             throw NSError(domain: "MockPurgeDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
         }

@@ -8,7 +8,7 @@
 import SwiftPicker
 import CodePurgeKit
 
-extension PurgeFolder: DisplayablePickerItem {
+extension OldPurgeFolder: DisplayablePickerItem {
     public var displayName: String {
         return name
     }

@@ -10,12 +10,16 @@ import Foundation
 public struct ProjectDependencies: Codable {
     let pins: [Pin]
     let version: Int
-
+    
     public init(pins: [Pin], version: Int) {
         self.pins = pins
         self.version = version
     }
+}
 
+
+// MARK: - Pin
+extension ProjectDependencies {
     public struct Pin: Codable {
         let identity: String
         let kind: String
@@ -41,6 +45,8 @@ public struct ProjectDependencies: Codable {
     }
 }
 
+
+// MARK: - Helpers
 public extension ProjectDependencies {
     var packageIdentities: [String] {
         pins.map { $0.identity }

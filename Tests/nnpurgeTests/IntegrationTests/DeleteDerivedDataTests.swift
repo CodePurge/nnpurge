@@ -82,7 +82,7 @@ final class DeleteDerivedDataTests {
 // MARK: - SUT
 private extension DeleteDerivedDataTests {
     func makeSUT(
-        foldersToLoad: [PurgeFolder] = [],
+        foldersToLoad: [OldPurgeFolder] = [],
         selectionResult: MockSelectionResult = .init()
     ) -> (factory: MockContextFactory, service: MockPurgeService) {
         let store = MockUserDefaults()

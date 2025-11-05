@@ -12,12 +12,12 @@ import CodePurgeKit
 final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataService, PackageCacheService {
     private let throwError: Bool
     private let throwDependencyError: Bool
-    private let foldersToLoad: [PurgeFolder]
+    private let foldersToLoad: [OldPurgeFolder]
     private let dependenciesToLoad: [String]
 
     // Track generic calls
     private(set) var didDeleteAllFolders = false
-    private(set) var deletedFolders: [PurgeFolder] = []
+    private(set) var deletedFolders: [OldPurgeFolder] = []
     private(set) var openedFolderURL: URL?
     private(set) var receivedProgressHandler: PurgeProgressHandler?
 
@@ -29,14 +29,14 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
     private(set) var didFindDependencies = false
     private(set) var searchedPath: String?
 
-    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [PurgeFolder] = [], dependenciesToLoad: [String] = []) {
+    init(throwError: Bool = false, throwDependencyError: Bool = false, foldersToLoad: [OldPurgeFolder] = [], dependenciesToLoad: [String] = []) {
         self.throwError = throwError
         self.throwDependencyError = throwDependencyError
         self.foldersToLoad = foldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
     }
 
-    func loadFolders() -> [PurgeFolder] {
+    func loadFolders() -> [OldPurgeFolder] {
         return foldersToLoad
     }
 
@@ -51,8 +51,8 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllPackages = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
         }
     }
 
@@ -65,8 +65,8 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllDerivedData = true
         didDeleteAllFolders = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
         }
     }
 
@@ -79,12 +79,12 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         didDeleteAllPackages = true
         didDeleteAllFolders = true
 
-        for folder in foldersToLoad {
-            progressHandler?.didDeleteFolder(folder)
+        for (index, folder) in foldersToLoad.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: foldersToLoad.count, message: "Deleting \(folder.name)...")
         }
     }
 
-    func deleteFolders(_ folders: [PurgeFolder], progressHandler: PurgeProgressHandler?) throws {
+    func deleteFolders(_ folders: [OldPurgeFolder], progressHandler: PurgeProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }
@@ -92,8 +92,8 @@ final class MockPurgeService: @unchecked Sendable, PurgeService, DerivedDataServ
         receivedProgressHandler = progressHandler
         deletedFolders.append(contentsOf: folders)
 
-        for folder in folders {
-            progressHandler?.didDeleteFolder(folder)
+        for (index, folder) in folders.enumerated() {
+            progressHandler?.updateProgress(current: index + 1, total: folders.count, message: "Deleting \(folder.name)...")
         }
     }
 

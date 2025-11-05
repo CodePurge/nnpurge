@@ -50,7 +50,7 @@ extension PackageCacheController {
     func cleanProjectDependencies(projectPath: String?) throws {
         let dependencies = try service.findDependencies(in: projectPath)
         let allFolders = try service.loadFolders()
-        let matchedFolders = PurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
+        let matchedFolders = OldPurgeFolder.filterByDependencies(allFolders, identities: dependencies.packageIdentities)
 
         guard !matchedFolders.isEmpty else {
             print("No cached packages found for project dependencies.")

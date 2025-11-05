@@ -11,13 +11,12 @@ import Foundation
 import AppKit
 #endif
 
-/// Default implementation of PurgeDelegate using FileManager and Files package
 struct DefaultPurgeDelegate: PurgeDelegate {
-    func deleteFolder(_ folder: PurgeFolder) throws {
+    func deleteFolder(_ folder: OldPurgeFolder) throws {
         try FileManager.default.trashItem(at: folder.url, resultingItemURL: nil)
     }
 
-    func loadFolders(path: String) throws -> [PurgeFolder] {
+    func loadFolders(path: String) throws -> [OldPurgeFolder] {
         return try Folder(path: path).subfolders.map({ .init(folder: $0) })
     }
 
@@ -34,8 +33,9 @@ struct DefaultPurgeDelegate: PurgeDelegate {
     }
 }
 
-/// Extension to create PurgeFolder from Files.Folder
-private extension PurgeFolder {
+
+// MARK: - Private
+private extension OldPurgeFolder {
     init(folder: Folder) {
         self.init(
             url: folder.url,

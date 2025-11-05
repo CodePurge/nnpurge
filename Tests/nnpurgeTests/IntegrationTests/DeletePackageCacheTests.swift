@@ -82,7 +82,7 @@ final class DeletePackageCacheTests {
 // MARK: - SUT
 private extension DeletePackageCacheTests {
     func makeSUT(
-        foldersToLoad: [PurgeFolder] = [],
+        foldersToLoad: [OldPurgeFolder] = [],
         selectionResult: MockSelectionResult = .init()
     ) -> (factory: MockContextFactory, service: MockPurgeService) {
         let service = MockPurgeService(foldersToLoad: foldersToLoad)

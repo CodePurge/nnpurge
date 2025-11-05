@@ -46,7 +46,7 @@ extension GenericPurgeController {
 
             try service.deleteAllFolders(progressHandler: progressHandler)
         case .deleteStale:
-            let staleFolders = PurgeFolder.filterStale(allFolders, olderThanDays: configuration.staleDaysThreshold)
+            let staleFolders = OldPurgeFolder.filterStale(allFolders, olderThanDays: configuration.staleDaysThreshold)
             let count = staleFolders.count
             let prompt = "Are you sure you want to delete \(count) stale \(count == 1 ? "package" : "packages") (not modified in \(configuration.staleDaysThreshold)+ days)?"
             try picker.requiredPermission(prompt: prompt)
