@@ -17,7 +17,7 @@ extension Nnpurge {
             subcommands: [
                 Delete.self,
                 Clean.self,
-                Open.self
+//                Open.self
             ]
         )
     }
