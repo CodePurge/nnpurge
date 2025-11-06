@@ -36,8 +36,12 @@ extension DerivedDataController {
 extension DerivedDataController {
     func deleteDerivedData(deleteAll: Bool) throws {
         let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
-        
-        try service.deleteDerivedData(foldersToDelete, progressHandler: progressHandler)
+
+        do {
+            try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+        } catch DerivedDataError.xcodeIsRunning {
+            try handleXcodeRunning(foldersToDelete: foldersToDelete)
+        }
     }
 }
 
@@ -72,23 +76,42 @@ private extension DerivedDataController {
     func selectFoldersToDelete(deleteAll: Bool) throws -> [DerivedDataFolder] {
         let allFolders = try service.loadFolders()
         let option = try selectOption(deleteAll: deleteAll)
-        
+
         switch option {
         case .deleteAll:
             try picker.requiredPermission("Are you sure you want to delete all derived data?")
-            
+
             return allFolders
         case .selectFolders:
             return picker.multiSelection("Select the folders to delete.", items: allFolders)
         }
     }
-    
+
     func selectOption(deleteAll: Bool) throws -> DerivedDataDeleteOption {
         if deleteAll {
             return .deleteAll
         }
-        
+
         return try picker.requiredSingleSelection("What would you like to do?", items: DerivedDataDeleteOption.allCases)
+    }
+
+    func handleXcodeRunning(foldersToDelete: [DerivedDataFolder]) throws {
+        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
+
+        switch option {
+        case .proceedAnyway:
+            try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
+        case .closeXcodeAndProceed:
+            do {
+                try service.closeXcodeAndVerify(timeout: 10.0)
+                try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+            } catch let error where (error as? DerivedDataError) == .xcodeFailedToClose || (error as? PackageCacheError) == .xcodeFailedToClose {
+                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
+                throw DerivedDataError.xcodeFailedToClose
+            }
+        case .cancel:
+            print("Operation cancelled.")
+        }
     }
 }
 

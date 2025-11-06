@@ -12,11 +12,15 @@ public struct PackageCacheManager {
     private let loader: any PurgeFolderLoader
     private let delegate: any PackageCacheDelegate
     private let fileSystemDelegate: any FileSystemDelegate
+    private let xcodeChecker: any XcodeStatusChecker
+    private let xcodeTerminator: any XcodeTerminator
 
-    init(loader: any PurgeFolderLoader, delegate: any PackageCacheDelegate, fileSystemDelegate: any FileSystemDelegate) {
+    init(loader: any PurgeFolderLoader, delegate: any PackageCacheDelegate, fileSystemDelegate: any FileSystemDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.loader = loader
         self.delegate = delegate
         self.fileSystemDelegate = fileSystemDelegate
+        self.xcodeChecker = xcodeChecker
+        self.xcodeTerminator = xcodeTerminator
         self.path = NSString(string: "~/Library/Caches/org.swift.swiftpm/repositories").expandingTildeInPath
     }
 }
@@ -25,7 +29,7 @@ public struct PackageCacheManager {
 // MARK: - Init
 public extension PackageCacheManager {
     init() {
-        self.init(loader: DefaultPurgeFolderLoader(), delegate: DefaultPackageCacheDelegate(), fileSystemDelegate: DefaultFileSystemDelegate())
+        self.init(loader: DefaultPurgeFolderLoader(), delegate: DefaultPackageCacheDelegate(), fileSystemDelegate: DefaultFileSystemDelegate(), xcodeChecker: DefaultXcodeStatusChecker(), xcodeTerminator: DefaultXcodeTerminator())
     }
 }
 
@@ -36,14 +40,20 @@ extension PackageCacheManager: PackageCacheService {
         return try loader.loadPurgeFolders(at: path).compactMap({ .init(folder: $0) })
     }
     
-    public func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+    public func deleteFolders(_ folders: [PackageCacheFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
+        if !force {
+            guard !xcodeChecker.isXcodeRunning() else {
+                throw PackageCacheError.xcodeIsRunning
+            }
+        }
+
         let total = folders.count
-        
+
         for (index, folder) in folders.enumerated() {
             try delegate.deleteFolder(folder)
             progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
-        
+
         progressHandler?.complete(message: "✅ Package Repositories moved to trash.")
     }
 
@@ -59,6 +69,24 @@ extension PackageCacheManager: PackageCacheService {
         let decoder = JSONDecoder()
 
         return try decoder.decode(ProjectDependencies.self, from: data)
+    }
+
+    public func closeXcodeAndVerify(timeout: TimeInterval = 10.0) throws {
+        guard xcodeTerminator.terminateXcode() else {
+            throw PackageCacheError.xcodeFailedToClose
+        }
+
+        let pollInterval = 0.5
+        var elapsed = 0.0
+
+        while xcodeChecker.isXcodeRunning() && elapsed < timeout {
+            Thread.sleep(forTimeInterval: pollInterval)
+            elapsed += pollInterval
+        }
+
+        if xcodeChecker.isXcodeRunning() {
+            throw PackageCacheError.xcodeFailedToClose
+        }
     }
 }
 

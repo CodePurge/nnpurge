@@ -11,11 +11,15 @@ public struct ArchiveManager {
     private let config: ArchiveConfig
     private let loader: any PurgeFolderLoader
     private let delegate: any ArchiveDelegate
-    
-    init(config: ArchiveConfig, loader: any PurgeFolderLoader, delegate: any ArchiveDelegate) {
+    private let xcodeChecker: any XcodeStatusChecker
+    private let xcodeTerminator: any XcodeTerminator
+
+    init(config: ArchiveConfig, loader: any PurgeFolderLoader, delegate: any ArchiveDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.config = config
         self.loader = loader
         self.delegate = delegate
+        self.xcodeChecker = xcodeChecker
+        self.xcodeTerminator = xcodeTerminator
     }
 }
 
@@ -23,7 +27,7 @@ public struct ArchiveManager {
 // MARK: - Init
 public extension ArchiveManager {
     init() {
-        self.init(config: .defaultConfig, loader: DefaultPurgeFolderLoader(), delegate: DefaultArchiveDelegate())
+        self.init(config: .defaultConfig, loader: DefaultPurgeFolderLoader(), delegate: DefaultArchiveDelegate(), xcodeChecker: DefaultXcodeStatusChecker(), xcodeTerminator: DefaultXcodeTerminator())
     }
 }
 
@@ -33,16 +37,40 @@ extension ArchiveManager: ArchiveService {
     public func loadArchives() throws -> [ArchiveFolder] {
         return try loader.loadPurgeFolders(at: config.path).compactMap({ makeArchive(folder: $0) })
     }
-    
-    public func deleteArchives(_ archives: [ArchiveFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+
+    public func deleteArchives(_ archives: [ArchiveFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
+        if !force {
+            guard !xcodeChecker.isXcodeRunning() else {
+                throw ArchiveError.xcodeIsRunning
+            }
+        }
+
         let total = archives.count
-        
+
         for (index, folder) in archives.enumerated() {
             try delegate.deleteArchive(folder)
             progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
         }
-        
+
         progressHandler?.complete(message: "✅ Archives moved to trash.")
+    }
+
+    public func closeXcodeAndVerify(timeout: TimeInterval = 10.0) throws {
+        guard xcodeTerminator.terminateXcode() else {
+            throw ArchiveError.xcodeFailedToClose
+        }
+
+        let pollInterval = 0.5
+        var elapsed = 0.0
+
+        while xcodeChecker.isXcodeRunning() && elapsed < timeout {
+            Thread.sleep(forTimeInterval: pollInterval)
+            elapsed += pollInterval
+        }
+
+        if xcodeChecker.isXcodeRunning() {
+            throw ArchiveError.xcodeFailedToClose
+        }
     }
 }
 
@@ -85,4 +113,9 @@ private extension ArchiveManager {
 protocol ArchiveDelegate {
     func deleteArchive(_ archive: ArchiveFolder) throws
     func parseFolderPList(_ folder: any PurgeFolder) -> [String: Any]?
+}
+
+public enum ArchiveError: Error, Equatable {
+    case xcodeIsRunning
+    case xcodeFailedToClose
 }

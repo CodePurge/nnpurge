@@ -25,13 +25,19 @@ struct DefaultFileSystemDelegate: FileSystemDelegate {
     }
 }
 
-public enum PackageCacheError: Error, CustomStringConvertible {
+public enum PackageCacheError: Error, Equatable, CustomStringConvertible {
     case packageResolvedNotFound(path: String)
+    case xcodeIsRunning
+    case xcodeFailedToClose
 
     public var description: String {
         switch self {
         case .packageResolvedNotFound(let path):
             return "Package.resolved not found in: \(path)"
+        case .xcodeIsRunning:
+            return "Xcode is currently running"
+        case .xcodeFailedToClose:
+            return "Xcode failed to close"
         }
     }
 }

@@ -559,6 +559,170 @@ extension ArchiveControllerTests {
 }
 
 
+// MARK: - Xcode Running User Prompt Tests
+extension ArchiveControllerTests {
+    @Test("Shows Xcode running prompt with three options")
+    func showsXcodeRunningPromptWithThreeOptions() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let expectedPrompt = "Xcode is currently running. What would you like to do?"
+        let (sut, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .dictionary([expectedPrompt: 2]) // Cancel option
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try? sut.deleteArchives(deleteAll: true)
+    }
+
+    @Test("Proceeds with force deletion when user selects proceed anyway option")
+    func proceedsWithForceDeletionWhenUserSelectsProceedAnywayOption() throws {
+        let archives = [
+            makeArchiveFolder(name: "Archive1.xcarchive"),
+            makeArchiveFolder(name: "Archive2.xcarchive")
+        ]
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.count == 2)
+        #expect(service.deletedArchives.contains(where: { $0.name == archives[0].name }))
+        #expect(service.deletedArchives.contains(where: { $0.name == archives[1].name }))
+    }
+
+    @Test("Closes Xcode and proceeds when user selects close Xcode option")
+    func closesXcodeAndProceedsWhenUserSelectsCloseXcodeOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let closeXcodeIndex = 1
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([closeXcodeIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true,
+            closeXcodeSucceeds: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.count == 1)
+        #expect(service.didCloseXcode)
+    }
+
+    @Test("Cancels operation when user selects cancel option")
+    func cancelsOperationWhenUserSelectsCancelOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let cancelIndex = 2
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([cancelIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.isEmpty)
+    }
+
+    @Test("Throws error when Xcode fails to close after user selects close option")
+    func throwsErrorWhenXcodeFailsToCloseAfterUserSelectsCloseOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let closeXcodeIndex = 1
+        let (sut, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([closeXcodeIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true,
+            closeXcodeSucceeds: false
+        )
+
+        #expect(throws: ArchiveError.xcodeFailedToClose) {
+            try sut.deleteArchives(deleteAll: true)
+        }
+    }
+
+    @Test("Handles Xcode running when deleting selected archives")
+    func handlesXcodeRunningWhenDeletingSelectedArchives() throws {
+        let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
+        let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
+        let archives = [archive1, archive2]
+        let selectFoldersIndex = 2
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            selectionResult: .init(
+                singleSelectionType: .ordered([selectFoldersIndex, proceedAnywayIndex]),
+                multiSelectionType: .ordered([[0, 1]])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: false)
+
+        #expect(service.deletedArchives.count == 2)
+        #expect(service.deletedArchives.contains(where: { $0.name == archive1.name }))
+        #expect(service.deletedArchives.contains(where: { $0.name == archive2.name }))
+    }
+
+    @Test("Handles Xcode running when deleting stale archives")
+    func handlesXcodeRunningWhenDeletingStaleArchives() throws {
+        let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
+        let staleArchive = makeArchiveFolder(name: "Stale.xcarchive", modificationDate: staleDate)
+        let archives = [staleArchive]
+        let deleteStaleIndex = 1
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([deleteStaleIndex, proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: false)
+
+        #expect(service.deletedArchives.count == 1)
+        #expect(service.deletedArchives.first?.name == staleArchive.name)
+    }
+
+    @Test("Does not close Xcode when user proceeds anyway")
+    func doesNotCloseXcodeWhenUserProceedsAnyway() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(!service.didCloseXcode)
+        #expect(service.deletedArchives.count == 1)
+    }
+}
+
+
 // MARK: - SUT
 private extension ArchiveControllerTests {
     func makeSUT(
@@ -566,10 +730,17 @@ private extension ArchiveControllerTests {
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        archivesToLoad: [ArchiveFolder] = []
+        archivesToLoad: [ArchiveFolder] = [],
+        throwXcodeRunning: Bool = false,
+        closeXcodeSucceeds: Bool = true
     ) -> (sut: ArchiveController, service: MockArchiveService, progressHandler: MockPurgeProgressHandler) {
         let progressHandler = MockPurgeProgressHandler()
-        let service = MockArchiveService(throwError: throwError, archivesToLoad: archivesToLoad)
+        let service = MockArchiveService(
+            throwError: throwError,
+            throwXcodeRunning: throwXcodeRunning,
+            closeXcodeSucceeds: closeXcodeSucceeds,
+            archivesToLoad: archivesToLoad
+        )
         let picker = MockSwiftPicker(
             inputResult: inputResult,
             permissionResult: permissionResult,
