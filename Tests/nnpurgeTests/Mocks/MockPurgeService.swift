@@ -104,7 +104,7 @@ extension MockPurgeService {
         return ProjectDependencies(pins: pins, version: 3)
     }
 
-    func deleteFolders(_ folders: [PackageCacheFolder], progressHandler: (any PurgeProgressHandler)?) throws {
+    func deleteFolders(_ folders: [PackageCacheFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
         }

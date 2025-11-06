@@ -36,8 +36,12 @@ extension PackageCacheController {
 extension PackageCacheController {
     func deletePackageCache(deleteAll: Bool) throws {
         let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
-        
-        try service.deleteFolders(foldersToDelete, progressHandler: progressHandler)
+
+        do {
+            try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+        } catch PackageCacheError.xcodeIsRunning {
+            try handleXcodeRunning(foldersToDelete: foldersToDelete)
+        }
     }
 }
 
@@ -60,7 +64,12 @@ extension PackageCacheController {
         }
 
         try picker.requiredPermission("\nDelete these \(matchedFolders.count) cached \(matchedFolders.count == 1 ? "package" : "packages")?")
-        try service.deleteFolders(matchedFolders, progressHandler: progressHandler)
+
+        do {
+            try service.deleteFolders(matchedFolders, force: false, progressHandler: progressHandler)
+        } catch PackageCacheError.xcodeIsRunning {
+            try handleXcodeRunning(foldersToDelete: matchedFolders)
+        }
     }
 }
 
@@ -93,8 +102,27 @@ private extension PackageCacheController {
         if deleteAll {
             return .deleteAll
         }
-        
+
         return try picker.requiredSingleSelection("What would you like to do?", items: PackageCacheDeleteOption.allCases)
+    }
+
+    func handleXcodeRunning(foldersToDelete: [PackageCacheFolder]) throws {
+        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
+
+        switch option {
+        case .proceedAnyway:
+            try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
+        case .closeXcodeAndProceed:
+            do {
+                try service.closeXcodeAndVerify(timeout: 10.0)
+                try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+            } catch PackageCacheError.xcodeFailedToClose {
+                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
+                throw PackageCacheError.xcodeFailedToClose
+            }
+        case .cancel:
+            print("Operation cancelled.")
+        }
     }
 }
 

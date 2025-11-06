@@ -85,7 +85,7 @@ extension PackageCacheManagerTests {
         let packagesToDelete = [package1, package2]
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteFolders(packagesToDelete, progressHandler: nil)
+        try sut.deleteFolders(packagesToDelete, force: false, progressHandler: nil)
 
         #expect(delegate.deletedFolders.count == 2)
         guard delegate.deletedFolders.count >= 2 else { return }
@@ -98,7 +98,7 @@ extension PackageCacheManagerTests {
         let package = makePackageCacheFolder(name: "SinglePackage", branchId: "xyz789")
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteFolders([package], progressHandler: nil)
+        try sut.deleteFolders([package], force: false, progressHandler: nil)
 
         #expect(delegate.deletedFolders.count == 1)
         guard delegate.deletedFolders.count >= 1 else { return }
@@ -109,7 +109,7 @@ extension PackageCacheManagerTests {
     func completesSuccessfullyWhenGivenEmptyFolderList() throws {
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteFolders([], progressHandler: nil)
+        try sut.deleteFolders([], force: false, progressHandler: nil)
 
         #expect(delegate.deletedFolders.isEmpty)
     }
@@ -120,7 +120,7 @@ extension PackageCacheManagerTests {
         let (sut, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
-            try sut.deleteFolders([package], progressHandler: nil)
+            try sut.deleteFolders([package], force: false, progressHandler: nil)
         }
     }
 
@@ -131,7 +131,7 @@ extension PackageCacheManagerTests {
         let (sut, delegate) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
-            try sut.deleteFolders([package1, package2], progressHandler: nil)
+            try sut.deleteFolders([package1, package2], force: false, progressHandler: nil)
         }
 
         #expect(delegate.deletedFolders.isEmpty)
@@ -150,7 +150,7 @@ extension PackageCacheManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteFolders(packagesToDelete, progressHandler: progressHandler)
+        try sut.deleteFolders(packagesToDelete, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.count == 3)
         guard progressHandler.progressUpdates.count >= 3 else { return }
@@ -169,7 +169,7 @@ extension PackageCacheManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteFolders(packages, progressHandler: progressHandler)
+        try sut.deleteFolders(packages, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.count == 4)
         guard progressHandler.progressUpdates.count == 4 else { return }
@@ -184,7 +184,7 @@ extension PackageCacheManagerTests {
         let (sut, delegate) = makeSUT(foldersToLoad: [mockFolder])
 
         let folders = try sut.loadFolders()
-        try sut.deleteFolders(folders, progressHandler: nil)
+        try sut.deleteFolders(folders, force: false, progressHandler: nil)
 
         #expect(delegate.deletedFolders.count == 1)
         guard delegate.deletedFolders.count >= 1 else { return }
@@ -200,7 +200,7 @@ extension PackageCacheManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteFolders(packages, progressHandler: progressHandler)
+        try sut.deleteFolders(packages, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.didComplete)
     }
@@ -210,7 +210,7 @@ extension PackageCacheManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT(foldersToLoad: [])
 
-        try sut.deleteFolders([], progressHandler: progressHandler)
+        try sut.deleteFolders([], force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.isEmpty)
     }
@@ -259,7 +259,9 @@ private extension PackageCacheManagerTests {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockPackageCacheDelegate(throwError: throwError)
         let fileSystemDelegate = MockFileSystemDelegate(packageResolvedExists: packageResolvedExists)
-        let sut = PackageCacheManager(loader: loader, delegate: delegate, fileSystemDelegate: fileSystemDelegate)
+        let xcodeChecker = MockXcodeStatusChecker()
+        let xcodeTerminator = MockXcodeTerminator()
+        let sut = PackageCacheManager(loader: loader, delegate: delegate, fileSystemDelegate: fileSystemDelegate, xcodeChecker: xcodeChecker, xcodeTerminator: xcodeTerminator)
 
         return (sut, delegate)
     }
@@ -326,5 +328,29 @@ private final class MockFileSystemDelegate: FileSystemDelegate {
         }
         """
         return emptyDependencies.data(using: .utf8)!
+    }
+}
+
+private struct MockXcodeStatusChecker: XcodeStatusChecker {
+    let xcodeRunningStatus: Bool
+
+    init(xcodeRunningStatus: Bool = false) {
+        self.xcodeRunningStatus = xcodeRunningStatus
+    }
+
+    func isXcodeRunning() -> Bool {
+        return xcodeRunningStatus
+    }
+}
+
+private struct MockXcodeTerminator: XcodeTerminator {
+    let terminationSucceeds: Bool
+
+    init(terminationSucceeds: Bool = true) {
+        self.terminationSucceeds = terminationSucceeds
+    }
+
+    func terminateXcode() -> Bool {
+        return terminationSucceeds
     }
 }
