@@ -10,4 +10,5 @@ import Foundation
 public protocol DerivedDataService {
     func loadFolders() throws -> [DerivedDataFolder]
     func deleteFolders(_ folders: [DerivedDataFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws
+    func closeXcodeAndVerify() throws
 }

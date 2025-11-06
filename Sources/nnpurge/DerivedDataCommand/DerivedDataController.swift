@@ -102,7 +102,13 @@ private extension DerivedDataController {
         case .proceedAnyway:
             try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
         case .closeXcodeAndProceed:
-            print("TODO: Implement close Xcode and proceed logic")
+            do {
+                try service.closeXcodeAndVerify()
+                try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+            } catch DerivedDataError.xcodeFailedToClose {
+                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
+                throw DerivedDataError.xcodeFailedToClose
+            }
         case .cancel:
             print("Operation cancelled.")
         }

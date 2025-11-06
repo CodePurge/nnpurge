@@ -12,12 +12,14 @@ public struct DerivedDataManager {
     private let loader: any PurgeFolderLoader
     private let delegate: any DerivedDataDelegate
     private let xcodeChecker: any XcodeStatusChecker
+    private let xcodeTerminator: any XcodeTerminator
 
-    init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate, xcodeChecker: any XcodeStatusChecker) {
+    init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.path = path
         self.loader = loader
         self.delegate = delegate
         self.xcodeChecker = xcodeChecker
+        self.xcodeTerminator = xcodeTerminator
     }
 }
 
@@ -25,7 +27,7 @@ public struct DerivedDataManager {
 // MARK: - Init
 public extension DerivedDataManager {
     init(path: String) {
-        self.init(path: path, loader: DefaultPurgeFolderLoader(), delegate: DefaultDerivedDataDelegate(), xcodeChecker: DefaultXcodeStatusChecker())
+        self.init(path: path, loader: DefaultPurgeFolderLoader(), delegate: DefaultDerivedDataDelegate(), xcodeChecker: DefaultXcodeStatusChecker(), xcodeTerminator: DefaultXcodeTerminator())
     }
 }
 
@@ -52,6 +54,25 @@ extension DerivedDataManager: DerivedDataService {
 
         progressHandler?.complete(message: "✅ Derived Data moved to trash.")
     }
+
+    public func closeXcodeAndVerify() throws {
+        guard xcodeTerminator.terminateXcode() else {
+            throw DerivedDataError.xcodeFailedToClose
+        }
+
+        let timeout = 10.0
+        let pollInterval = 0.5
+        var elapsed = 0.0
+
+        while xcodeChecker.isXcodeRunning() && elapsed < timeout {
+            Thread.sleep(forTimeInterval: pollInterval)
+            elapsed += pollInterval
+        }
+
+        if xcodeChecker.isXcodeRunning() {
+            throw DerivedDataError.xcodeFailedToClose
+        }
+    }
 }
 
 
@@ -64,8 +85,13 @@ protocol XcodeStatusChecker {
     func isXcodeRunning() -> Bool
 }
 
+protocol XcodeTerminator {
+    func terminateXcode() -> Bool
+}
+
 public enum DerivedDataError: Error {
     case xcodeIsRunning
+    case xcodeFailedToClose
 }
 
 

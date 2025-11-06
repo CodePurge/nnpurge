@@ -65,6 +65,12 @@ extension MockPurgeService {
 
         progressHandler?.complete(message: "✅ Derived Data moved to trash.")
     }
+
+    func closeXcodeAndVerify() throws {
+        if throwError {
+            throw DerivedDataError.xcodeFailedToClose
+        }
+    }
 }
 
 
