@@ -13,6 +13,7 @@ public struct ArchiveManager {
     private let delegate: any ArchiveDelegate
     private let xcodeChecker: any XcodeStatusChecker
     private let xcodeTerminator: any XcodeTerminator
+    private let deletionHelper: PurgableItemDeletionHandler
 
     init(config: ArchiveConfig, loader: any PurgeFolderLoader, delegate: any ArchiveDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.config = config
@@ -20,6 +21,7 @@ public struct ArchiveManager {
         self.delegate = delegate
         self.xcodeChecker = xcodeChecker
         self.xcodeTerminator = xcodeTerminator
+        self.deletionHelper = PurgableItemDeletionHandler(deleter: delegate, xcodeChecker: xcodeChecker)
     }
 }
 
@@ -39,20 +41,13 @@ extension ArchiveManager: ArchiveService {
     }
 
     public func deleteArchives(_ archives: [ArchiveFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
-        if !force {
-            guard !xcodeChecker.isXcodeRunning() else {
-                throw ArchiveError.xcodeIsRunning
-            }
-        }
-
-        let total = archives.count
-
-        for (index, folder) in archives.enumerated() {
-            try delegate.deleteArchive(folder)
-            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
-        }
-
-        progressHandler?.complete(message: "✅ Archives moved to trash.")
+        try deletionHelper.deleteItems(
+            archives,
+            force: force,
+            progressHandler: progressHandler,
+            completionMessage: "✅ Archives moved to trash.",
+            xcodeRunningError: ArchiveError.xcodeIsRunning
+        )
     }
 
     public func closeXcodeAndVerify(timeout: TimeInterval = 10.0) throws {
@@ -110,7 +105,7 @@ private extension ArchiveManager {
 
 
 // MARK: - Dependencies
-protocol ArchiveDelegate {
+protocol ArchiveDelegate: PurgableItemDeleter {
     func deleteArchive(_ archive: ArchiveFolder) throws
     func parseFolderPList(_ folder: any PurgeFolder) -> [String: Any]?
 }

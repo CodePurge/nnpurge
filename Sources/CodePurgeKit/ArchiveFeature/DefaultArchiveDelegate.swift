@@ -9,7 +9,11 @@ import Foundation
 
 struct DefaultArchiveDelegate: ArchiveDelegate {
     func deleteArchive(_ archive: ArchiveFolder) throws {
-        try FileManager.default.trashItem(at: archive.url, resultingItemURL: nil)
+        try deleteItem(at: archive.url)
+    }
+
+    func deleteItem(at url: URL) throws {
+        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
     
     func parseFolderPList(_ folder: any PurgeFolder) -> [String : Any]? {

@@ -30,11 +30,8 @@ extension Nnpurge.ArchiveCommand {
             abstract: "Deletes Xcode archives"
         )
 
-        @Flag(name: .shortAndLong, help: "Deletes all archive folders.")
-        var all: Bool = false
-
         func run() throws {
-            try Nnpurge.makeArchiveController().deleteArchives(deleteAll: all)
+            try Nnpurge.makeArchiveController().deleteArchives()
         }
     }
 }

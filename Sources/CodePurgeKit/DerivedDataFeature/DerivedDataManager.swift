@@ -13,6 +13,7 @@ public struct DerivedDataManager {
     private let delegate: any DerivedDataDelegate
     private let xcodeChecker: any XcodeStatusChecker
     private let xcodeTerminator: any XcodeTerminator
+    private let deletionHelper: PurgableItemDeletionHandler
 
     init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.path = path
@@ -20,6 +21,7 @@ public struct DerivedDataManager {
         self.delegate = delegate
         self.xcodeChecker = xcodeChecker
         self.xcodeTerminator = xcodeTerminator
+        self.deletionHelper = PurgableItemDeletionHandler(deleter: delegate, xcodeChecker: xcodeChecker)
     }
 }
 
@@ -39,20 +41,13 @@ extension DerivedDataManager: DerivedDataService {
     }
 
     public func deleteFolders(_ folders: [DerivedDataFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
-        if !force {
-            guard !xcodeChecker.isXcodeRunning() else {
-                throw DerivedDataError.xcodeIsRunning
-            }
-        }
-
-        let total = folders.count
-
-        for (index, folder) in folders.enumerated() {
-            try delegate.deleteFolder(folder)
-            progressHandler?.updateProgress(current: index + 1, total: total, message: "Moving \(folder.name) to trash...")
-        }
-
-        progressHandler?.complete(message: "✅ Derived Data moved to trash.")
+        try deletionHelper.deleteItems(
+            folders,
+            force: force,
+            progressHandler: progressHandler,
+            completionMessage: "✅ Derived Data moved to trash.",
+            xcodeRunningError: DerivedDataError.xcodeIsRunning
+        )
     }
 
     public func closeXcodeAndVerify(timeout: TimeInterval = 10.0) throws {
@@ -76,7 +71,7 @@ extension DerivedDataManager: DerivedDataService {
 
 
 // MARK: - Dependencies
-protocol DerivedDataDelegate {
+protocol DerivedDataDelegate: PurgableItemDeleter {
     func deleteFolder(_ folder: DerivedDataFolder) throws
 }
 

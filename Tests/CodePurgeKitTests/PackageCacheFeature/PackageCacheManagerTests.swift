@@ -15,7 +15,7 @@ struct PackageCacheManagerTests {
     func emptyStartingValues() {
         let (_, delegate) = makeSUT()
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -87,10 +87,10 @@ extension PackageCacheManagerTests {
 
         try sut.deleteFolders(packagesToDelete, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 2)
-        guard delegate.deletedFolders.count >= 2 else { return }
-        #expect(delegate.deletedFolders[0].name == package1.name)
-        #expect(delegate.deletedFolders[1].name == package2.name)
+        #expect(delegate.deletedURLs.count == 2)
+        guard delegate.deletedURLs.count >= 2 else { return }
+        #expect(delegate.deletedURLs[0] == package1.url)
+        #expect(delegate.deletedURLs[1] == package2.url)
     }
 
     @Test("Deletes single package successfully")
@@ -100,18 +100,20 @@ extension PackageCacheManagerTests {
 
         try sut.deleteFolders([package], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == package.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == package.url)
     }
 
-    @Test("Completes successfully when given empty folder list")
-    func completesSuccessfullyWhenGivenEmptyFolderList() throws {
+    @Test("Throws error when given empty folder list")
+    func throwsErrorWhenGivenEmptyFolderList() throws {
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteFolders([], force: false, progressHandler: nil)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: nil)
+        }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Propagates deletion error from delegate")
@@ -134,7 +136,45 @@ extension PackageCacheManagerTests {
             try sut.deleteFolders([package1, package2], force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+}
+
+
+// MARK: - Empty Folders Check Tests
+extension PackageCacheManagerTests {
+    @Test("Throws noItemsToDelete error before checking Xcode status")
+    func throwsNoItemsToDeleteErrorBeforeCheckingXcodeStatus() throws {
+        let (sut, _) = makeSUT(xcodeRunningStatus: true)
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Throws noItemsToDelete error even when force is true")
+    func throwsNoItemsToDeleteErrorEvenWhenForceIsTrue() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: true, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+
+    @Test("Does not call delegate when folders array is empty")
+    func doesNotCallDelegateWhenFoldersArrayIsEmpty() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -186,9 +226,9 @@ extension PackageCacheManagerTests {
         let folders = try sut.loadFolders()
         try sut.deleteFolders(folders, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == "TestPackage")
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == mockFolder.url)
     }
 
     @Test("Calls complete on progress handler after all deletions")
@@ -205,14 +245,17 @@ extension PackageCacheManagerTests {
         #expect(progressHandler.didComplete)
     }
 
-    @Test("Does not call progress handler when no packages to delete")
-    func doesNotCallProgressHandlerWhenNoPackagesToDelete() throws {
+    @Test("Throws error and does not call progress handler when no packages to delete")
+    func throwsErrorAndDoesNotCallProgressHandlerWhenNoPackagesToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT(foldersToLoad: [])
 
-        try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        }
 
         #expect(progressHandler.progressUpdates.isEmpty)
+        #expect(!progressHandler.didComplete)
     }
 }
 
@@ -270,10 +313,10 @@ extension PackageCacheManagerTests {
 
         try sut.deleteFolders(packages, force: true, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 2)
-        guard delegate.deletedFolders.count >= 2 else { return }
-        #expect(delegate.deletedFolders[0].name == package1.name)
-        #expect(delegate.deletedFolders[1].name == package2.name)
+        #expect(delegate.deletedURLs.count == 2)
+        guard delegate.deletedURLs.count >= 2 else { return }
+        #expect(delegate.deletedURLs[0] == package1.url)
+        #expect(delegate.deletedURLs[1] == package2.url)
     }
 
     @Test("Allows deletion when Xcode is not running")
@@ -283,9 +326,9 @@ extension PackageCacheManagerTests {
 
         try sut.deleteFolders([package], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == package.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == package.url)
     }
 
     @Test("Checks Xcode status before attempting deletion")
@@ -300,7 +343,7 @@ extension PackageCacheManagerTests {
             try sut.deleteFolders(packages, force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Does not call progress handler when Xcode running check fails")
@@ -327,10 +370,10 @@ extension PackageCacheManagerTests {
 
         try sut.deleteFolders(packages, force: true, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 3)
-        #expect(delegate.deletedFolders.contains(where: { $0.name == package1.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == package2.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == package3.name }))
+        #expect(delegate.deletedURLs.count == 3)
+        #expect(delegate.deletedURLs.contains(package1.url))
+        #expect(delegate.deletedURLs.contains(package2.url))
+        #expect(delegate.deletedURLs.contains(package3.url))
     }
 }
 
@@ -413,18 +456,22 @@ private extension PackageCacheManagerTests {
 
 private final class MockPackageCacheDelegate: PackageCacheDelegate {
     private let throwError: Bool
-    private(set) var deletedFolders: [PackageCacheFolder] = []
+
+    private(set) var deletedURLs: [URL] = []
 
     init(throwError: Bool) {
         self.throwError = throwError
     }
 
     func deleteFolder(_ folder: PackageCacheFolder) throws {
+        try deleteItem(at: folder.url)
+    }
+
+    func deleteItem(at url: URL) throws {
         if throwError {
             throw NSError(domain: "Test", code: 0)
         }
-
-        deletedFolders.append(folder)
+        deletedURLs.append(url)
     }
 }
 

@@ -27,48 +27,10 @@ struct ArchiveControllerTests {
 }
 
 
-// MARK: - Delete All Flag Tests
-extension ArchiveControllerTests {
-    @Test("Deletes all archives when flag true and permission granted")
-    func deletesAllArchivesWhenFlagTrueAndPermissionGranted() throws {
-        let (sut, service, _) = makeSUT(
-            permissionResult: .init(type: .ordered([true]))
-        )
-
-        try sut.deleteArchives(deleteAll: true)
-
-        #expect(service.didDeleteArchives)
-    }
-
-    @Test("Throws error when delete all flag true but permission denied")
-    func throwsErrorWhenDeleteAllFlagTrueButPermissionDenied() throws {
-        let (sut, _, _) = makeSUT(
-            permissionResult: .init(type: .ordered([false]))
-        )
-
-        #expect(throws: SwiftPickerError.selectionCancelled) {
-            try sut.deleteArchives(deleteAll: true)
-        }
-    }
-
-    @Test("Requests permission with correct prompt when deleting all")
-    func requestsPermissionWithCorrectPromptWhenDeletingAll() throws {
-        let expectedPrompt = "Are you sure you want to delete all Xcode archives?"
-        let (sut, _, _) = makeSUT(
-            permissionResult: .init(
-                type: .dictionary([expectedPrompt: true])
-            )
-        )
-
-        try sut.deleteArchives(deleteAll: true)
-    }
-}
-
-
 // MARK: - Select Option Flow Tests
 extension ArchiveControllerTests {
-    @Test("Shows option selection when delete all flag false")
-    func showsOptionSelectionWhenDeleteAllFlagFalse() throws {
+    @Test("Shows option selection to user")
+    func showsOptionSelectionToUser() throws {
         let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
@@ -76,7 +38,7 @@ extension ArchiveControllerTests {
             )
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
     }
 
     @Test("Throws error when user cancels option selection")
@@ -88,28 +50,13 @@ extension ArchiveControllerTests {
         )
 
         #expect(throws: SwiftPickerError.selectionCancelled) {
-            try sut.deleteArchives(deleteAll: false)
+            try sut.deleteArchives()
         }
-    }
-
-    @Test("Deletes all when user selects delete all option")
-    func deletesAllWhenUserSelectsDeleteAllOption() throws {
-        let deleteAllIndex = 0
-        let (sut, service, _) = makeSUT(
-            permissionResult: .init(type: .ordered([true])),
-            selectionResult: .init(
-                singleSelectionType: .ordered([deleteAllIndex])
-            )
-        )
-
-        try sut.deleteArchives(deleteAll: false)
-
-        #expect(service.didDeleteArchives)
     }
 
     @Test("Shows archive selection when user selects select folders option")
     func showsArchiveSelectionWhenUserSelectsSelectFoldersOption() throws {
-        let selectFoldersIndex = 2
+        let selectFoldersIndex = 1
         let archives = [
             makeArchiveFolder(name: "Archive1.xcarchive"),
             makeArchiveFolder(name: "Archive2.xcarchive")
@@ -122,7 +69,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == archives[0].name)
@@ -139,7 +86,7 @@ extension ArchiveControllerTests {
         let staleArchive2 = makeArchiveFolder(name: "Stale2.xcarchive", modificationDate: staleDate)
         let recentArchive = makeArchiveFolder(name: "Recent.xcarchive", modificationDate: Date())
         let archives = [staleArchive1, staleArchive2, recentArchive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
@@ -148,7 +95,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 2)
         #expect(service.deletedArchives.contains(where: { $0.name == staleArchive1.name }))
@@ -160,7 +107,7 @@ extension ArchiveControllerTests {
         let recentArchive1 = makeArchiveFolder(name: "Recent1.xcarchive", modificationDate: Date())
         let recentArchive2 = makeArchiveFolder(name: "Recent2.xcarchive", modificationDate: Date())
         let archives = [recentArchive1, recentArchive2]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([deleteStaleIndex])
@@ -168,7 +115,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.isEmpty)
     }
@@ -180,7 +127,7 @@ extension ArchiveControllerTests {
         let staleArchive2 = makeArchiveFolder(name: "Stale2.xcarchive", modificationDate: staleDate)
         let staleArchive3 = makeArchiveFolder(name: "Stale3.xcarchive", modificationDate: staleDate)
         let archives = [staleArchive1, staleArchive2, staleArchive3]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let expectedPrompt = "Found 3 stale archive(s). Delete them?"
         let (sut, _, _) = makeSUT(
             permissionResult: .init(
@@ -192,7 +139,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
     }
 
     @Test("Throws error when user denies permission for stale deletion")
@@ -200,7 +147,7 @@ extension ArchiveControllerTests {
         let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
         let staleArchive = makeArchiveFolder(name: "Stale.xcarchive", modificationDate: staleDate)
         let archives = [staleArchive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, _, _) = makeSUT(
             permissionResult: .init(type: .ordered([false])),
             selectionResult: .init(
@@ -210,7 +157,7 @@ extension ArchiveControllerTests {
         )
 
         #expect(throws: SwiftPickerError.selectionCancelled) {
-            try sut.deleteArchives(deleteAll: false)
+            try sut.deleteArchives()
         }
     }
 
@@ -224,7 +171,7 @@ extension ArchiveControllerTests {
             modificationDate: staleModificationDate
         )
         let archives = [archive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
@@ -233,7 +180,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == archive.name)
@@ -248,7 +195,7 @@ extension ArchiveControllerTests {
             modificationDate: nil
         )
         let archives = [archive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
@@ -257,7 +204,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == archive.name)
@@ -271,7 +218,7 @@ extension ArchiveControllerTests {
             modificationDate: nil
         )
         let archives = [archive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([deleteStaleIndex])
@@ -279,7 +226,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.isEmpty)
     }
@@ -289,7 +236,7 @@ extension ArchiveControllerTests {
         let recentDate = Calendar.current.date(byAdding: .day, value: -15, to: Date())
         let archive = makeArchiveFolder(name: "Recent.xcarchive", modificationDate: recentDate)
         let archives = [archive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
                 singleSelectionType: .ordered([deleteStaleIndex])
@@ -297,7 +244,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.isEmpty)
     }
@@ -307,7 +254,7 @@ extension ArchiveControllerTests {
         let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())
         let archive = makeArchiveFolder(name: "Exact.xcarchive", modificationDate: thirtyDaysAgo)
         let archives = [archive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
             selectionResult: .init(
@@ -316,7 +263,7 @@ extension ArchiveControllerTests {
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == archive.name)
@@ -335,13 +282,13 @@ extension ArchiveControllerTests {
         let selectedIndices = [0, 2]
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([selectedIndices])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 2)
         #expect(service.deletedArchives.contains(where: { $0.name == archive1.name }))
@@ -356,13 +303,13 @@ extension ArchiveControllerTests {
         ]
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[]])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.isEmpty)
     }
@@ -376,13 +323,13 @@ extension ArchiveControllerTests {
         ]
         let (sut, _, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .dictionary([expectedPrompt: [0]])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
     }
 }
 
@@ -397,7 +344,7 @@ extension ArchiveControllerTests {
         )
 
         #expect(throws: NSError.self) {
-            try sut.deleteArchives(deleteAll: true)
+            try sut.deleteArchives()
         }
     }
 
@@ -406,7 +353,7 @@ extension ArchiveControllerTests {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
         let (sut, _, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[0]])
             ),
             throwError: true,
@@ -414,7 +361,7 @@ extension ArchiveControllerTests {
         )
 
         #expect(throws: NSError.self) {
-            try sut.deleteArchives(deleteAll: false)
+            try sut.deleteArchives()
         }
     }
 
@@ -428,7 +375,7 @@ extension ArchiveControllerTests {
         )
 
         #expect(throws: NSError.self) {
-            try sut.deleteArchives(deleteAll: false)
+            try sut.deleteArchives()
         }
     }
 }
@@ -436,26 +383,6 @@ extension ArchiveControllerTests {
 
 // MARK: - Progress Handler Tests
 extension ArchiveControllerTests {
-    @Test("Reports progress for each archive when deleting all")
-    func reportsProgressForEachArchiveWhenDeletingAll() throws {
-        let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
-        let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
-        let archive3 = makeArchiveFolder(name: "Archive3.xcarchive")
-        let archives = [archive1, archive2, archive3]
-        let (sut, _, progressHandler) = makeSUT(
-            permissionResult: .init(type: .ordered([true])),
-            archivesToLoad: archives
-        )
-
-        try sut.deleteArchives(deleteAll: true)
-
-        #expect(progressHandler.progressUpdates.count == archives.count)
-        guard progressHandler.progressUpdates.count >= 3 else { return }
-        #expect(progressHandler.progressUpdates[0].message.contains(archive1.name))
-        #expect(progressHandler.progressUpdates[1].message.contains(archive2.name))
-        #expect(progressHandler.progressUpdates[2].message.contains(archive3.name))
-    }
-
     @Test("Reports progress for each selected archive when deleting specific archives")
     func reportsProgressForEachSelectedArchiveWhenDeletingSpecificArchives() throws {
         let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
@@ -465,13 +392,13 @@ extension ArchiveControllerTests {
         let selectedIndices = [0, 2]
         let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([selectedIndices])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(progressHandler.progressUpdates.count == 2)
         guard progressHandler.progressUpdates.count >= 2 else { return }
@@ -487,30 +414,35 @@ extension ArchiveControllerTests {
         ]
         let (sut, _, progressHandler) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[]])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(progressHandler.progressUpdates.isEmpty)
     }
 
     @Test("Reports progress in correct order for multiple archives")
     func reportsProgressInCorrectOrderForMultipleArchives() throws {
-        let archive1 = makeArchiveFolder(name: "Alpha.xcarchive")
-        let archive2 = makeArchiveFolder(name: "Beta.xcarchive")
-        let archive3 = makeArchiveFolder(name: "Gamma.xcarchive")
-        let archive4 = makeArchiveFolder(name: "Delta.xcarchive")
+        let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
+        let archive1 = makeArchiveFolder(name: "Alpha.xcarchive", modificationDate: staleDate)
+        let archive2 = makeArchiveFolder(name: "Beta.xcarchive", modificationDate: staleDate)
+        let archive3 = makeArchiveFolder(name: "Gamma.xcarchive", modificationDate: staleDate)
+        let archive4 = makeArchiveFolder(name: "Delta.xcarchive", modificationDate: staleDate)
         let archives = [archive1, archive2, archive3, archive4]
+        let deleteStaleIndex = 0
         let (sut, _, progressHandler) = makeSUT(
             permissionResult: .init(type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([deleteStaleIndex])
+            ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: true)
+        try sut.deleteArchives()
 
         #expect(progressHandler.progressUpdates.count == 4)
         for (index, archive) in archives.enumerated() {
@@ -522,36 +454,22 @@ extension ArchiveControllerTests {
 
 // MARK: - Load Archives Tests
 extension ArchiveControllerTests {
-    @Test("Loads all archives when deleting all")
-    func loadsAllArchivesWhenDeletingAll() throws {
-        let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
-        let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
-        let archives = [archive1, archive2]
-        let (sut, service, _) = makeSUT(
-            permissionResult: .init(type: .ordered([true])),
-            archivesToLoad: archives
-        )
-
-        try sut.deleteArchives(deleteAll: true)
-
-        #expect(service.deletedArchives.count == archives.count)
-    }
-
     @Test("Loads all archives when selecting specific archives")
     func loadsAllArchivesWhenSelectingSpecificArchives() throws {
         let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
         let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
         let archive3 = makeArchiveFolder(name: "Archive3.xcarchive")
         let archives = [archive1, archive2, archive3]
+        let selectFoldersIndex = 1
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([selectFoldersIndex]),
                 multiSelectionType: .ordered([[1]])
             ),
             archivesToLoad: archives
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == archive2.name)
@@ -574,7 +492,7 @@ extension ArchiveControllerTests {
             throwXcodeRunning: true
         )
 
-        try? sut.deleteArchives(deleteAll: true)
+        try? sut.deleteArchives()
     }
 
     @Test("Proceeds with force deletion when user selects proceed anyway option")
@@ -583,77 +501,82 @@ extension ArchiveControllerTests {
             makeArchiveFolder(name: "Archive1.xcarchive"),
             makeArchiveFolder(name: "Archive2.xcarchive")
         ]
+        let selectFoldersIndex = 1
         let proceedAnywayIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([proceedAnywayIndex])
+                singleSelectionType: .ordered([selectFoldersIndex, proceedAnywayIndex]),
+                multiSelectionType: .ordered([[0, 1]])
             ),
             archivesToLoad: archives,
             throwXcodeRunning: true
         )
 
-        try sut.deleteArchives(deleteAll: true)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 2)
         #expect(service.deletedArchives.contains(where: { $0.name == archives[0].name }))
         #expect(service.deletedArchives.contains(where: { $0.name == archives[1].name }))
     }
 
-    @Test("Closes Xcode and proceeds when user selects close Xcode option")
-    func closesXcodeAndProceedsWhenUserSelectsCloseXcodeOption() throws {
+    @Test("Waits for user to close Xcode and proceeds when confirmed")
+    func waitsForUserToCloseXcodeAndProceedsWhenConfirmed() throws {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
-        let closeXcodeIndex = 1
+        let selectFoldersIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
-            ),
-            archivesToLoad: archives,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: true
-        )
-
-        try sut.deleteArchives(deleteAll: true)
-
-        #expect(service.deletedArchives.count == 1)
-        #expect(service.didCloseXcode)
-    }
-
-    @Test("Cancels operation when user selects cancel option")
-    func cancelsOperationWhenUserSelectsCancelOption() throws {
-        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
-        let cancelIndex = 2
-        let (sut, service, _) = makeSUT(
-            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
-            selectionResult: .init(
-                singleSelectionType: .ordered([cancelIndex])
+                singleSelectionType: .ordered([selectFoldersIndex, waitUntilClosedIndex]),
+                multiSelectionType: .ordered([[0]])
             ),
             archivesToLoad: archives,
             throwXcodeRunning: true
         )
 
-        try sut.deleteArchives(deleteAll: true)
+        try sut.deleteArchives()
+
+        #expect(service.deletedArchives.count == 1)
+    }
+
+    @Test("Cancels operation when user selects cancel option")
+    func cancelsOperationWhenUserSelectsCancelOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let selectFoldersIndex = 1
+        let cancelIndex = 2
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([selectFoldersIndex, cancelIndex]),
+                multiSelectionType: .ordered([[0]])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.isEmpty)
     }
 
-    @Test("Throws error when Xcode fails to close after user selects close option")
-    func throwsErrorWhenXcodeFailsToCloseAfterUserSelectsCloseOption() throws {
+    @Test("Throws error when user denies Xcode closure confirmation")
+    func throwsErrorWhenUserDeniesXcodeClosureConfirmation() throws {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
-        let closeXcodeIndex = 1
+        let selectFoldersIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, _, _) = makeSUT(
-            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([selectFoldersIndex, waitUntilClosedIndex]),
+                multiSelectionType: .ordered([[0]])
             ),
             archivesToLoad: archives,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: false
+            throwXcodeRunning: true
         )
 
-        #expect(throws: ArchiveError.xcodeFailedToClose) {
-            try sut.deleteArchives(deleteAll: true)
+        #expect(throws: (any Error).self) {
+            try sut.deleteArchives()
         }
     }
 
@@ -662,7 +585,7 @@ extension ArchiveControllerTests {
         let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
         let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
         let archives = [archive1, archive2]
-        let selectFoldersIndex = 2
+        let selectFoldersIndex = 1
         let proceedAnywayIndex = 0
         let (sut, service, _) = makeSUT(
             selectionResult: .init(
@@ -673,7 +596,7 @@ extension ArchiveControllerTests {
             throwXcodeRunning: true
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 2)
         #expect(service.deletedArchives.contains(where: { $0.name == archive1.name }))
@@ -685,7 +608,7 @@ extension ArchiveControllerTests {
         let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
         let staleArchive = makeArchiveFolder(name: "Stale.xcarchive", modificationDate: staleDate)
         let archives = [staleArchive]
-        let deleteStaleIndex = 1
+        let deleteStaleIndex = 0
         let proceedAnywayIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
@@ -696,7 +619,7 @@ extension ArchiveControllerTests {
             throwXcodeRunning: true
         )
 
-        try sut.deleteArchives(deleteAll: false)
+        try sut.deleteArchives()
 
         #expect(service.deletedArchives.count == 1)
         #expect(service.deletedArchives.first?.name == staleArchive.name)
@@ -705,17 +628,19 @@ extension ArchiveControllerTests {
     @Test("Does not close Xcode when user proceeds anyway")
     func doesNotCloseXcodeWhenUserProceedsAnyway() throws {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let selectFoldersIndex = 1
         let proceedAnywayIndex = 0
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([proceedAnywayIndex])
+                singleSelectionType: .ordered([selectFoldersIndex, proceedAnywayIndex]),
+                multiSelectionType: .ordered([[0]])
             ),
             archivesToLoad: archives,
             throwXcodeRunning: true
         )
 
-        try sut.deleteArchives(deleteAll: true)
+        try sut.deleteArchives()
 
         #expect(!service.didCloseXcode)
         #expect(service.deletedArchives.count == 1)

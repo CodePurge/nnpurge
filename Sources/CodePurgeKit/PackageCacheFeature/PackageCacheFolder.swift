@@ -35,3 +35,7 @@ public struct PackageCacheFolder {
         self.lastFetchedDate = lastFetchedDate
     }
 }
+
+
+// MARK: - PurgableItem
+extension PackageCacheFolder: PurgableItem { }

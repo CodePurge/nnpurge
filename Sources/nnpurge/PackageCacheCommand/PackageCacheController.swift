@@ -14,12 +14,14 @@ struct PackageCacheController {
     private let picker: any CommandLinePicker
     private let service: any PackageCacheService
     private let progressHandler: any PurgeProgressHandler
+    private let xcodeHandler: XcodeRunningHandler
 
     init(staleDaysThreshold: Int = 30, picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
         self.staleDaysThreshold = staleDaysThreshold
+        self.xcodeHandler = .init(picker: picker, progressHandler: progressHandler)
     }
 }
 
@@ -107,22 +109,11 @@ private extension PackageCacheController {
     }
 
     func handleXcodeRunning(foldersToDelete: [PackageCacheFolder]) throws {
-        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
-
-        switch option {
-        case .proceedAnyway:
-            try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
-        case .closeXcodeAndProceed:
-            do {
-                try service.closeXcodeAndVerify(timeout: 10.0)
-                try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
-            } catch PackageCacheError.xcodeFailedToClose {
-                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
-                throw PackageCacheError.xcodeFailedToClose
-            }
-        case .cancel:
-            print("Operation cancelled.")
-        }
+        try xcodeHandler.handle(
+            itemsToDelete: foldersToDelete,
+            deleteOperation: service.deleteFolders,
+            xcodeFailedToCloseError: PackageCacheError.xcodeFailedToClose
+        )
     }
 }
 

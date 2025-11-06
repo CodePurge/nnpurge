@@ -14,12 +14,14 @@ struct DerivedDataController {
     private let picker: any CommandLinePicker
     private let service: any DerivedDataService
     private let progressHandler: any PurgeProgressHandler
+    private let xcodeHandler: XcodeRunningHandler
 
     init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
         self.store = store
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
+        self.xcodeHandler = .init(picker: picker, progressHandler: progressHandler)
     }
 }
 
@@ -96,22 +98,11 @@ private extension DerivedDataController {
     }
 
     func handleXcodeRunning(foldersToDelete: [DerivedDataFolder]) throws {
-        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
-
-        switch option {
-        case .proceedAnyway:
-            try service.deleteFolders(foldersToDelete, force: true, progressHandler: progressHandler)
-        case .closeXcodeAndProceed:
-            do {
-                try service.closeXcodeAndVerify(timeout: 10.0)
-                try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
-            } catch let error where (error as? DerivedDataError) == .xcodeFailedToClose || (error as? PackageCacheError) == .xcodeFailedToClose {
-                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
-                throw DerivedDataError.xcodeFailedToClose
-            }
-        case .cancel:
-            print("Operation cancelled.")
-        }
+        try xcodeHandler.handle(
+            itemsToDelete: foldersToDelete,
+            deleteOperation: service.deleteFolders,
+            xcodeFailedToCloseError: DerivedDataError.xcodeFailedToClose
+        )
     }
 }
 

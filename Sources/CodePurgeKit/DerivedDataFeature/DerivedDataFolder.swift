@@ -22,3 +22,7 @@ public struct DerivedDataFolder {
         self.modificationDate = modificationDate
     }
 }
+
+
+// MARK: - PurgableItem
+extension DerivedDataFolder: PurgableItem { }
