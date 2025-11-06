@@ -656,6 +656,70 @@ extension ArchiveControllerTests {
             try sut.deleteArchives(deleteAll: true)
         }
     }
+
+    @Test("Handles Xcode running when deleting selected archives")
+    func handlesXcodeRunningWhenDeletingSelectedArchives() throws {
+        let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
+        let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
+        let archives = [archive1, archive2]
+        let selectFoldersIndex = 2
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            selectionResult: .init(
+                singleSelectionType: .ordered([selectFoldersIndex, proceedAnywayIndex]),
+                multiSelectionType: .ordered([[0, 1]])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: false)
+
+        #expect(service.deletedArchives.count == 2)
+        #expect(service.deletedArchives.contains(where: { $0.name == archive1.name }))
+        #expect(service.deletedArchives.contains(where: { $0.name == archive2.name }))
+    }
+
+    @Test("Handles Xcode running when deleting stale archives")
+    func handlesXcodeRunningWhenDeletingStaleArchives() throws {
+        let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
+        let staleArchive = makeArchiveFolder(name: "Stale.xcarchive", modificationDate: staleDate)
+        let archives = [staleArchive]
+        let deleteStaleIndex = 1
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([deleteStaleIndex, proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: false)
+
+        #expect(service.deletedArchives.count == 1)
+        #expect(service.deletedArchives.first?.name == staleArchive.name)
+    }
+
+    @Test("Does not close Xcode when user proceeds anyway")
+    func doesNotCloseXcodeWhenUserProceedsAnyway() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(!service.didCloseXcode)
+        #expect(service.deletedArchives.count == 1)
+    }
 }
 
 
