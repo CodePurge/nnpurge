@@ -25,7 +25,7 @@ struct DefaultFileSystemDelegate: FileSystemDelegate {
     }
 }
 
-public enum PackageCacheError: Error, CustomStringConvertible {
+public enum PackageCacheError: Error, Equatable, CustomStringConvertible {
     case packageResolvedNotFound(path: String)
     case xcodeIsRunning
     case xcodeFailedToClose

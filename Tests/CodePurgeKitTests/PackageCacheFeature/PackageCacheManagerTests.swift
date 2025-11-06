@@ -249,18 +249,142 @@ extension PackageCacheManagerTests {
 }
 
 
+// MARK: - Xcode Running Check Tests
+extension PackageCacheManagerTests {
+    @Test("Prevents deletion when Xcode is running and force is false")
+    func preventsDeletionWhenXcodeIsRunningAndForceIsFalse() throws {
+        let package = makePackageCacheFolder(name: "TestPackage", branchId: "abc123")
+        let (sut, _) = makeSUT(xcodeRunningStatus: true)
+
+        #expect(throws: PackageCacheError.xcodeIsRunning) {
+            try sut.deleteFolders([package], force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Bypasses Xcode check when force is true")
+    func bypassesXcodeCheckWhenForceIsTrue() throws {
+        let package1 = makePackageCacheFolder(name: "Package1", branchId: "abc123")
+        let package2 = makePackageCacheFolder(name: "Package2", branchId: "def456")
+        let packages = [package1, package2]
+        let (sut, delegate) = makeSUT(xcodeRunningStatus: true)
+
+        try sut.deleteFolders(packages, force: true, progressHandler: nil)
+
+        #expect(delegate.deletedFolders.count == 2)
+        guard delegate.deletedFolders.count >= 2 else { return }
+        #expect(delegate.deletedFolders[0].name == package1.name)
+        #expect(delegate.deletedFolders[1].name == package2.name)
+    }
+
+    @Test("Allows deletion when Xcode is not running")
+    func allowsDeletionWhenXcodeIsNotRunning() throws {
+        let package = makePackageCacheFolder(name: "TestPackage", branchId: "xyz789")
+        let (sut, delegate) = makeSUT(xcodeRunningStatus: false)
+
+        try sut.deleteFolders([package], force: false, progressHandler: nil)
+
+        #expect(delegate.deletedFolders.count == 1)
+        guard delegate.deletedFolders.count >= 1 else { return }
+        #expect(delegate.deletedFolders[0].name == package.name)
+    }
+
+    @Test("Checks Xcode status before attempting deletion")
+    func checksXcodeStatusBeforeAttemptingDeletion() throws {
+        let package1 = makePackageCacheFolder(name: "Package1", branchId: "p1")
+        let package2 = makePackageCacheFolder(name: "Package2", branchId: "p2")
+        let package3 = makePackageCacheFolder(name: "Package3", branchId: "p3")
+        let packages = [package1, package2, package3]
+        let (sut, delegate) = makeSUT(xcodeRunningStatus: true)
+
+        #expect(throws: PackageCacheError.xcodeIsRunning) {
+            try sut.deleteFolders(packages, force: false, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedFolders.isEmpty)
+    }
+
+    @Test("Does not call progress handler when Xcode running check fails")
+    func doesNotCallProgressHandlerWhenXcodeRunningCheckFails() throws {
+        let package = makePackageCacheFolder(name: "Package", branchId: "xyz")
+        let progressHandler = MockPurgeProgressHandler()
+        let (sut, _) = makeSUT(xcodeRunningStatus: true)
+
+        #expect(throws: PackageCacheError.xcodeIsRunning) {
+            try sut.deleteFolders([package], force: false, progressHandler: progressHandler)
+        }
+
+        #expect(progressHandler.progressUpdates.isEmpty)
+        #expect(!progressHandler.didComplete)
+    }
+
+    @Test("Deletes multiple packages when force is true despite Xcode running")
+    func deletesMultiplePackagesWhenForceIsTrueDespiteXcodeRunning() throws {
+        let package1 = makePackageCacheFolder(name: "Package1", branchId: "a1")
+        let package2 = makePackageCacheFolder(name: "Package2", branchId: "b2")
+        let package3 = makePackageCacheFolder(name: "Package3", branchId: "c3")
+        let packages = [package1, package2, package3]
+        let (sut, delegate) = makeSUT(xcodeRunningStatus: true)
+
+        try sut.deleteFolders(packages, force: true, progressHandler: nil)
+
+        #expect(delegate.deletedFolders.count == 3)
+        #expect(delegate.deletedFolders.contains(where: { $0.name == package1.name }))
+        #expect(delegate.deletedFolders.contains(where: { $0.name == package2.name }))
+        #expect(delegate.deletedFolders.contains(where: { $0.name == package3.name }))
+    }
+}
+
+
+// MARK: - Close Xcode Tests
+extension PackageCacheManagerTests {
+    @Test("Closes Xcode successfully when termination succeeds")
+    func closesXcodeSuccessfullyWhenTerminationSucceeds() throws {
+        let (sut, _) = makeSUT(xcodeRunningStatus: false, xcodeTerminationSucceeds: true)
+
+        try sut.closeXcodeAndVerify(timeout: 0.1)
+    }
+
+    @Test("Throws error when Xcode termination fails")
+    func throwsErrorWhenXcodeTerminationFails() throws {
+        let (sut, _) = makeSUT(xcodeTerminationSucceeds: false)
+
+        #expect(throws: PackageCacheError.xcodeFailedToClose) {
+            try sut.closeXcodeAndVerify(timeout: 0.1)
+        }
+    }
+
+    @Test("Throws error when Xcode still running after timeout")
+    func throwsErrorWhenXcodeStillRunningAfterTimeout() throws {
+        let (sut, _) = makeSUT(xcodeRunningStatus: true, xcodeTerminationSucceeds: true)
+
+        #expect(throws: PackageCacheError.xcodeFailedToClose) {
+            try sut.closeXcodeAndVerify(timeout: 0.1)
+        }
+    }
+
+    @Test("Verifies Xcode closure after successful termination")
+    func verifiesXcodeClosureAfterSuccessfulTermination() throws {
+        let (sut, _) = makeSUT(xcodeRunningStatus: false, xcodeTerminationSucceeds: true)
+
+        try sut.closeXcodeAndVerify(timeout: 1.0)
+    }
+}
+
+
 // MARK: - SUT
 private extension PackageCacheManagerTests {
     func makeSUT(
         throwError: Bool = false,
         foldersToLoad: [MockPurgeFolder] = [],
-        packageResolvedExists: Bool = true
+        packageResolvedExists: Bool = true,
+        xcodeRunningStatus: Bool = false,
+        xcodeTerminationSucceeds: Bool = true
     ) -> (sut: PackageCacheManager, delegate: MockPackageCacheDelegate) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockPackageCacheDelegate(throwError: throwError)
         let fileSystemDelegate = MockFileSystemDelegate(packageResolvedExists: packageResolvedExists)
-        let xcodeChecker = MockXcodeStatusChecker()
-        let xcodeTerminator = MockXcodeTerminator()
+        let xcodeChecker = MockXcodeStatusChecker(xcodeRunningStatus: xcodeRunningStatus)
+        let xcodeTerminator = MockXcodeTerminator(terminationSucceeds: xcodeTerminationSucceeds)
         let sut = PackageCacheManager(loader: loader, delegate: delegate, fileSystemDelegate: fileSystemDelegate, xcodeChecker: xcodeChecker, xcodeTerminator: xcodeTerminator)
 
         return (sut, delegate)
