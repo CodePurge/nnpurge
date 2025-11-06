@@ -11,14 +11,20 @@ import CodePurgeKit
 
 final class MockArchiveService: @unchecked Sendable, ArchiveService {
     private let throwError: Bool
+    private let throwXcodeRunning: Bool
+    private let closeXcodeSucceeds: Bool
     private let archivesToLoad: [ArchiveFolder]
 
     private(set) var didDeleteArchives = false
     private(set) var deletedArchives: [ArchiveFolder] = []
     private(set) var receivedProgressHandler: PurgeProgressHandler?
+    private(set) var didCloseXcode = false
+    private var xcodeRunningErrorThrown = false
 
-    init(throwError: Bool = false, archivesToLoad: [ArchiveFolder] = []) {
+    init(throwError: Bool = false, throwXcodeRunning: Bool = false, closeXcodeSucceeds: Bool = true, archivesToLoad: [ArchiveFolder] = []) {
         self.throwError = throwError
+        self.throwXcodeRunning = throwXcodeRunning
+        self.closeXcodeSucceeds = closeXcodeSucceeds
         self.archivesToLoad = archivesToLoad
     }
 
@@ -30,9 +36,14 @@ final class MockArchiveService: @unchecked Sendable, ArchiveService {
         return archivesToLoad
     }
 
-    func deleteArchives(_ archives: [ArchiveFolder], progressHandler: PurgeProgressHandler?) throws {
+    func deleteArchives(_ archives: [ArchiveFolder], force: Bool, progressHandler: PurgeProgressHandler?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
+        }
+
+        if throwXcodeRunning && !force && !xcodeRunningErrorThrown {
+            xcodeRunningErrorThrown = true
+            throw ArchiveError.xcodeIsRunning
         }
 
         didDeleteArchives = true
@@ -41,6 +52,14 @@ final class MockArchiveService: @unchecked Sendable, ArchiveService {
 
         for (index, archive) in archives.enumerated() {
             progressHandler?.updateProgress(current: index + 1, total: archives.count, message: "Deleting \(archive.name)...")
+        }
+    }
+
+    func closeXcodeAndVerify(timeout: TimeInterval) throws {
+        didCloseXcode = true
+
+        if !closeXcodeSucceeds {
+            throw ArchiveError.xcodeFailedToClose
         }
     }
 }

@@ -190,7 +190,7 @@ extension ArchiveManagerTests {
         let archivesToDelete = [archive1, archive2]
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteArchives(archivesToDelete, progressHandler: nil)
+        try sut.deleteArchives(archivesToDelete, force: false, progressHandler: nil)
 
         #expect(delegate.deletedArchives.count == 2)
         guard delegate.deletedArchives.count >= 2 else { return }
@@ -203,7 +203,7 @@ extension ArchiveManagerTests {
         let archive = makeArchiveFolder(name: "SingleArchive.xcarchive")
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteArchives([archive], progressHandler: nil)
+        try sut.deleteArchives([archive], force: false, progressHandler: nil)
 
         #expect(delegate.deletedArchives.count == 1)
         guard delegate.deletedArchives.count >= 1 else { return }
@@ -214,7 +214,7 @@ extension ArchiveManagerTests {
     func completesSuccessfullyWhenGivenEmptyArchiveList() throws {
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteArchives([], progressHandler: nil)
+        try sut.deleteArchives([], force: false, progressHandler: nil)
 
         #expect(delegate.deletedArchives.isEmpty)
     }
@@ -225,7 +225,7 @@ extension ArchiveManagerTests {
         let (sut, _) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
-            try sut.deleteArchives([archive], progressHandler: nil)
+            try sut.deleteArchives([archive], force: false, progressHandler: nil)
         }
     }
 
@@ -236,7 +236,7 @@ extension ArchiveManagerTests {
         let (sut, delegate) = makeSUT(throwError: true)
 
         #expect(throws: NSError.self) {
-            try sut.deleteArchives([archive1, archive2], progressHandler: nil)
+            try sut.deleteArchives([archive1, archive2], force: false, progressHandler: nil)
         }
 
         #expect(delegate.deletedArchives.isEmpty)
@@ -255,7 +255,7 @@ extension ArchiveManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives(archivesToDelete, progressHandler: progressHandler)
+        try sut.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.count == 3)
         guard progressHandler.progressUpdates.count >= 3 else { return }
@@ -274,7 +274,7 @@ extension ArchiveManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives(archives, progressHandler: progressHandler)
+        try sut.deleteArchives(archives, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.count == 4)
         guard progressHandler.progressUpdates.count == 4 else { return }
@@ -292,7 +292,7 @@ extension ArchiveManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives(archives, progressHandler: progressHandler)
+        try sut.deleteArchives(archives, force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.count == 3)
         guard progressHandler.progressUpdates.count >= 3 else { return }
@@ -308,7 +308,7 @@ extension ArchiveManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives([archive1, archive2], progressHandler: progressHandler)
+        try sut.deleteArchives([archive1, archive2], force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.didComplete)
         #expect(progressHandler.completedMessage != nil)
@@ -319,7 +319,7 @@ extension ArchiveManagerTests {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives([], progressHandler: progressHandler)
+        try sut.deleteArchives([], force: false, progressHandler: progressHandler)
 
         #expect(progressHandler.progressUpdates.isEmpty)
         #expect(progressHandler.didComplete)
@@ -330,7 +330,7 @@ extension ArchiveManagerTests {
         let archive = makeArchiveFolder(name: "TestArchive.xcarchive")
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteArchives([archive], progressHandler: nil)
+        try sut.deleteArchives([archive], force: false, progressHandler: nil)
 
         #expect(delegate.deletedArchives.count == 1)
         guard delegate.deletedArchives.count >= 1 else { return }
@@ -344,7 +344,9 @@ private extension ArchiveManagerTests {
     func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = [], plist: [String: Any]? = nil) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockArchiveDelegate(throwError: throwError, plist: plist)
-        let sut = ArchiveManager(config: .defaultConfig, loader: loader, delegate: delegate)
+        let xcodeChecker = MockXcodeStatusChecker(xcodeRunningStatus: false)
+        let xcodeTerminator = MockXcodeTerminator(terminationSucceeds: true)
+        let sut = ArchiveManager(config: .defaultConfig, loader: loader, delegate: delegate, xcodeChecker: xcodeChecker, xcodeTerminator: xcodeTerminator)
 
         return (sut, delegate)
     }
@@ -418,6 +420,22 @@ private extension ArchiveManagerTests {
                 return plistByFolder[folder.path]
             }
             return plist
+        }
+    }
+
+    struct MockXcodeStatusChecker: XcodeStatusChecker {
+        let xcodeRunningStatus: Bool
+
+        func isXcodeRunning() -> Bool {
+            return xcodeRunningStatus
+        }
+    }
+
+    struct MockXcodeTerminator: XcodeTerminator {
+        let terminationSucceeds: Bool
+
+        func terminateXcode() -> Bool {
+            return terminationSucceeds
         }
     }
 }

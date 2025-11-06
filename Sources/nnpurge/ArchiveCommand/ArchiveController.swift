@@ -34,8 +34,12 @@ extension ArchiveController {
 extension ArchiveController {
     func deleteArchives(deleteAll: Bool) throws {
         let archivesToDelete = try selectArchivesToDelete(deleteAll: deleteAll)
-        
-        try service.deleteArchives(archivesToDelete, progressHandler: progressHandler)
+
+        do {
+            try service.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
+        } catch ArchiveError.xcodeIsRunning {
+            try handleXcodeRunning(archivesToDelete: archivesToDelete)
+        }
     }
 }
 
@@ -88,6 +92,25 @@ private extension ArchiveController {
             }
 
             return date < daysAgo
+        }
+    }
+
+    func handleXcodeRunning(archivesToDelete: [ArchiveFolder]) throws {
+        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
+
+        switch option {
+        case .proceedAnyway:
+            try service.deleteArchives(archivesToDelete, force: true, progressHandler: progressHandler)
+        case .closeXcodeAndProceed:
+            do {
+                try service.closeXcodeAndVerify(timeout: 10.0)
+                try service.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
+            } catch let error where (error as? ArchiveError) == .xcodeFailedToClose {
+                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
+                throw ArchiveError.xcodeFailedToClose
+            }
+        case .cancel:
+            print("Operation cancelled.")
         }
     }
 }
