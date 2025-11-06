@@ -9,6 +9,10 @@ import Foundation
 
 struct DefaultPackageCacheDelegate: PackageCacheDelegate {
     func deleteFolder(_ folder: PackageCacheFolder) throws {
-        try FileManager.default.trashItem(at: folder.url, resultingItemURL: nil)
+        try deleteItem(at: folder.url)
+    }
+
+    func deleteItem(at url: URL) throws {
+        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
 }
