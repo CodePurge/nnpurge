@@ -559,6 +559,106 @@ extension ArchiveControllerTests {
 }
 
 
+// MARK: - Xcode Running User Prompt Tests
+extension ArchiveControllerTests {
+    @Test("Shows Xcode running prompt with three options")
+    func showsXcodeRunningPromptWithThreeOptions() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let expectedPrompt = "Xcode is currently running. What would you like to do?"
+        let (sut, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .dictionary([expectedPrompt: 2]) // Cancel option
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try? sut.deleteArchives(deleteAll: true)
+    }
+
+    @Test("Proceeds with force deletion when user selects proceed anyway option")
+    func proceedsWithForceDeletionWhenUserSelectsProceedAnywayOption() throws {
+        let archives = [
+            makeArchiveFolder(name: "Archive1.xcarchive"),
+            makeArchiveFolder(name: "Archive2.xcarchive")
+        ]
+        let proceedAnywayIndex = 0
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([proceedAnywayIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.count == 2)
+        #expect(service.deletedArchives.contains(where: { $0.name == archives[0].name }))
+        #expect(service.deletedArchives.contains(where: { $0.name == archives[1].name }))
+    }
+
+    @Test("Closes Xcode and proceeds when user selects close Xcode option")
+    func closesXcodeAndProceedsWhenUserSelectsCloseXcodeOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let closeXcodeIndex = 1
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([closeXcodeIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true,
+            closeXcodeSucceeds: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.count == 1)
+        #expect(service.didCloseXcode)
+    }
+
+    @Test("Cancels operation when user selects cancel option")
+    func cancelsOperationWhenUserSelectsCancelOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let cancelIndex = 2
+        let (sut, service, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([cancelIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteArchives(deleteAll: true)
+
+        #expect(service.deletedArchives.isEmpty)
+    }
+
+    @Test("Throws error when Xcode fails to close after user selects close option")
+    func throwsErrorWhenXcodeFailsToCloseAfterUserSelectsCloseOption() throws {
+        let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
+        let closeXcodeIndex = 1
+        let (sut, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([closeXcodeIndex])
+            ),
+            archivesToLoad: archives,
+            throwXcodeRunning: true,
+            closeXcodeSucceeds: false
+        )
+
+        #expect(throws: ArchiveError.xcodeFailedToClose) {
+            try sut.deleteArchives(deleteAll: true)
+        }
+    }
+}
+
+
 // MARK: - SUT
 private extension ArchiveControllerTests {
     func makeSUT(
@@ -566,10 +666,17 @@ private extension ArchiveControllerTests {
         permissionResult: MockPermissionResult = .init(),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        archivesToLoad: [ArchiveFolder] = []
+        archivesToLoad: [ArchiveFolder] = [],
+        throwXcodeRunning: Bool = false,
+        closeXcodeSucceeds: Bool = true
     ) -> (sut: ArchiveController, service: MockArchiveService, progressHandler: MockPurgeProgressHandler) {
         let progressHandler = MockPurgeProgressHandler()
-        let service = MockArchiveService(throwError: throwError, archivesToLoad: archivesToLoad)
+        let service = MockArchiveService(
+            throwError: throwError,
+            throwXcodeRunning: throwXcodeRunning,
+            closeXcodeSucceeds: closeXcodeSucceeds,
+            archivesToLoad: archivesToLoad
+        )
         let picker = MockSwiftPicker(
             inputResult: inputResult,
             permissionResult: permissionResult,
