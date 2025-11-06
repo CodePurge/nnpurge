@@ -82,8 +82,8 @@ private extension PackageCacheController {
         
         switch option {
         case .deleteAll:
-            try picker.requiredPermission("Are you sure you want to delete all derived data?")
-            
+            try picker.requiredPermission("Are you sure you want to delete all package repositories?")
+
             return allFolders
         case .deleteStale:
             let staleFolders = PackageCacheFolder.filterStale(allFolders, olderThanDays: staleDaysThreshold)

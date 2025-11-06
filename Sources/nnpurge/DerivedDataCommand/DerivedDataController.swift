@@ -126,10 +126,6 @@ enum DerivedDataDeleteOption: CaseIterable {
     case deleteAll, selectFolders
 }
 
-enum XcodeRunningOption: CaseIterable {
-    case proceedAnyway, closeXcodeAndProceed, cancel
-}
-
 
 // MARK: - Extension Dependencies
 extension DerivedDataStore {
@@ -159,19 +155,6 @@ extension DerivedDataDeleteOption: DisplayablePickerItem {
             return "Delete all derived data folders"
         case .selectFolders:
             return "Select specific folders to delete"
-        }
-    }
-}
-
-extension XcodeRunningOption: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .proceedAnyway:
-            return "Proceed anyway (may cause issues)"
-        case .closeXcodeAndProceed:
-            return "Close Xcode and proceed"
-        case .cancel:
-            return "Cancel operation"
         }
     }
 }
