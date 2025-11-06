@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-11-06
+
+### Added
+- Delete stale package caches (older than 30 days) option
+- `package-cache clean` subcommand to delete project dependency caches
+- Xcode running detection with option to force quit before deletion or cancel operations
+- Progress bar with percentage display during deletion operations
+- `derived-data path` subcommand to view, set, and reset custom locations
+
+### Changed
+- DerivedData path management moved from standalone `sdp` command to `derived-data path` subcommand
+- Command structure modernized: `ddd` → `derived-data`, `dspc` → `package-cache`
+
+### Fixed
+- Package cache folder name parsing to correctly extract branch IDs
+
 ## [0.1.1] - 2025-10-20
 
 ### Added
