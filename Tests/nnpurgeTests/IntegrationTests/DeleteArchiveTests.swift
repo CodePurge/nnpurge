@@ -15,38 +15,6 @@ import SwiftPickerTesting
 @MainActor
 @Suite(.disabled())
 final class DeleteArchiveTests {
-    @Test("Deletes all archives when all flag passed", arguments: ["-a", "--all"])
-    func deletesAllArchivesWhenAllFlagPassed(deleteAllArg: String) throws {
-        let archives = [
-            makeArchiveFolder(name: "Archive1.xcarchive"),
-            makeArchiveFolder(name: "Archive2.xcarchive"),
-            makeArchiveFolder(name: "Archive3.xcarchive")
-        ]
-        let (factory, service) = makeSUT(archivesToLoad: archives)
-
-        try Nnpurge.testRun(contextFactory: factory, args: ["archive", "delete", deleteAllArg])
-
-        #expect(service.didDeleteArchives)
-        #expect(service.deletedArchives.count == archives.count)
-    }
-
-    @Test("Deletes all archives when option is selected from picker input")
-    func deletesAllArchivesFromPickerInput() throws {
-        let archives = [
-            makeArchiveFolder(name: "Archive1.xcarchive"),
-            makeArchiveFolder(name: "Archive2.xcarchive")
-        ]
-        let (factory, service) = makeSUT(
-            archivesToLoad: archives,
-            selectionResult: .init(defaultIndex: 0)
-        )
-
-        try Nnpurge.testRun(contextFactory: factory, args: ["archive", "delete"])
-
-        #expect(service.didDeleteArchives)
-        #expect(service.deletedArchives.count == archives.count)
-    }
-
     @Test("Deletes stale archives when delete stale option chosen")
     func deletesStaleArchivesWhenDeleteStaleOptionChosen() throws {
         let oldDate = Calendar.current.date(byAdding: .day, value: -40, to: Date())
@@ -56,7 +24,7 @@ final class DeleteArchiveTests {
         let recentArchive = makeArchiveFolder(name: "RecentArchive.xcarchive", modificationDate: recentDate)
         let (factory, service) = makeSUT(
             archivesToLoad: [staleArchive1, staleArchive2, recentArchive],
-            selectionResult: .init(defaultIndex: 1)
+            selectionResult: .init(defaultIndex: 0)
         )
 
         try Nnpurge.testRun(contextFactory: factory, args: ["archive", "delete"])
@@ -77,7 +45,7 @@ final class DeleteArchiveTests {
         let (factory, service) = makeSUT(
             archivesToLoad: archives,
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([selectedIndices])
             )
         )
@@ -100,7 +68,7 @@ final class DeleteArchiveTests {
         let (factory, service) = makeSUT(
             archivesToLoad: archives,
             selectionResult: .init(
-                singleSelectionType: .ordered([2]),
+                singleSelectionType: .ordered([1]),
                 multiSelectionType: .ordered([[]])
             )
         )

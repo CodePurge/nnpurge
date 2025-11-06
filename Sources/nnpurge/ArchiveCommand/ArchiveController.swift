@@ -34,8 +34,8 @@ extension ArchiveController {
 
 // MARK: - Delete
 extension ArchiveController {
-    func deleteArchives(deleteAll: Bool) throws {
-        let archivesToDelete = try selectArchivesToDelete(deleteAll: deleteAll)
+    func deleteArchives() throws {
+        let archivesToDelete = try selectArchivesToDelete()
 
         do {
             try service.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
@@ -48,15 +48,11 @@ extension ArchiveController {
 
 // MARK: - Private Methods
 private extension ArchiveController {
-    func selectArchivesToDelete(deleteAll: Bool) throws -> [ArchiveFolder] {
+    func selectArchivesToDelete() throws -> [ArchiveFolder] {
         let allArchives = try service.loadArchives()
-        let option = try selectOption(deleteAll: deleteAll)
+        let option = try picker.requiredSingleSelection("What would you like to do?", items: ArchiveOption.allCases)
 
         switch option {
-        case .deleteAll:
-            try picker.requiredPermission("Are you sure you want to delete all Xcode archives?")
-
-            return allArchives
         case .deleteStale:
             let staleArchives = filterStaleArchives(allArchives, daysOld: 30)
 
@@ -71,14 +67,6 @@ private extension ArchiveController {
         case .selectFolders:
             return picker.multiSelection("Select the archives to delete.", items: allArchives)
         }
-    }
-    
-    func selectOption(deleteAll: Bool) throws -> ArchiveOption {
-        if deleteAll {
-            return .deleteAll
-        }
-
-        return try picker.requiredSingleSelection("What would you like to do?", items: ArchiveOption.allCases)
     }
 
     func filterStaleArchives(_ archives: [ArchiveFolder], daysOld: Int) -> [ArchiveFolder] {
@@ -109,7 +97,7 @@ private extension ArchiveController {
 
 // MARK: - Dependencies
 enum ArchiveOption: CaseIterable {
-    case deleteAll, deleteStale, selectFolders
+    case deleteStale, selectFolders
 }
 
 
@@ -117,8 +105,6 @@ enum ArchiveOption: CaseIterable {
 extension ArchiveOption: DisplayablePickerItem {
     var displayName: String {
         switch self {
-        case .deleteAll:
-            return "Delete all archives"
         case .deleteStale:
             return "Delete stale archives (30+ days old)"
         case .selectFolders:
