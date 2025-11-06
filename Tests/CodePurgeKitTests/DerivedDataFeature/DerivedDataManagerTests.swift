@@ -79,11 +79,13 @@ extension DerivedDataManagerTests {
         #expect(delegate.deletedURLs.contains(folder3.url))
     }
 
-    @Test("Deletes no folders when given empty array")
-    func deletesNoFoldersWhenGivenEmptyArray() throws {
+    @Test("Throws error when given empty array")
+    func throwsErrorWhenGivenEmptyArray() throws {
         let (sut, _, delegate, _, _) = makeSUT(foldersToLoad: [])
 
-        try sut.deleteFolders([], force: false, progressHandler: nil)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: nil)
+        }
 
         #expect(delegate.deletedURLs.isEmpty)
     }
@@ -119,11 +121,13 @@ extension DerivedDataManagerTests {
         #expect(delegate.deletedURLs[0] == folder.url)
     }
 
-    @Test("Completes successfully when given empty folder list")
-    func completesSuccessfullyWhenGivenEmptyFolderList() throws {
+    @Test("Throws error when given empty folder list")
+    func throwsErrorWhenGivenEmptyFolderList() throws {
         let (sut, _, delegate, _, _) = makeSUT()
 
-        try sut.deleteFolders([], force: false, progressHandler: nil)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: nil)
+        }
 
         #expect(delegate.deletedURLs.isEmpty)
     }
@@ -146,6 +150,44 @@ extension DerivedDataManagerTests {
 
         #expect(throws: NSError.self) {
             try sut.deleteFolders([folder1, folder2], force: false, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+}
+
+
+// MARK: - Empty Folders Check Tests
+extension DerivedDataManagerTests {
+    @Test("Throws noItemsToDelete error before checking Xcode status")
+    func throwsNoItemsToDeleteErrorBeforeCheckingXcodeStatus() throws {
+        let (sut, _, _, _, _) = makeSUT(isXcodeRunning: true)
+        let emptyFolders: [DerivedDataFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Throws noItemsToDelete error even when force is true")
+    func throwsNoItemsToDeleteErrorEvenWhenForceIsTrue() throws {
+        let (sut, _, delegate, _, _) = makeSUT()
+        let emptyFolders: [DerivedDataFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: true, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+
+    @Test("Does not call delegate when folders array is empty")
+    func doesNotCallDelegateWhenFoldersArrayIsEmpty() throws {
+        let (sut, _, delegate, _, _) = makeSUT()
+        let emptyFolders: [DerivedDataFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
         }
 
         #expect(delegate.deletedURLs.isEmpty)
@@ -337,14 +379,17 @@ extension DerivedDataManagerTests {
         #expect(progressHandler.progressUpdates[2].message.contains(folder3.name))
     }
 
-    @Test("Does not call progress handler when no folders to delete")
-    func doesNotCallProgressHandlerWhenNoFoldersToDelete() throws {
+    @Test("Throws error and does not call progress handler when no folders to delete")
+    func throwsErrorAndDoesNotCallProgressHandlerWhenNoFoldersToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _, _, _, _) = makeSUT(foldersToLoad: [])
 
-        try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        }
 
         #expect(progressHandler.progressUpdates.isEmpty)
+        #expect(!progressHandler.didComplete)
     }
 
     @Test("Calls progress handler in correct deletion order")

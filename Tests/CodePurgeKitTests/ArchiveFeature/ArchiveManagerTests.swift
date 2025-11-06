@@ -210,11 +210,13 @@ extension ArchiveManagerTests {
         #expect(delegate.deletedURLs[0] == archive.url)
     }
 
-    @Test("Completes successfully when given empty archive list")
-    func completesSuccessfullyWhenGivenEmptyArchiveList() throws {
+    @Test("Throws error when given empty archive list")
+    func throwsErrorWhenGivenEmptyArchiveList() throws {
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteArchives([], force: false, progressHandler: nil)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteArchives([], force: false, progressHandler: nil)
+        }
 
         #expect(delegate.deletedURLs.isEmpty)
     }
@@ -237,6 +239,44 @@ extension ArchiveManagerTests {
 
         #expect(throws: NSError.self) {
             try sut.deleteArchives([archive1, archive2], force: false, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+}
+
+
+// MARK: - Empty Archives Check Tests
+extension ArchiveManagerTests {
+    @Test("Throws noItemsToDelete error before checking Xcode status")
+    func throwsNoItemsToDeleteErrorBeforeCheckingXcodeStatus() throws {
+        let (sut, _) = makeSUT(isXcodeRunning: true)
+        let emptyArchives: [ArchiveFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteArchives(emptyArchives, force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Throws noItemsToDelete error even when force is true")
+    func throwsNoItemsToDeleteErrorEvenWhenForceIsTrue() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyArchives: [ArchiveFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteArchives(emptyArchives, force: true, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+
+    @Test("Does not call delegate when archives array is empty")
+    func doesNotCallDelegateWhenArchivesArrayIsEmpty() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyArchives: [ArchiveFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteArchives(emptyArchives, force: false, progressHandler: nil)
         }
 
         #expect(delegate.deletedURLs.isEmpty)
@@ -314,15 +354,17 @@ extension ArchiveManagerTests {
         #expect(progressHandler.completedMessage != nil)
     }
 
-    @Test("Does not update progress but still completes when no archives to delete")
-    func doesNotUpdateProgressButStillCompletesWhenNoArchivesToDelete() throws {
+    @Test("Throws error and does not call progress handler when no archives to delete")
+    func throwsErrorAndDoesNotCallProgressHandlerWhenNoArchivesToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT()
 
-        try sut.deleteArchives([], force: false, progressHandler: progressHandler)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteArchives([], force: false, progressHandler: progressHandler)
+        }
 
         #expect(progressHandler.progressUpdates.isEmpty)
-        #expect(progressHandler.didComplete)
+        #expect(!progressHandler.didComplete)
     }
 
     @Test("Works correctly when progress handler is nil")

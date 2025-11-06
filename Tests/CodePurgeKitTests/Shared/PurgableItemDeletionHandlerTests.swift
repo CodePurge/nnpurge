@@ -55,12 +55,14 @@ extension PurgableItemDeletionHandlerTests {
         #expect(deleter.deletedURLs[2] == item3.url)
     }
 
-    @Test("Completes successfully when given empty array")
-    func completesSuccessfullyWhenGivenEmptyArray() throws {
+    @Test("Throws error when given empty array")
+    func throwsErrorWhenGivenEmptyArray() throws {
         let (sut, deleter, _) = makeSUT()
         let emptyItems: [TestPurgableItem] = []
 
-        try sut.deleteItems(emptyItems, force: false, progressHandler: nil, completionMessage: "Done", xcodeRunningError: TestError.testError)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteItems(emptyItems, force: false, progressHandler: nil, completionMessage: "Done", xcodeRunningError: TestError.testError)
+        }
 
         #expect(deleter.deletedURLs.isEmpty)
     }
@@ -75,6 +77,44 @@ extension PurgableItemDeletionHandlerTests {
         #expect(deleter.deletedURLs.count == 1)
         guard deleter.deletedURLs.count >= 1 else { return }
         #expect(deleter.deletedURLs[0] == item.url)
+    }
+}
+
+
+// MARK: - Empty Items Check Tests
+extension PurgableItemDeletionHandlerTests {
+    @Test("Throws noItemsToDelete error before checking Xcode status")
+    func throwsNoItemsToDeleteErrorBeforeCheckingXcodeStatus() throws {
+        let (sut, _, _) = makeSUT(isXcodeRunning: true)
+        let emptyItems: [TestPurgableItem] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteItems(emptyItems, force: false, progressHandler: nil, completionMessage: "Done", xcodeRunningError: TestError.testError)
+        }
+    }
+
+    @Test("Throws noItemsToDelete error even when force is true")
+    func throwsNoItemsToDeleteErrorEvenWhenForceIsTrue() throws {
+        let (sut, deleter, _) = makeSUT()
+        let emptyItems: [TestPurgableItem] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteItems(emptyItems, force: true, progressHandler: nil, completionMessage: "Done", xcodeRunningError: TestError.testError)
+        }
+
+        #expect(deleter.deletedURLs.isEmpty)
+    }
+
+    @Test("Does not call deleter when items array is empty")
+    func doesNotCallDeleterWhenItemsArrayIsEmpty() throws {
+        let (sut, deleter, _) = makeSUT()
+        let emptyItems: [TestPurgableItem] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteItems(emptyItems, force: false, progressHandler: nil, completionMessage: "Done", xcodeRunningError: TestError.testError)
+        }
+
+        #expect(deleter.deletedURLs.isEmpty)
     }
 }
 
@@ -160,18 +200,19 @@ extension PurgableItemDeletionHandlerTests {
         #expect(progressHandler.completedMessage == completionMessage)
     }
 
-    @Test("Calls complete even when no items to delete")
-    func callsCompleteEvenWhenNoItemsToDelete() throws {
+    @Test("Throws error and does not call progress handler when no items to delete")
+    func throwsErrorAndDoesNotCallProgressHandlerWhenNoItemsToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
         let completionMessage = "Done"
         let (sut, _, _) = makeSUT()
         let emptyItems: [TestPurgableItem] = []
 
-        try sut.deleteItems(emptyItems, force: false, progressHandler: progressHandler, completionMessage: completionMessage, xcodeRunningError: TestError.testError)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteItems(emptyItems, force: false, progressHandler: progressHandler, completionMessage: completionMessage, xcodeRunningError: TestError.testError)
+        }
 
         #expect(progressHandler.progressUpdates.isEmpty)
-        #expect(progressHandler.didComplete)
-        #expect(progressHandler.completedMessage == completionMessage)
+        #expect(!progressHandler.didComplete)
     }
 
     @Test("Works correctly when progress handler is nil")

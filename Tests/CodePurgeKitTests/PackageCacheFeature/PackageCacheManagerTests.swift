@@ -105,11 +105,13 @@ extension PackageCacheManagerTests {
         #expect(delegate.deletedURLs[0] == package.url)
     }
 
-    @Test("Completes successfully when given empty folder list")
-    func completesSuccessfullyWhenGivenEmptyFolderList() throws {
+    @Test("Throws error when given empty folder list")
+    func throwsErrorWhenGivenEmptyFolderList() throws {
         let (sut, delegate) = makeSUT()
 
-        try sut.deleteFolders([], force: false, progressHandler: nil)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: nil)
+        }
 
         #expect(delegate.deletedURLs.isEmpty)
     }
@@ -132,6 +134,44 @@ extension PackageCacheManagerTests {
 
         #expect(throws: NSError.self) {
             try sut.deleteFolders([package1, package2], force: false, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+}
+
+
+// MARK: - Empty Folders Check Tests
+extension PackageCacheManagerTests {
+    @Test("Throws noItemsToDelete error before checking Xcode status")
+    func throwsNoItemsToDeleteErrorBeforeCheckingXcodeStatus() throws {
+        let (sut, _) = makeSUT(xcodeRunningStatus: true)
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Throws noItemsToDelete error even when force is true")
+    func throwsNoItemsToDeleteErrorEvenWhenForceIsTrue() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: true, progressHandler: nil)
+        }
+
+        #expect(delegate.deletedURLs.isEmpty)
+    }
+
+    @Test("Does not call delegate when folders array is empty")
+    func doesNotCallDelegateWhenFoldersArrayIsEmpty() throws {
+        let (sut, delegate) = makeSUT()
+        let emptyFolders: [PackageCacheFolder] = []
+
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders(emptyFolders, force: false, progressHandler: nil)
         }
 
         #expect(delegate.deletedURLs.isEmpty)
@@ -205,14 +245,17 @@ extension PackageCacheManagerTests {
         #expect(progressHandler.didComplete)
     }
 
-    @Test("Does not call progress handler when no packages to delete")
-    func doesNotCallProgressHandlerWhenNoPackagesToDelete() throws {
+    @Test("Throws error and does not call progress handler when no packages to delete")
+    func throwsErrorAndDoesNotCallProgressHandlerWhenNoPackagesToDelete() throws {
         let progressHandler = MockPurgeProgressHandler()
         let (sut, _) = makeSUT(foldersToLoad: [])
 
-        try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        #expect(throws: PurgableItemError.noItemsToDelete) {
+            try sut.deleteFolders([], force: false, progressHandler: progressHandler)
+        }
 
         #expect(progressHandler.progressUpdates.isEmpty)
+        #expect(!progressHandler.didComplete)
     }
 }
 

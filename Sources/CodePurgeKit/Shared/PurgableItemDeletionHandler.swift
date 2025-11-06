@@ -26,6 +26,10 @@ extension PurgableItemDeletionHandler {
         completionMessage: String,
         xcodeRunningError: Error
     ) throws {
+        guard !items.isEmpty else {
+            throw PurgableItemError.noItemsToDelete
+        }
+
         if !force {
             guard !xcodeChecker.isXcodeRunning() else {
                 throw xcodeRunningError
@@ -52,4 +56,8 @@ public protocol PurgableItemDeleter {
 public protocol PurgableItem {
     var name: String { get }
     var url: URL { get }
+}
+
+public enum PurgableItemError: Error, Equatable {
+    case noItemsToDelete
 }
