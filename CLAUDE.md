@@ -25,10 +25,12 @@ swift test --skip <pattern>    # Skip specific tests
 
 ### Run
 ```bash
-swift run nnpurge --help       # Show help
-swift run nnpurge --version    # Show version
-swift run nnpurge ddd          # Delete DerivedData (interactive)
-swift run nnpurge dspc         # Delete Swift Package cache (interactive)
+swift run nnpurge --help                      # Show help
+swift run nnpurge --version                   # Show version
+swift run nnpurge derived-data delete         # Delete DerivedData (interactive)
+swift run nnpurge derived-data path           # View/set custom DerivedData path
+swift run nnpurge package-cache delete        # Delete Swift Package cache (interactive)
+swift run nnpurge package-cache clean         # Clean project dependency caches
 ```
 
 ## Architecture
@@ -36,9 +38,15 @@ swift run nnpurge dspc         # Delete Swift Package cache (interactive)
 ### Core Components
 
 **Command Structure**: Built on Swift Argument Parser with subcommands:
-- `DeleteDerivedData` (`ddd`) - Manages DerivedData folders
-- `DeletePackageCache` (`dspc`) - Manages Swift Package caches  
-- `SetDerivedDataPath` (`sdp`) - Sets custom DerivedData path
+- `derived-data` - Manages DerivedData folders
+  - `delete` - Delete DerivedData folders (interactive or `--all`)
+  - `path` - View, set (`--set`), or reset (`--reset`) custom DerivedData location
+- `package-cache` - Manages Swift Package caches
+  - `delete` - Delete package cache repositories (interactive or `--all`)
+  - `clean` - Clean project dependency caches (optionally `--path`)
+- `archive` - (Currently disabled) Manages Xcode archives
+
+**Note**: Legacy command names (`ddd`, `dspc`, `sdp`) were used in versions prior to 0.2.0
 
 **Dependency Injection**: Uses factory pattern via `ContextFactory` protocol:
 - `DefaultContextFactory` - Production implementation

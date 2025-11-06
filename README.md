@@ -1,7 +1,7 @@
 # nnpurge
 
 ![Swift Version](https://badgen.net/badge/swift/6.0%2B/purple)
-![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-blue)
+![Platform](https://img.shields.io/badge/Platform-macOS%2013%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgray)
 
 ## Overview
@@ -12,13 +12,19 @@ Built with modular testable components and leveraging Swift Argument Parser, Swi
 
 ## Features
 
-- Delete all or selected DerivedData folders
-- Open the DerivedData folder in Finder
-- Delete all or selected Swift Package cache repositories
-- Store custom DerivedData path preferences
-- Interactive prompts using `SwiftPicker`
-- Fully testable with mock dependencies
-- Lightweight abstraction over `UserDefaults` and filesystem operations
+- **DerivedData Management**
+  - Delete all or selected DerivedData folders
+  - View, set, and reset custom DerivedData path
+  - Xcode running detection with force quit option
+- **Swift Package Cache Management**
+  - Delete all or selected Swift Package cache repositories
+  - Clean project-specific dependency caches
+  - Delete stale package caches (older than 30 days)
+- **Safety & User Experience**
+  - Interactive prompts using `SwiftPicker`
+  - Progress bars with percentage display during deletion
+  - Fully testable with mock dependencies
+  - Lightweight abstraction over `UserDefaults` and filesystem operations
 
 ## Installation
 
@@ -40,50 +46,37 @@ Then add `.build/release/nnpurge` to your PATH.
 nnpurge --version
 ```
 
-### Set a custom DerivedData path
+### DerivedData Management
+
+**View, set, or reset custom DerivedData path:**
 
 ```bash
-nnpurge sdp ~/Custom/DerivedData
+nnpurge derived-data path              # View current path
+nnpurge derived-data path --set ~/Custom/DerivedData
+nnpurge derived-data path --reset      # Reset to default
 ```
 
-### Delete DerivedData folders
-
-**Interactively:**
+**Delete DerivedData folders:**
 
 ```bash
-nnpurge ddd
+nnpurge derived-data delete            # Interactive selection
+nnpurge derived-data delete --all      # Delete all folders
 ```
 
-**Force delete all:**
+### Swift Package Cache Management
+
+**Delete package cache repositories:**
 
 ```bash
-nnpurge ddd --all
+nnpurge package-cache delete           # Interactive selection
+nnpurge package-cache delete --all     # Delete all repositories
 ```
 
-**Open DerivedData folder:**
+**Clean project dependency caches:**
 
 ```bash
-nnpurge ddd --open
-```
-
-### Delete Swift Package cache
-
-**Interactively:**
-
-```bash
-nnpurge dspc
-```
-
-**Force delete all:**
-
-```bash
-nnpurge dspc --all
-```
-
-**Open packages folder:**
-
-```bash
-nnpurge dspc --open
+nnpurge package-cache clean            # Clean current project
+nnpurge package-cache clean --path ~/Projects/MyApp
 ```
 
 ## Documentation
@@ -103,7 +96,6 @@ nnpurge dspc --open
 This project uses the following open-source libraries:
 
 - [Files](https://github.com/JohnSundell/Files)
-- [SwiftShell](https://github.com/kareman/SwiftShell)
 - [Swift Argument Parser](https://github.com/apple/swift-argument-parser)
 - [SwiftPicker](https://github.com/nikolainobadi/SwiftPicker)
 
