@@ -339,13 +339,79 @@ extension ArchiveManagerTests {
 }
 
 
+// MARK: - Xcode Safety Tests
+extension ArchiveManagerTests {
+    @Test("Throws xcodeIsRunning error when Xcode is running and force is false")
+    func throwsXcodeIsRunningErrorWhenXcodeIsRunningAndForceIsFalse() throws {
+        let archive = makeArchiveFolder(name: "TestArchive.xcarchive")
+        let (sut, _) = makeSUT(isXcodeRunning: true)
+
+        #expect(throws: ArchiveError.xcodeIsRunning) {
+            try sut.deleteArchives([archive], force: false, progressHandler: nil)
+        }
+    }
+
+    @Test("Proceeds with deletion when force is true even if Xcode is running")
+    func proceedsWithDeletionWhenForceIsTrueEvenIfXcodeIsRunning() throws {
+        let archive = makeArchiveFolder(name: "TestArchive.xcarchive")
+        let (sut, delegate) = makeSUT(isXcodeRunning: true)
+
+        try sut.deleteArchives([archive], force: true, progressHandler: nil)
+
+        #expect(delegate.deletedArchives.count == 1)
+        #expect(delegate.deletedArchives.first?.name == archive.name)
+    }
+
+    @Test("Does not throw when Xcode is not running")
+    func doesNotThrowWhenXcodeIsNotRunning() throws {
+        let archive = makeArchiveFolder(name: "TestArchive.xcarchive")
+        let (sut, delegate) = makeSUT(isXcodeRunning: false)
+
+        try sut.deleteArchives([archive], force: false, progressHandler: nil)
+
+        #expect(delegate.deletedArchives.count == 1)
+    }
+
+    @Test("Successfully closes Xcode and verifies")
+    func successfullyClosesXcodeAndVerifies() throws {
+        let (sut, _) = makeSUT(isXcodeRunning: false, terminationSucceeds: true)
+
+        try sut.closeXcodeAndVerify(timeout: 1.0)
+    }
+
+    @Test("Throws error when Xcode termination fails")
+    func throwsErrorWhenXcodeTerminationFails() throws {
+        let (sut, _) = makeSUT(terminationSucceeds: false)
+
+        #expect(throws: ArchiveError.xcodeFailedToClose) {
+            try sut.closeXcodeAndVerify(timeout: 1.0)
+        }
+    }
+
+    @Test("Throws error when Xcode still running after timeout")
+    func throwsErrorWhenXcodeStillRunningAfterTimeout() throws {
+        let (sut, _) = makeSUT(isXcodeRunning: true, terminationSucceeds: true)
+
+        #expect(throws: ArchiveError.xcodeFailedToClose) {
+            try sut.closeXcodeAndVerify(timeout: 0.1)
+        }
+    }
+}
+
+
 // MARK: - SUT
 private extension ArchiveManagerTests {
-    func makeSUT(throwError: Bool = false, foldersToLoad: [any PurgeFolder] = [], plist: [String: Any]? = nil) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
+    func makeSUT(
+        throwError: Bool = false,
+        foldersToLoad: [any PurgeFolder] = [],
+        plist: [String: Any]? = nil,
+        isXcodeRunning: Bool = false,
+        terminationSucceeds: Bool = true
+    ) -> (sut: ArchiveManager, delegate: MockArchiveDelegate) {
         let loader = MockPurgeFolderLoader(throwError: throwError, foldersToLoad: foldersToLoad)
         let delegate = MockArchiveDelegate(throwError: throwError, plist: plist)
-        let xcodeChecker = MockXcodeStatusChecker(xcodeRunningStatus: false)
-        let xcodeTerminator = MockXcodeTerminator(terminationSucceeds: true)
+        let xcodeChecker = MockXcodeStatusChecker(xcodeRunningStatus: isXcodeRunning)
+        let xcodeTerminator = MockXcodeTerminator(terminationSucceeds: terminationSucceeds)
         let sut = ArchiveManager(config: .defaultConfig, loader: loader, delegate: delegate, xcodeChecker: xcodeChecker, xcodeTerminator: xcodeTerminator)
 
         return (sut, delegate)
