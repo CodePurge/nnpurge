@@ -423,18 +423,33 @@ private extension DerivedDataManagerTests {
 private extension DerivedDataManagerTests {
     final class MockDerivedDataDelegate: DerivedDataDelegate, @unchecked Sendable {
         private let throwError: Bool
+        private var deletedURLs: [URL] = []
 
-        private(set) var deletedFolders: [DerivedDataFolder] = []
+        var deletedFolders: [DerivedDataFolder] {
+            deletedURLs.map { url in
+                DerivedDataFolder(
+                    url: url,
+                    name: url.lastPathComponent,
+                    path: url.path,
+                    creationDate: nil,
+                    modificationDate: nil
+                )
+            }
+        }
 
         init(throwError: Bool = false) {
             self.throwError = throwError
         }
 
         func deleteFolder(_ folder: DerivedDataFolder) throws {
+            try deleteItem(at: folder.url)
+        }
+
+        func deleteItem(at url: URL) throws {
             if throwError {
                 throw NSError(domain: "MockDerivedDataDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
             }
-            deletedFolders.append(folder)
+            deletedURLs.append(url)
         }
     }
 
