@@ -13,11 +13,13 @@ struct ArchiveController {
     private let picker: any CommandLinePicker
     private let service: any ArchiveService
     private let progressHandler: any PurgeProgressHandler
+    private let xcodeHandler: XcodeRunningHandler
 
     init(picker: any CommandLinePicker, service: any ArchiveService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
+        self.xcodeHandler = .init(picker: picker, progressHandler: progressHandler)
     }
 }
 
@@ -96,22 +98,12 @@ private extension ArchiveController {
     }
 
     func handleXcodeRunning(archivesToDelete: [ArchiveFolder]) throws {
-        let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
-
-        switch option {
-        case .proceedAnyway:
-            try service.deleteArchives(archivesToDelete, force: true, progressHandler: progressHandler)
-        case .closeXcodeAndProceed:
-            do {
-                try service.closeXcodeAndVerify(timeout: 10.0)
-                try service.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
-            } catch let error where (error as? ArchiveError) == .xcodeFailedToClose {
-                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
-                throw ArchiveError.xcodeFailedToClose
-            }
-        case .cancel:
-            print("Operation cancelled.")
-        }
+        try xcodeHandler.handle(
+            itemsToDelete: archivesToDelete,
+            deleteOperation: service.deleteArchives,
+            closeXcodeOperation: service.closeXcodeAndVerify,
+            xcodeFailedToCloseError: ArchiveError.xcodeFailedToClose
+        )
     }
 }
 
