@@ -13,7 +13,7 @@ public struct ArchiveManager {
     private let delegate: any ArchiveDelegate
     private let xcodeChecker: any XcodeStatusChecker
     private let xcodeTerminator: any XcodeTerminator
-    private let deletionHelper: PurgableItemDeletionHelper
+    private let deletionHelper: PurgableItemDeletionHandler
 
     init(config: ArchiveConfig, loader: any PurgeFolderLoader, delegate: any ArchiveDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.config = config
@@ -21,7 +21,7 @@ public struct ArchiveManager {
         self.delegate = delegate
         self.xcodeChecker = xcodeChecker
         self.xcodeTerminator = xcodeTerminator
-        self.deletionHelper = PurgableItemDeletionHelper(deleter: delegate, xcodeChecker: xcodeChecker)
+        self.deletionHelper = PurgableItemDeletionHandler(deleter: delegate, xcodeChecker: xcodeChecker)
     }
 }
 

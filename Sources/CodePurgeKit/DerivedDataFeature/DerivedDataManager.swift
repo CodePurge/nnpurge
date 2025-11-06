@@ -13,7 +13,7 @@ public struct DerivedDataManager {
     private let delegate: any DerivedDataDelegate
     private let xcodeChecker: any XcodeStatusChecker
     private let xcodeTerminator: any XcodeTerminator
-    private let deletionHelper: PurgableItemDeletionHelper
+    private let deletionHelper: PurgableItemDeletionHandler
 
     init(path: String, loader: any PurgeFolderLoader, delegate: any DerivedDataDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.path = path
@@ -21,7 +21,7 @@ public struct DerivedDataManager {
         self.delegate = delegate
         self.xcodeChecker = xcodeChecker
         self.xcodeTerminator = xcodeTerminator
-        self.deletionHelper = PurgableItemDeletionHelper(deleter: delegate, xcodeChecker: xcodeChecker)
+        self.deletionHelper = PurgableItemDeletionHandler(deleter: delegate, xcodeChecker: xcodeChecker)
     }
 }
 

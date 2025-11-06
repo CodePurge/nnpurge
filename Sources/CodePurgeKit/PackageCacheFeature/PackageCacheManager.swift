@@ -14,7 +14,7 @@ public struct PackageCacheManager {
     private let fileSystemDelegate: any FileSystemDelegate
     private let xcodeChecker: any XcodeStatusChecker
     private let xcodeTerminator: any XcodeTerminator
-    private let deletionHelper: PurgableItemDeletionHelper
+    private let deletionHelper: PurgableItemDeletionHandler
 
     init(loader: any PurgeFolderLoader, delegate: any PackageCacheDelegate, fileSystemDelegate: any FileSystemDelegate, xcodeChecker: any XcodeStatusChecker, xcodeTerminator: any XcodeTerminator) {
         self.loader = loader
@@ -22,7 +22,7 @@ public struct PackageCacheManager {
         self.fileSystemDelegate = fileSystemDelegate
         self.xcodeChecker = xcodeChecker
         self.xcodeTerminator = xcodeTerminator
-        self.deletionHelper = PurgableItemDeletionHelper(deleter: delegate, xcodeChecker: xcodeChecker)
+        self.deletionHelper = PurgableItemDeletionHandler(deleter: delegate, xcodeChecker: xcodeChecker)
         self.path = NSString(string: "~/Library/Caches/org.swift.swiftpm/repositories").expandingTildeInPath
     }
 }

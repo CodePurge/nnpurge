@@ -1,5 +1,5 @@
 //
-//  PurgableItemDeletion.swift
+//  PurgableItemDeletionHandler.swift
 //  CodePurgeKit
 //
 //  Created by Nikolai Nobadi on 11/6/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PurgableItemDeletionHelper {
+struct PurgableItemDeletionHandler {
     private let deleter: any PurgableItemDeleter
     private let xcodeChecker: any XcodeStatusChecker
     
@@ -18,7 +18,7 @@ struct PurgableItemDeletionHelper {
 }
 
 
-extension PurgableItemDeletionHelper {
+extension PurgableItemDeletionHandler {
     func deleteItems<T: PurgableItem>(
         _ items: [T],
         force: Bool,
