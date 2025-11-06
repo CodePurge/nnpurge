@@ -25,7 +25,6 @@ extension XcodeRunningHandler {
     func handle<Item>(
         itemsToDelete: [Item],
         deleteOperation: ([Item], Bool, (any PurgeProgressHandler)?) throws -> Void,
-        closeXcodeOperation: (TimeInterval) throws -> Void,
         xcodeFailedToCloseError: Error
     ) throws {
         let option = try picker.requiredSingleSelection("Xcode is currently running. What would you like to do?", items: XcodeRunningOption.allCases)
@@ -33,14 +32,10 @@ extension XcodeRunningHandler {
         switch option {
         case .proceedAnyway:
             try deleteOperation(itemsToDelete, true, progressHandler)
-        case .closeXcodeAndProceed:
-            do {
-                try closeXcodeOperation(10.0)
-                try deleteOperation(itemsToDelete, false, progressHandler)
-            } catch {
-                print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
-                throw xcodeFailedToCloseError
-            }
+        case .waitUntilUserClosesXcode:
+            print("\n⚠️  Please close Xcode before proceeding.")
+            try picker.requiredPermission("Have you closed Xcode?")
+            try deleteOperation(itemsToDelete, false, progressHandler)
         case .cancel:
             print("Operation cancelled.")
         }

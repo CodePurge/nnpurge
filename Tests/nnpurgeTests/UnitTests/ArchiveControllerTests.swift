@@ -600,24 +600,22 @@ extension ArchiveControllerTests {
         #expect(service.deletedArchives.contains(where: { $0.name == archives[1].name }))
     }
 
-    @Test("Closes Xcode and proceeds when user selects close Xcode option")
-    func closesXcodeAndProceedsWhenUserSelectsCloseXcodeOption() throws {
+    @Test("Waits for user to close Xcode and proceeds when confirmed")
+    func waitsForUserToCloseXcodeAndProceedsWhenConfirmed() throws {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([waitUntilClosedIndex])
             ),
             archivesToLoad: archives,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: true
+            throwXcodeRunning: true
         )
 
         try sut.deleteArchives(deleteAll: true)
 
         #expect(service.deletedArchives.count == 1)
-        #expect(service.didCloseXcode)
     }
 
     @Test("Cancels operation when user selects cancel option")
@@ -638,21 +636,20 @@ extension ArchiveControllerTests {
         #expect(service.deletedArchives.isEmpty)
     }
 
-    @Test("Throws error when Xcode fails to close after user selects close option")
-    func throwsErrorWhenXcodeFailsToCloseAfterUserSelectsCloseOption() throws {
+    @Test("Throws error when user denies Xcode closure confirmation")
+    func throwsErrorWhenUserDeniesXcodeClosureConfirmation() throws {
         let archives = [makeArchiveFolder(name: "Archive1.xcarchive")]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, _, _) = makeSUT(
-            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([waitUntilClosedIndex])
             ),
             archivesToLoad: archives,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: false
+            throwXcodeRunning: true
         )
 
-        #expect(throws: ArchiveError.xcodeFailedToClose) {
+        #expect(throws: (any Error).self) {
             try sut.deleteArchives(deleteAll: true)
         }
     }

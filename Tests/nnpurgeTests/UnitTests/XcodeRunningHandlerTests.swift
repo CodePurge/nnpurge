@@ -18,8 +18,8 @@ struct XcodeRunningHandlerTests {
     func emptyStartingValues() {
         let (_, service) = makeSUT()
 
-        #expect(!service.didCloseXcode)
         #expect(service.deletedItems.isEmpty)
+        #expect(!service.forceWasUsed)
     }
 }
 
@@ -37,13 +37,11 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
         #expect(service.deletedItems.count == items.count)
         #expect(service.forceWasUsed)
-        #expect(!service.didCloseXcode)
     }
 
     @Test("Passes all items to delete operation when proceeding anyway")
@@ -59,7 +57,6 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
@@ -69,104 +66,101 @@ extension XcodeRunningHandlerTests {
 }
 
 
-// MARK: - Close Xcode And Proceed Tests
+// MARK: - Wait Until User Closes Xcode Tests
 extension XcodeRunningHandlerTests {
-    @Test("Closes Xcode and deletes items when user selects close Xcode option")
-    func closesXcodeAndDeletesItemsWhenUserSelectsCloseXcodeOption() throws {
+    @Test("Deletes items when user confirms Xcode is closed")
+    func deletesItemsWhenUserConfirmsXcodeIsClosed() throws {
         let items = ["Item1", "Item2"]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([closeXcodeIndex])),
-            closeXcodeSucceeds: true
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(singleSelectionType: .ordered([waitUntilClosedIndex]))
         )
 
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
-        #expect(service.didCloseXcode)
         #expect(service.deletedItems.count == items.count)
         #expect(!service.forceWasUsed)
     }
 
-    @Test("Uses non-force deletion after successfully closing Xcode")
-    func usesNonForceDeletionAfterSuccessfullyClosingXcode() throws {
+    @Test("Uses non-force deletion when user confirms Xcode is closed")
+    func usesNonForceDeletionWhenUserConfirmsXcodeIsClosed() throws {
         let items = ["Item1"]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([closeXcodeIndex])),
-            closeXcodeSucceeds: true
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(singleSelectionType: .ordered([waitUntilClosedIndex]))
         )
 
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
         #expect(!service.forceWasUsed)
     }
 
-    @Test("Throws error when Xcode fails to close")
-    func throwsErrorWhenXcodeFailsToClose() throws {
+    @Test("Throws error when user denies Xcode closure confirmation")
+    func throwsErrorWhenUserDeniesXcodeClosureConfirmation() throws {
         let items = ["Item1"]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([closeXcodeIndex])),
-            closeXcodeSucceeds: false
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
+            selectionResult: .init(singleSelectionType: .ordered([waitUntilClosedIndex]))
         )
 
-        #expect(throws: TestError.xcodeFailedToClose) {
+        #expect(throws: (any Error).self) {
             try sut.handle(
                 itemsToDelete: items,
                 deleteOperation: service.deleteItems,
-                closeXcodeOperation: service.closeXcode,
                 xcodeFailedToCloseError: TestError.xcodeFailedToClose
             )
         }
     }
 
-    @Test("Does not delete items when Xcode fails to close")
-    func doesNotDeleteItemsWhenXcodeFailsToClose() throws {
+    @Test("Does not delete items when user denies Xcode closure confirmation")
+    func doesNotDeleteItemsWhenUserDeniesXcodeClosureConfirmation() throws {
         let items = ["Item1", "Item2"]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([closeXcodeIndex])),
-            closeXcodeSucceeds: false
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
+            selectionResult: .init(singleSelectionType: .ordered([waitUntilClosedIndex]))
         )
 
         try? sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
         #expect(service.deletedItems.isEmpty)
     }
 
-    @Test("Closes Xcode before attempting deletion")
-    func closesXcodeBeforeAttemptingDeletion() throws {
+    @Test("Asks for confirmation before attempting deletion")
+    func asksForConfirmationBeforeAttemptingDeletion() throws {
         let items = ["Item1"]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
+        let expectedPrompt = "Have you closed Xcode?"
         let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([closeXcodeIndex])),
-            closeXcodeSucceeds: true
+            permissionResult: .init(
+                grantByDefault: true,
+                type: .dictionary([expectedPrompt: true])
+            ),
+            selectionResult: .init(singleSelectionType: .ordered([waitUntilClosedIndex]))
         )
 
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
-        #expect(service.didCloseXcode)
-        #expect(service.closeXcodeCalledBeforeDeletion)
+        #expect(service.deletedItems.count == items.count)
     }
 }
 
@@ -184,29 +178,10 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
         #expect(service.deletedItems.isEmpty)
-    }
-
-    @Test("Does not close Xcode when user cancels operation")
-    func doesNotCloseXcodeWhenUserCancelsOperation() throws {
-        let items = ["Item1"]
-        let cancelIndex = 2
-        let (sut, service) = makeSUT(
-            selectionResult: .init(singleSelectionType: .ordered([cancelIndex]))
-        )
-
-        try sut.handle(
-            itemsToDelete: items,
-            deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
-            xcodeFailedToCloseError: TestError.xcodeFailedToClose
-        )
-
-        #expect(!service.didCloseXcode)
     }
 }
 
@@ -226,7 +201,6 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: ["Item1"],
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
     }
@@ -241,7 +215,6 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: ["Item1"],
             deleteOperation: service.deleteItems,
-            closeXcodeOperation: service.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
     }
@@ -265,7 +238,6 @@ extension XcodeRunningHandlerTests {
         try sut.handle(
             itemsToDelete: items,
             deleteOperation: customService.deleteItems,
-            closeXcodeOperation: customService.closeXcode,
             xcodeFailedToCloseError: TestError.xcodeFailedToClose
         )
 
@@ -279,12 +251,15 @@ extension XcodeRunningHandlerTests {
 // MARK: - SUT
 private extension XcodeRunningHandlerTests {
     func makeSUT(
-        selectionResult: MockSelectionResult = .init(),
-        closeXcodeSucceeds: Bool = true
+        permissionResult: MockPermissionResult = .init(),
+        selectionResult: MockSelectionResult = .init()
     ) -> (sut: XcodeRunningHandler, service: MockXcodeService) {
-        let picker = MockSwiftPicker(selectionResult: selectionResult)
+        let picker = MockSwiftPicker(
+            permissionResult: permissionResult,
+            selectionResult: selectionResult
+        )
         let progressHandler = MockPurgeProgressHandler()
-        let service = MockXcodeService(closeXcodeSucceeds: closeXcodeSucceeds)
+        let service = MockXcodeService()
         let sut = XcodeRunningHandler(picker: picker, progressHandler: progressHandler)
 
         return (sut, service)
@@ -305,33 +280,12 @@ private struct CustomItem {
 
 // MARK: - Mock Service
 private final class MockXcodeService: @unchecked Sendable {
-    private let closeXcodeSucceeds: Bool
-    private var closeXcodeCallOrder = 0
-    private var deleteItemsCallOrder = 0
-
-    private(set) var didCloseXcode = false
     private(set) var deletedItems: [String] = []
     private(set) var forceWasUsed = false
-    private(set) var closeXcodeCalledBeforeDeletion = false
-
-    init(closeXcodeSucceeds: Bool) {
-        self.closeXcodeSucceeds = closeXcodeSucceeds
-    }
 
     func deleteItems(_ items: [String], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
-        deleteItemsCallOrder = closeXcodeCallOrder + 1
         deletedItems = items
         forceWasUsed = force
-        closeXcodeCalledBeforeDeletion = closeXcodeCallOrder > 0 && closeXcodeCallOrder < deleteItemsCallOrder
-    }
-
-    func closeXcode(_ timeout: TimeInterval) throws {
-        closeXcodeCallOrder = deleteItemsCallOrder + 1
-        didCloseXcode = true
-
-        if !closeXcodeSucceeds {
-            throw TestError.xcodeFailedToClose
-        }
     }
 }
 
@@ -340,9 +294,5 @@ private final class MockCustomItemService: @unchecked Sendable {
 
     func deleteItems(_ items: [CustomItem], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
         deletedItems = items
-    }
-
-    func closeXcode(_ timeout: TimeInterval) throws {
-        // No-op for this test
     }
 }

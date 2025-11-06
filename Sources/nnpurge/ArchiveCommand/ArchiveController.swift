@@ -101,7 +101,6 @@ private extension ArchiveController {
         try xcodeHandler.handle(
             itemsToDelete: archivesToDelete,
             deleteOperation: service.deleteArchives,
-            closeXcodeOperation: service.closeXcodeAndVerify,
             xcodeFailedToCloseError: ArchiveError.xcodeFailedToClose
         )
     }

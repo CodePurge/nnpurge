@@ -101,7 +101,6 @@ private extension DerivedDataController {
         try xcodeHandler.handle(
             itemsToDelete: foldersToDelete,
             deleteOperation: service.deleteFolders,
-            closeXcodeOperation: service.closeXcodeAndVerify,
             xcodeFailedToCloseError: DerivedDataError.xcodeFailedToClose
         )
     }

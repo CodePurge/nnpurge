@@ -112,7 +112,6 @@ private extension PackageCacheController {
         try xcodeHandler.handle(
             itemsToDelete: foldersToDelete,
             deleteOperation: service.deleteFolders,
-            closeXcodeOperation: service.closeXcodeAndVerify,
             xcodeFailedToCloseError: PackageCacheError.xcodeFailedToClose
         )
     }

@@ -8,7 +8,7 @@
 import SwiftPicker
 
 enum XcodeRunningOption: CaseIterable {
-    case proceedAnyway, closeXcodeAndProceed, cancel
+    case proceedAnyway, waitUntilUserClosesXcode, cancel
 }
 
 extension XcodeRunningOption: DisplayablePickerItem {
@@ -16,8 +16,8 @@ extension XcodeRunningOption: DisplayablePickerItem {
         switch self {
         case .proceedAnyway:
             return "Proceed anyway (may cause issues)"
-        case .closeXcodeAndProceed:
-            return "Close Xcode and proceed"
+        case .waitUntilUserClosesXcode:
+            return "Wait until I close Xcode manually"
         case .cancel:
             return "Cancel operation"
         }

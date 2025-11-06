@@ -592,24 +592,22 @@ extension PackageCacheControllerTests {
         #expect(service.deletedPackageCacheFolders.contains(where: { $0.name == packages[1].name }))
     }
 
-    @Test("Closes Xcode and proceeds when user selects close Xcode option")
-    func closesXcodeAndProceedsWhenUserSelectsCloseXcodeOption() throws {
+    @Test("Waits for user to close Xcode and proceeds when confirmed")
+    func waitsForUserToCloseXcodeAndProceedsWhenConfirmed() throws {
         let packages = [makePackageCacheFolder(name: "Package1")]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([waitUntilClosedIndex])
             ),
             packageCacheFoldersToLoad: packages,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: true
+            throwXcodeRunning: true
         )
 
         try sut.deletePackageCache(deleteAll: true)
 
         #expect(service.deletedPackageCacheFolders.count == 1)
-        #expect(service.didCloseXcode)
     }
 
     @Test("Cancels operation when user selects cancel option")
@@ -630,21 +628,20 @@ extension PackageCacheControllerTests {
         #expect(service.deletedPackageCacheFolders.isEmpty)
     }
 
-    @Test("Throws error when Xcode fails to close after user selects close option")
-    func throwsErrorWhenXcodeFailsToCloseAfterUserSelectsCloseOption() throws {
+    @Test("Throws error when user denies Xcode closure confirmation")
+    func throwsErrorWhenUserDeniesXcodeClosureConfirmation() throws {
         let packages = [makePackageCacheFolder(name: "Package1")]
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, _, _) = makeSUT(
-            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([waitUntilClosedIndex])
             ),
             packageCacheFoldersToLoad: packages,
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: false
+            throwXcodeRunning: true
         )
 
-        #expect(throws: PackageCacheError.xcodeFailedToClose) {
+        #expect(throws: (any Error).self) {
             try sut.deletePackageCache(deleteAll: true)
         }
     }
@@ -673,25 +670,23 @@ extension PackageCacheControllerTests {
         #expect(service.deletedPackageCacheFolders.first?.name == package.name)
     }
 
-    @Test("Closes Xcode and proceeds when cleaning dependencies and user selects close Xcode")
-    func closesXcodeAndProceedsWhenCleaningDependenciesAndUserSelectsCloseXcode() throws {
+    @Test("Waits for user to close Xcode when cleaning dependencies")
+    func waitsForUserToCloseXcodeWhenCleaningDependencies() throws {
         let package = makePackageCacheFolder(name: "SwiftPicker-def456")
-        let closeXcodeIndex = 1
+        let waitUntilClosedIndex = 1
         let (sut, service, _) = makeSUT(
             permissionResult: .init(grantByDefault: true, type: .ordered([true])),
             selectionResult: .init(
-                singleSelectionType: .ordered([closeXcodeIndex])
+                singleSelectionType: .ordered([waitUntilClosedIndex])
             ),
             packageCacheFoldersToLoad: [package],
             dependenciesToLoad: ["swiftpicker"],
-            throwXcodeRunning: true,
-            closeXcodeSucceeds: true
+            throwXcodeRunning: true
         )
 
         try sut.cleanProjectDependencies(projectPath: nil as String?)
 
         #expect(service.deletedPackageCacheFolders.count == 1)
-        #expect(service.didCloseXcode)
     }
 
     @Test("Cancels clean dependencies when user selects cancel")
