@@ -223,6 +223,125 @@ extension DerivedDataControllerTests {
 }
 
 
+// MARK: - Xcode Running User Prompt Tests
+extension DerivedDataControllerTests {
+    @Test("Shows Xcode running prompt with three options")
+    func showsXcodeRunningPromptWithThreeOptions() throws {
+        let folders = [makeDerivedDataFolder(name: "Folder1")]
+        let expectedPrompt = "Xcode is currently running. What would you like to do?"
+        let (sut, _, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .dictionary([expectedPrompt: 2])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        try? sut.deleteDerivedData(deleteAll: true)
+    }
+
+    @Test("Proceeds with force deletion when user selects proceed anyway option")
+    func proceedsWithForceDeletionWhenUserSelectsProceedAnywayOption() throws {
+        let folder1 = makeDerivedDataFolder(name: "Folder1")
+        let folder2 = makeDerivedDataFolder(name: "Folder2")
+        let folders = [folder1, folder2]
+        let proceedAnywayIndex = 0
+        let (sut, service, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([proceedAnywayIndex])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteDerivedData(deleteAll: true)
+
+        #expect(service.deletedDerivedDataFolders.count == 2)
+        #expect(service.deletedDerivedDataFolders.contains(where: { $0.name == folder1.name }))
+        #expect(service.deletedDerivedDataFolders.contains(where: { $0.name == folder2.name }))
+    }
+
+    @Test("Waits for user to close Xcode and proceeds when confirmed")
+    func waitsForUserToCloseXcodeAndProceedsWhenConfirmed() throws {
+        let folders = [makeDerivedDataFolder(name: "Folder1")]
+        let waitUntilClosedIndex = 1
+        let (sut, service, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([waitUntilClosedIndex])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteDerivedData(deleteAll: true)
+
+        #expect(service.deletedDerivedDataFolders.count == 1)
+    }
+
+    @Test("Cancels operation when user selects cancel option")
+    func cancelsOperationWhenUserSelectsCancelOption() throws {
+        let folders = [makeDerivedDataFolder(name: "Folder1")]
+        let cancelIndex = 2
+        let (sut, service, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([cancelIndex])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteDerivedData(deleteAll: true)
+
+        #expect(service.deletedDerivedDataFolders.isEmpty)
+    }
+
+    @Test("Throws error when user denies Xcode closure confirmation")
+    func throwsErrorWhenUserDeniesXcodeClosureConfirmation() throws {
+        let folders = [makeDerivedDataFolder(name: "Folder1")]
+        let waitUntilClosedIndex = 1
+        let (sut, _, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: false, type: .ordered([false])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([waitUntilClosedIndex])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        #expect(throws: (any Error).self) {
+            try sut.deleteDerivedData(deleteAll: true)
+        }
+    }
+
+    @Test("Handles Xcode running when deleting selected folders")
+    func handlesXcodeRunningWhenDeletingSelectedFolders() throws {
+        let folder1 = makeDerivedDataFolder(name: "Folder1")
+        let folder2 = makeDerivedDataFolder(name: "Folder2")
+        let folders = [folder1, folder2]
+        let proceedAnywayIndex = 0
+        let (sut, service, _, _) = makeSUT(
+            permissionResult: .init(grantByDefault: true, type: .ordered([true])),
+            selectionResult: .init(
+                singleSelectionType: .ordered([1, proceedAnywayIndex]),
+                multiSelectionType: .ordered([[0, 1]])
+            ),
+            foldersToLoad: folders,
+            throwXcodeRunning: true
+        )
+
+        try sut.deleteDerivedData(deleteAll: false)
+
+        #expect(service.deletedDerivedDataFolders.count == 2)
+        #expect(service.deletedDerivedDataFolders.contains(where: { $0.name == folder1.name }))
+        #expect(service.deletedDerivedDataFolders.contains(where: { $0.name == folder2.name }))
+    }
+}
+
+
 // MARK: - Path Viewing Tests
 extension DerivedDataControllerTests {
     @Test("Returns default path message when no custom path is set")
@@ -440,11 +559,16 @@ private extension DerivedDataControllerTests {
         permissionResult: MockPermissionResult = .init(grantByDefault: true, type: .ordered([])),
         selectionResult: MockSelectionResult = .init(),
         throwError: Bool = false,
-        foldersToLoad: [DerivedDataFolder] = []
+        foldersToLoad: [DerivedDataFolder] = [],
+        throwXcodeRunning: Bool = false
     ) -> (sut: DerivedDataController, service: MockPurgeService, store: MockUserDefaults, progressHandler: MockPurgeProgressHandler) {
         let actualStore = store ?? MockUserDefaults()
         let progressHandler = MockPurgeProgressHandler()
-        let service = MockPurgeService(throwError: throwError, derivedDataFoldersToLoad: foldersToLoad)
+        let service = MockPurgeService(
+            throwError: throwError,
+            derivedDataFoldersToLoad: foldersToLoad,
+            throwXcodeRunning: throwXcodeRunning
+        )
         let picker = MockSwiftPicker(
             inputResult: inputResult,
             permissionResult: permissionResult,
