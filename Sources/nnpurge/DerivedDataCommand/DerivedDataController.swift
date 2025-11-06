@@ -105,7 +105,7 @@ private extension DerivedDataController {
             do {
                 try service.closeXcodeAndVerify(timeout: 10.0)
                 try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
-            } catch DerivedDataError.xcodeFailedToClose {
+            } catch let error where (error as? DerivedDataError) == .xcodeFailedToClose || (error as? PackageCacheError) == .xcodeFailedToClose {
                 print("❌ Failed to close Xcode. Please close Xcode manually and try again.")
                 throw DerivedDataError.xcodeFailedToClose
             }

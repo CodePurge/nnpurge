@@ -12,6 +12,8 @@ import CodePurgeKit
 final class MockPurgeService: @unchecked Sendable, DerivedDataService, PackageCacheService {
     private let throwError: Bool
     private let throwDependencyError: Bool
+    private let throwXcodeRunning: Bool
+    private let closeXcodeSucceeds: Bool
     private let derivedDataFoldersToLoad: [DerivedDataFolder]
     private let packageCacheFoldersToLoad: [PackageCacheFolder]
     private let dependenciesToLoad: [String]
@@ -22,16 +24,22 @@ final class MockPurgeService: @unchecked Sendable, DerivedDataService, PackageCa
     private(set) var receivedProgressHandler: PurgeProgressHandler?
     private(set) var didFindDependencies = false
     private(set) var searchedPath: String?
+    private(set) var didCloseXcode = false
+    private var xcodeRunningErrorThrown = false
 
     init(
         throwError: Bool = false,
         throwDependencyError: Bool = false,
         derivedDataFoldersToLoad: [DerivedDataFolder] = [],
         packageCacheFoldersToLoad: [PackageCacheFolder] = [],
-        dependenciesToLoad: [String] = []
+        dependenciesToLoad: [String] = [],
+        throwXcodeRunning: Bool = false,
+        closeXcodeSucceeds: Bool = true
     ) {
         self.throwError = throwError
         self.throwDependencyError = throwDependencyError
+        self.throwXcodeRunning = throwXcodeRunning
+        self.closeXcodeSucceeds = closeXcodeSucceeds
         self.derivedDataFoldersToLoad = derivedDataFoldersToLoad
         self.packageCacheFoldersToLoad = packageCacheFoldersToLoad
         self.dependenciesToLoad = dependenciesToLoad
@@ -55,6 +63,11 @@ extension MockPurgeService {
             throw NSError(domain: "TestError", code: 1)
         }
 
+        if throwXcodeRunning && !force && !xcodeRunningErrorThrown {
+            xcodeRunningErrorThrown = true
+            throw DerivedDataError.xcodeIsRunning
+        }
+
         receivedProgressHandler = progressHandler
         didDeleteAllDerivedData = true
         deletedDerivedDataFolders.append(contentsOf: folders)
@@ -67,8 +80,10 @@ extension MockPurgeService {
     }
 
     func closeXcodeAndVerify(timeout: TimeInterval) throws {
-        if throwError {
-            throw DerivedDataError.xcodeFailedToClose
+        didCloseXcode = true
+
+        if !closeXcodeSucceeds {
+            throw PackageCacheError.xcodeFailedToClose
         }
     }
 }
@@ -107,6 +122,11 @@ extension MockPurgeService {
     func deleteFolders(_ folders: [PackageCacheFolder], force: Bool, progressHandler: (any PurgeProgressHandler)?) throws {
         if throwError {
             throw NSError(domain: "TestError", code: 1)
+        }
+
+        if throwXcodeRunning && !force && !xcodeRunningErrorThrown {
+            xcodeRunningErrorThrown = true
+            throw PackageCacheError.xcodeIsRunning
         }
 
         receivedProgressHandler = progressHandler
