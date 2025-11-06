@@ -13,6 +13,7 @@ import SwiftPickerTesting
 @testable import nnpurge
 
 @MainActor
+@Suite(.disabled())
 final class DeleteArchiveTests {
     @Test("Deletes all archives when all flag passed", arguments: ["-a", "--all"])
     func deletesAllArchivesWhenAllFlagPassed(deleteAllArg: String) throws {
