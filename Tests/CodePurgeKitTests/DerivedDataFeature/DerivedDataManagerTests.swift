@@ -244,7 +244,7 @@ extension DerivedDataManagerTests {
     func closesXcodeSuccessfullyWhenTerminationSucceeds() throws {
         let (sut, _, _, _, terminator) = makeSUT(isXcodeRunning: false, xcodeTerminationSucceeds: true)
 
-        try sut.closeXcodeAndVerify()
+        try sut.closeXcodeAndVerify(timeout: 0.1)
 
         #expect(terminator.terminationSucceeds)
     }
@@ -254,7 +254,7 @@ extension DerivedDataManagerTests {
         let (sut, _, _, _, _) = makeSUT(xcodeTerminationSucceeds: false)
 
         #expect(throws: DerivedDataError.xcodeFailedToClose) {
-            try sut.closeXcodeAndVerify()
+            try sut.closeXcodeAndVerify(timeout: 0.1)
         }
     }
 
@@ -263,7 +263,7 @@ extension DerivedDataManagerTests {
         let (sut, _, _, _, _) = makeSUT(isXcodeRunning: true, xcodeTerminationSucceeds: true)
 
         #expect(throws: DerivedDataError.xcodeFailedToClose) {
-            try sut.closeXcodeAndVerify()
+            try sut.closeXcodeAndVerify(timeout: 0.1)
         }
     }
 }

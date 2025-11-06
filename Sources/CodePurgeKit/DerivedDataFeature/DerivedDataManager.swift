@@ -55,12 +55,11 @@ extension DerivedDataManager: DerivedDataService {
         progressHandler?.complete(message: "✅ Derived Data moved to trash.")
     }
 
-    public func closeXcodeAndVerify() throws {
+    public func closeXcodeAndVerify(timeout: TimeInterval = 10.0) throws {
         guard xcodeTerminator.terminateXcode() else {
             throw DerivedDataError.xcodeFailedToClose
         }
 
-        let timeout = 10.0
         let pollInterval = 0.5
         var elapsed = 0.0
 
