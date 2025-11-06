@@ -15,7 +15,7 @@ struct DerivedDataManagerTests {
     func emptyStartingValues() {
         let (_, _, delegate, _, _) = makeSUT()
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -73,10 +73,10 @@ extension DerivedDataManagerTests {
         let loadedFolders = try sut.loadFolders()
         try sut.deleteFolders(loadedFolders, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == folders.count)
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder1.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder2.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder3.name }))
+        #expect(delegate.deletedURLs.count == folders.count)
+        #expect(delegate.deletedURLs.contains(folder1.url))
+        #expect(delegate.deletedURLs.contains(folder2.url))
+        #expect(delegate.deletedURLs.contains(folder3.url))
     }
 
     @Test("Deletes no folders when given empty array")
@@ -85,7 +85,7 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -101,10 +101,10 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders(foldersToDelete, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 2)
-        guard delegate.deletedFolders.count >= 2 else { return }
-        #expect(delegate.deletedFolders[0].name == folder1.name)
-        #expect(delegate.deletedFolders[1].name == folder2.name)
+        #expect(delegate.deletedURLs.count == 2)
+        guard delegate.deletedURLs.count >= 2 else { return }
+        #expect(delegate.deletedURLs[0] == folder1.url)
+        #expect(delegate.deletedURLs[1] == folder2.url)
     }
 
     @Test("Deletes single folder successfully")
@@ -114,9 +114,9 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([folder], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == folder.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == folder.url)
     }
 
     @Test("Completes successfully when given empty folder list")
@@ -125,7 +125,7 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Propagates deletion error from delegate")
@@ -148,7 +148,7 @@ extension DerivedDataManagerTests {
             try sut.deleteFolders([folder1, folder2], force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -164,7 +164,7 @@ extension DerivedDataManagerTests {
             try sut.deleteFolders([folder], force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Allows deletion when Xcode is not running")
@@ -174,9 +174,9 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([folder], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == folder.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == folder.url)
     }
 
     @Test("Checks Xcode status before attempting any deletions")
@@ -191,7 +191,7 @@ extension DerivedDataManagerTests {
             try sut.deleteFolders(folders, force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedFolders.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Does not call progress handler when Xcode is running")
@@ -215,9 +215,9 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([folder], force: true, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == folder.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == folder.url)
     }
 
     @Test("Deletes multiple folders when force is true despite Xcode running")
@@ -230,10 +230,10 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders(folders, force: true, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 3)
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder1.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder2.name }))
-        #expect(delegate.deletedFolders.contains(where: { $0.name == folder3.name }))
+        #expect(delegate.deletedURLs.count == 3)
+        #expect(delegate.deletedURLs.contains(folder1.url))
+        #expect(delegate.deletedURLs.contains(folder2.url))
+        #expect(delegate.deletedURLs.contains(folder3.url))
     }
 }
 
@@ -292,9 +292,9 @@ extension DerivedDataManagerTests {
         let loadedFolders = try sut.loadFolders()
         try sut.deleteFolders(loadedFolders, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == folder.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == folder.url)
     }
 }
 
@@ -373,9 +373,9 @@ extension DerivedDataManagerTests {
 
         try sut.deleteFolders([folder], force: false, progressHandler: nil as (any PurgeProgressHandler)?)
 
-        #expect(delegate.deletedFolders.count == 1)
-        guard delegate.deletedFolders.count >= 1 else { return }
-        #expect(delegate.deletedFolders[0].name == folder.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == folder.url)
     }
 
     @Test("Calls complete on progress handler after deletion")
@@ -423,19 +423,8 @@ private extension DerivedDataManagerTests {
 private extension DerivedDataManagerTests {
     final class MockDerivedDataDelegate: DerivedDataDelegate, @unchecked Sendable {
         private let throwError: Bool
-        private var deletedURLs: [URL] = []
 
-        var deletedFolders: [DerivedDataFolder] {
-            deletedURLs.map { url in
-                DerivedDataFolder(
-                    url: url,
-                    name: url.lastPathComponent,
-                    path: url.path,
-                    creationDate: nil,
-                    modificationDate: nil
-                )
-            }
-        }
+        private(set) var deletedURLs: [URL] = []
 
         init(throwError: Bool = false) {
             self.throwError = throwError
