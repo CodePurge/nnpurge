@@ -31,3 +31,7 @@ public struct ArchiveFolder {
         self.versionNumber = versionNumber
     }
 }
+
+
+// MARK: - PurgableItem
+extension ArchiveFolder: PurgableItem { }

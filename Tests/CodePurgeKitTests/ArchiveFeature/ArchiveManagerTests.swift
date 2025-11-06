@@ -15,7 +15,7 @@ struct ArchiveManagerTests {
     func emptyStartingValues() {
         let (_, delegate) = makeSUT()
 
-        #expect(delegate.deletedArchives.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -192,10 +192,10 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives(archivesToDelete, force: false, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.count == 2)
-        guard delegate.deletedArchives.count >= 2 else { return }
-        #expect(delegate.deletedArchives[0].name == archive1.name)
-        #expect(delegate.deletedArchives[1].name == archive2.name)
+        #expect(delegate.deletedURLs.count == 2)
+        guard delegate.deletedURLs.count >= 2 else { return }
+        #expect(delegate.deletedURLs[0] == archive1.url)
+        #expect(delegate.deletedURLs[1] == archive2.url)
     }
 
     @Test("Deletes single archive successfully")
@@ -205,9 +205,9 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives([archive], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.count == 1)
-        guard delegate.deletedArchives.count >= 1 else { return }
-        #expect(delegate.deletedArchives[0].name == archive.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == archive.url)
     }
 
     @Test("Completes successfully when given empty archive list")
@@ -216,7 +216,7 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives([], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 
     @Test("Propagates deletion error from delegate")
@@ -239,7 +239,7 @@ extension ArchiveManagerTests {
             try sut.deleteArchives([archive1, archive2], force: false, progressHandler: nil)
         }
 
-        #expect(delegate.deletedArchives.isEmpty)
+        #expect(delegate.deletedURLs.isEmpty)
     }
 }
 
@@ -332,9 +332,9 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives([archive], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.count == 1)
-        guard delegate.deletedArchives.count >= 1 else { return }
-        #expect(delegate.deletedArchives[0].name == archive.name)
+        #expect(delegate.deletedURLs.count == 1)
+        guard delegate.deletedURLs.count >= 1 else { return }
+        #expect(delegate.deletedURLs[0] == archive.url)
     }
 }
 
@@ -358,8 +358,8 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives([archive], force: true, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.count == 1)
-        #expect(delegate.deletedArchives.first?.name == archive.name)
+        #expect(delegate.deletedURLs.count == 1)
+        #expect(delegate.deletedURLs.first == archive.url)
     }
 
     @Test("Does not throw when Xcode is not running")
@@ -369,7 +369,7 @@ extension ArchiveManagerTests {
 
         try sut.deleteArchives([archive], force: false, progressHandler: nil)
 
-        #expect(delegate.deletedArchives.count == 1)
+        #expect(delegate.deletedURLs.count == 1)
     }
 
     @Test("Successfully closes Xcode and verifies")
@@ -466,7 +466,7 @@ private extension ArchiveManagerTests {
         private let throwError: Bool
         private let plist: [String: Any]?
 
-        private(set) var deletedArchives: [ArchiveFolder] = []
+        private(set) var deletedURLs: [URL] = []
         var plistByFolder: [String: [String: Any]] = [:]
 
         init(throwError: Bool = false, plist: [String: Any]?) {
@@ -475,10 +475,14 @@ private extension ArchiveManagerTests {
         }
 
         func deleteArchive(_ archive: ArchiveFolder) throws {
+            try deleteItem(at: archive.url)
+        }
+
+        func deleteItem(at url: URL) throws {
             if throwError {
                 throw NSError(domain: "MockArchiveDelegate", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"])
             }
-            deletedArchives.append(archive)
+            deletedURLs.append(url)
         }
 
         func parseFolderPList(_ folder: any PurgeFolder) -> [String : Any]? {
