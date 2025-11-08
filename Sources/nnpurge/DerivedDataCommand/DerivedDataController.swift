@@ -40,7 +40,8 @@ extension DerivedDataController {
         let foldersToDelete = try selectFoldersToDelete(deleteAll: deleteAll)
 
         do {
-            try service.deleteFolders(foldersToDelete, force: false, progressHandler: progressHandler)
+            // TODO: - Progress handler removed for now as it's not needed
+            try service.deleteFolders(foldersToDelete, force: false, progressHandler: nil)
         } catch DerivedDataError.xcodeIsRunning {
             try handleXcodeRunning(foldersToDelete: foldersToDelete)
         }

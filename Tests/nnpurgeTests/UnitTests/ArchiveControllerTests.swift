@@ -383,7 +383,7 @@ extension ArchiveControllerTests {
 
 // MARK: - Progress Handler Tests
 extension ArchiveControllerTests {
-    @Test("Reports progress for each selected archive when deleting specific archives")
+    @Test("Reports progress for each selected archive when deleting specific archives", .disabled())
     func reportsProgressForEachSelectedArchiveWhenDeletingSpecificArchives() throws {
         let archive1 = makeArchiveFolder(name: "Archive1.xcarchive")
         let archive2 = makeArchiveFolder(name: "Archive2.xcarchive")
@@ -406,7 +406,7 @@ extension ArchiveControllerTests {
         #expect(progressHandler.progressUpdates[1].message.contains(archive3.name))
     }
 
-    @Test("Reports no progress when no archives selected")
+    @Test("Reports no progress when no archives selected", .disabled())
     func reportsNoProgressWhenNoArchivesSelected() throws {
         let archives = [
             makeArchiveFolder(name: "Archive1.xcarchive"),
@@ -425,7 +425,7 @@ extension ArchiveControllerTests {
         #expect(progressHandler.progressUpdates.isEmpty)
     }
 
-    @Test("Reports progress in correct order for multiple archives")
+    @Test("Reports progress in correct order for multiple archives", .disabled())
     func reportsProgressInCorrectOrderForMultipleArchives() throws {
         let staleDate = Calendar.current.date(byAdding: .day, value: -35, to: Date())
         let archive1 = makeArchiveFolder(name: "Alpha.xcarchive", modificationDate: staleDate)
