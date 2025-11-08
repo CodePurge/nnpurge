@@ -13,7 +13,7 @@ import ArgumentParser
 struct Nnpurge: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A command-line tool to clean up Xcode's derived data folders with interactive prompts for safety and precision.",
-        version: "0.2.0",
+        version: "v0.2.1",
         subcommands: [
             DerivedDataCommand.self,
             PackageCacheCommand.self,
