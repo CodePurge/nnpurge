@@ -45,7 +45,7 @@ extension DerivedDataManager: DerivedDataService {
             folders,
             force: force,
             progressHandler: progressHandler,
-            completionMessage: "✅ Derived Data moved to trash.",
+            completionMessage: "Derived Data moved to trash.",
             xcodeRunningError: DerivedDataError.xcodeIsRunning
         )
     }

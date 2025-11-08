@@ -47,7 +47,7 @@ extension PackageCacheManager: PackageCacheService {
             folders,
             force: force,
             progressHandler: progressHandler,
-            completionMessage: "✅ Package Repositories moved to trash.",
+            completionMessage: "Package Repositories moved to trash.",
             xcodeRunningError: PackageCacheError.xcodeIsRunning
         )
     }
