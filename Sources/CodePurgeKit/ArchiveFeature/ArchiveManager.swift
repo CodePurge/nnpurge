@@ -45,7 +45,7 @@ extension ArchiveManager: ArchiveService {
             archives,
             force: force,
             progressHandler: progressHandler,
-            completionMessage: "✅ Archives moved to trash.",
+            completionMessage: "Archives moved to trash.",
             xcodeRunningError: ArchiveError.xcodeIsRunning
         )
     }

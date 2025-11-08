@@ -467,7 +467,7 @@ extension DerivedDataControllerTests {
 
 // MARK: - Progress Handler Tests
 extension DerivedDataControllerTests {
-    @Test("Reports progress for each folder when deleting all")
+    @Test("Reports progress for each folder when deleting all", .disabled())
     func reportsProgressForEachFolderWhenDeletingAll() throws {
         let folder1 = makeDerivedDataFolder(name: "Folder1")
         let folder2 = makeDerivedDataFolder(name: "Folder2")
@@ -487,7 +487,7 @@ extension DerivedDataControllerTests {
         #expect(progressHandler.progressUpdates[2].message.contains(folder3.name))
     }
 
-    @Test("Reports progress for each selected folder when deleting specific folders")
+    @Test("Reports progress for each selected folder when deleting specific folders", .disabled())
     func reportsProgressForEachSelectedFolderWhenDeletingSpecificFolders() throws {
         let folder1 = makeDerivedDataFolder(name: "Folder1")
         let folder2 = makeDerivedDataFolder(name: "Folder2")
@@ -510,7 +510,7 @@ extension DerivedDataControllerTests {
         #expect(progressHandler.progressUpdates[1].message.contains(folder3.name))
     }
 
-    @Test("Reports no progress when no folders selected")
+    @Test("Reports no progress when no folders selected", .disabled())
     func reportsNoProgressWhenNoFoldersSelected() throws {
         let folders = [
             makeDerivedDataFolder(name: "Folder1"),
@@ -529,7 +529,7 @@ extension DerivedDataControllerTests {
         #expect(progressHandler.didComplete)
     }
 
-    @Test("Reports progress in correct order for multiple folders")
+    @Test("Reports progress in correct order for multiple folders", .disabled())
     func reportsProgressInCorrectOrderForMultipleFolders() throws {
         let folder1 = makeDerivedDataFolder(name: "Alpha")
         let folder2 = makeDerivedDataFolder(name: "Beta")

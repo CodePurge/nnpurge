@@ -38,7 +38,8 @@ extension ArchiveController {
         let archivesToDelete = try selectArchivesToDelete()
 
         do {
-            try service.deleteArchives(archivesToDelete, force: false, progressHandler: progressHandler)
+            // TODO: - Progress handler removed for now as it's not needed
+            try service.deleteArchives(archivesToDelete, force: false, progressHandler: nil)
         } catch ArchiveError.xcodeIsRunning {
             try handleXcodeRunning(archivesToDelete: archivesToDelete)
         }
