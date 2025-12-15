@@ -6,17 +6,16 @@
 //
 
 import Foundation
-import SwiftPicker
 import CodePurgeKit
 
 struct PackageCacheController {
     private let staleDaysThreshold: Int
-    private let picker: any CommandLinePicker
+    private let picker: any PurgePicker
     private let service: any PackageCacheService
     private let progressHandler: any PurgeProgressHandler
     private let xcodeHandler: XcodeRunningHandler
 
-    init(staleDaysThreshold: Int = 30, picker: any CommandLinePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
+    init(staleDaysThreshold: Int = 30, picker: any PurgePicker, service: any PackageCacheService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
@@ -119,29 +118,25 @@ private extension PackageCacheController {
 }
 
 
-// MARK: - Dependencies
-enum PackageCacheDeleteOption: CaseIterable {
-    case deleteAll, deleteStale, selectFolders
-}
-
-
 // MARK: - Extension Dependencies
-extension PackageCacheFolder: DisplayablePickerItem {
-    public var displayName: String {
-        return name // TODO: - may need to expand or format somehow
-    }
-    
+extension PackageCacheFolder {
     static func filterByDependencies(_ folders: [PackageCacheFolder], identities: [String]) -> [PackageCacheFolder] {
         let lowercaseIdentities = Set(identities.map { $0.lowercased() })
 
         return folders.filter { folder in
-            guard let packageName = folder.packageName else { return false }
+            guard let packageName = folder.packageName else {
+                return false
+            }
+            
             return lowercaseIdentities.contains(packageName.lowercased())
         }
     }
     
     private var packageName: String? {
-        guard let lastDashIndex = name.lastIndex(of: "-") else { return nil }
+        guard let lastDashIndex = name.lastIndex(of: "-") else {
+            return nil
+        }
+        
         return String(name[..<lastDashIndex])
     }
     
@@ -159,19 +154,6 @@ extension PackageCacheFolder: DisplayablePickerItem {
             }
 
             return false
-        }
-    }
-}
-
-extension PackageCacheDeleteOption: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .deleteAll:
-            return "Delete all package repositories"
-        case .deleteStale:
-            return "Delete stale packages (30+ days old)"
-        case .selectFolders:
-            return "Select specific packages to delete"
         }
     }
 }

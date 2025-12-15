@@ -27,7 +27,7 @@ struct Nnpurge: ParsableCommand {
 
 // MARK: - Factory Methods
 extension Nnpurge {
-    static func makePicker() -> any CommandLinePicker {
+    static func makePicker() -> any PurgePicker {
         return contextFactory.makePicker()
     }
 
@@ -42,6 +42,10 @@ extension Nnpurge {
     static func makePackageCacheService() -> any PackageCacheService {
         return contextFactory.makePackageCacheService()
     }
+    
+    static func makeArchiveService() -> any ArchiveService {
+        return contextFactory.makeArchiveService()
+    }
 
     static func makePackageCacheController() -> PackageCacheController {
         let picker = Nnpurge.makePicker()
@@ -50,18 +54,15 @@ extension Nnpurge {
 
         return .init(picker: picker, service: service, progressHandler: progressHandler)
     }
-
-    static func makeArchiveService() -> any ArchiveService {
-        return contextFactory.makeArchiveService()
-    }
 }
 
 
 // MARK: - Dependencies
 protocol ContextFactory {
-    func makePicker() -> any CommandLinePicker
+    func makePicker() -> any PurgePicker
     func makeUserDefaults() -> any DerivedDataStore
-    func makeDerivedDataService(path: String) -> any DerivedDataService
-    func makePackageCacheService() -> any PackageCacheService
     func makeArchiveService() -> any ArchiveService
+    func makePackageCacheService() -> any PackageCacheService
+    func makeDerivedDataService(path: String) -> any DerivedDataService
 }
+

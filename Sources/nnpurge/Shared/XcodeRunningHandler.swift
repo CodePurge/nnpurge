@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import SwiftPicker
 import CodePurgeKit
 
 struct XcodeRunningHandler {
-    private let picker: any CommandLinePicker
+    private let picker: any PurgePicker
     private let progressHandler: any PurgeProgressHandler
 
-    init(picker: any CommandLinePicker, progressHandler: any PurgeProgressHandler) {
+    init(picker: any PurgePicker, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.progressHandler = progressHandler
     }

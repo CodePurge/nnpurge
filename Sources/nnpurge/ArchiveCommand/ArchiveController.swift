@@ -6,16 +6,15 @@
 //
 
 import Foundation
-import SwiftPicker
 import CodePurgeKit
 
 struct ArchiveController {
-    private let picker: any CommandLinePicker
+    private let picker: any PurgePicker
     private let service: any ArchiveService
     private let progressHandler: any PurgeProgressHandler
     private let xcodeHandler: XcodeRunningHandler
 
-    init(picker: any CommandLinePicker, service: any ArchiveService, progressHandler: any PurgeProgressHandler) {
+    init(picker: any PurgePicker, service: any ArchiveService, progressHandler: any PurgeProgressHandler) {
         self.picker = picker
         self.service = service
         self.progressHandler = progressHandler
@@ -92,24 +91,5 @@ private extension ArchiveController {
             deleteOperation: service.deleteArchives,
             xcodeFailedToCloseError: ArchiveError.xcodeFailedToClose
         )
-    }
-}
-
-
-// MARK: - Dependencies
-enum ArchiveOption: CaseIterable {
-    case deleteStale, selectFolders
-}
-
-
-// MARK: - Extension Dependencies
-extension ArchiveOption: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .deleteStale:
-            return "Delete stale archives (30+ days old)"
-        case .selectFolders:
-            return "Select specific archives to delete"
-        }
     }
 }

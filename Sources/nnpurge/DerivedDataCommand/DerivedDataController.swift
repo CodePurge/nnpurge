@@ -6,17 +6,16 @@
 //
 
 import Foundation
-import SwiftPicker
 import CodePurgeKit
 
 struct DerivedDataController {
     private let store: any DerivedDataStore
-    private let picker: any CommandLinePicker
+    private let picker: any PurgePicker
     private let service: any DerivedDataService
     private let progressHandler: any PurgeProgressHandler
     private let xcodeHandler: XcodeRunningHandler
 
-    init(store: any DerivedDataStore, picker: any CommandLinePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
+    init(store: any DerivedDataStore, picker: any PurgePicker, service: any DerivedDataService, progressHandler: any PurgeProgressHandler) {
         self.store = store
         self.picker = picker
         self.service = service
@@ -114,10 +113,6 @@ protocol DerivedDataStore {
     func set(_ value: Any?, forKey defaultName: String)
 }
 
-enum DerivedDataDeleteOption: CaseIterable {
-    case deleteAll, selectFolders
-}
-
 
 // MARK: - Extension Dependencies
 extension DerivedDataStore {
@@ -131,22 +126,5 @@ extension DerivedDataStore {
 private extension String {
     static var derivedDataPathKey: String {
         return "derivedDataPathKey"
-    }
-}
-
-extension DerivedDataFolder: DisplayablePickerItem {
-    public var displayName: String {
-        return name
-    }
-}
-
-extension DerivedDataDeleteOption: DisplayablePickerItem {
-    var displayName: String {
-        switch self {
-        case .deleteAll:
-            return "Delete all derived data folders"
-        case .selectFolders:
-            return "Select specific folders to delete"
-        }
     }
 }

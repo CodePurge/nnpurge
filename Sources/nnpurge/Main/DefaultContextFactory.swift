@@ -6,12 +6,12 @@
 //
 
 import Foundation
-import SwiftPicker
 import CodePurgeKit
+import SwiftPickerKit
 
 struct DefaultContextFactory: ContextFactory {
-    func makePicker() -> any CommandLinePicker {
-        return InteractivePicker()
+    func makePicker() -> any PurgePicker {
+        return SwiftPicker()
     }
 
     func makeUserDefaults() -> any DerivedDataStore {
@@ -33,4 +33,5 @@ struct DefaultContextFactory: ContextFactory {
 
 
 // MARK: - Extension Depdencies
+extension SwiftPicker: PurgePicker { }
 extension UserDefaults: DerivedDataStore { }
