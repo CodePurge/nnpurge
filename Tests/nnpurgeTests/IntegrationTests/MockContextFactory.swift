@@ -37,7 +37,7 @@ extension MockContextFactory: ContextFactory {
         return MockArchiveService()
     }
     
-    func makePicker() -> any CommandLinePicker {
+    func makePicker() -> any PurgePicker {
         if let picker {
             return picker
         }
@@ -65,3 +65,5 @@ extension MockContextFactory: ContextFactory {
         return MockPurgeService()
     }
 }
+
+extension MockSwiftPicker: PurgePicker { }
